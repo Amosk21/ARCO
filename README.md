@@ -107,15 +107,11 @@ Defines what ARCO is and is not.
 **Location:** `/03_TECHNICAL_CORE/`
 
 **Core Ontologies (.ttl)**  
-- `ARCO_core_gold_fixed_v3.ttl`  
-- `ARCO_governance_extension_fixed_v3.ttl`  
+- `ARCO_core.ttl`  
+- `ARCO_governance_extension.ttl`  
+- `ARCO_instances_sentinel.ttl`  
+BFO-aligned structures defining systems, capabilities, dispositions, and regulatory triggers & Sentinel reference system used to demonstrate deterministic reasoning.
 
-BFO-aligned structures defining systems, capabilities, dispositions, and regulatory triggers.
-
-**Instance Data (.ttl)**  
-- `ARCO_instances_gold_extended_fixed_v3.ttl`  
-
-Sentinel reference system used to demonstrate deterministic reasoning.
 
 **Validation Shapes (.ttl)**  
 - `assessment_documentation_shape.ttl`  
@@ -176,4 +172,5 @@ Ready for pilot deployment as a fixed-scope assessment.
 
 **Primary Focus Going Forward**  
 Sequencing, packaging, and execution — not expanding the ontology surface area.
+
 
