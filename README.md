@@ -108,10 +108,10 @@ Recommended for leadership, reviewers, and conceptual alignment.
 
 Recommended for technical validation and engagement modeling.
 
-3. **ARCO_Regulatory_Determination_Case.pdf**  
+3. **01_COMMERCIAL / ARCO_Regulatory_Determination_Case.pdf**  
    A concrete example of a regulatory determination produced by the framework, including the final certificate and traceability.
 
-4. **01_COMMERCIAL / Pilot_Engagement_Model**  
+4. **01_COMMERCIAL / Pilot_Engagement_Model.pdf**  
    Defines how the framework would be deployed in a client setting, including the Statement of Work structure and engagement boundaries.
 
 5. **03_TECHNICAL_CORE / scripts / run_pipeline.py**  
@@ -139,6 +139,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
