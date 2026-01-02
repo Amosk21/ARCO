@@ -1,177 +1,112 @@
-# ARCO — Assurance & Regulatory Classification Ontology
+ARCO
 
-**Status:** Pilot-Ready (v1 Core)  
-**Owner:** Alex Moskowitz
+Assurance & Regulatory Classification Ontology
 
----
+What this is
 
-## CONTEXT
+ARCO is a framework for producing clear, defensible regulatory classifications for high-stakes AI systems.
 
-This repository contains the complete IP stack for **ARCO**, a deterministic assurance framework for regulatory classification of high-stakes AI systems.
+Instead of generating scores, probabilities, or confidence levels, ARCO produces deterministic yes/no regulatory determinations that can be traced directly back to the structure and capabilities of the system being evaluated.
 
-ARCO moves beyond governance commentary and probabilistic compliance tooling into a deployable, auditable capability.
+This repository demonstrates how such determinations can be constructed, validated, and audited end-to-end using formal methods.
 
-The core objective is simple:
+Why ARCO exists
 
-> Replace probabilistic “confidence” with regulator-defensible logical determination.
+Most AI compliance tooling answers questions like:
 
-ARCO does not provide advice, scores, or likelihoods.  
-It produces binding regulatory classifications as a matter of logical necessity.
+“How risky does this system appear?”
 
-*ARCO is presented here as a reference-grade assurance methodology and demonstration of capability.
-The pilot engagement is structured to show how the framework would be operationalized in practice, not necessarily to imply production readiness, automation, or market scale.*
----
+“How confident are we that it complies?”
 
-## WHAT ARCO DOES
+“What score does the model produce?”
 
-ARCO produces a formal regulatory determination for an AI system by:
+Those approaches break down in regulated environments.
 
-- Interpreting system documentation  
-- Encoding system capabilities into a formal ontology  
-- Enforcing structural admissibility with SHACL  
-- Evaluating regulatory criteria via deterministic logic  
-- Producing a traceable audit log of the reasoning path  
+Regulators, auditors, and courts do not evaluate probability.
+They evaluate justification.
 
-The output is not opinion.  
-It is a logically forced conclusion derived from system structure.
+ARCO exists to answer a different question:
 
----
+Given what this system is capable of doing, does it meet the legal criteria for a specific regulatory classification — yes or no?
 
-## RECOMMENDED READING ORDER  
-*(High-Level → Concrete)*
+And to make that answer:
 
-For first-time reviewers, read in the following order:
+Deterministic
 
-1. `/01_COMMERCIAL/ARCO_Assurance_Engine.pdf`  
-   Conceptual overview of Glass-Box Assurance and why probabilistic tools fail in regulated domains.
+Explainable
 
-2. `/01_COMMERCIAL/StakeholderDeck.pdf`  
-   Executive-level explanation of latent capability risk (disposition vs. realization).
+Auditable
 
-3. `/01_COMMERCIAL/ARCO_Regulatory_Determination_Case.pdf`  
-   Concrete example of ARCO’s output using the Sentinel reference system.
+Reproducible
 
-4. `/01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.pdf`  
-   Fixed-scope Statement of Work defining how ARCO is deployed commercially.
+What ARCO does
 
----
+At a high level, ARCO operates as follows:
 
-## DOCUMENT LAYERS AND PURPOSE
+Start from system documentation
+The system’s components, deployment context, and capabilities.
 
----
+Represent those capabilities formally
+Using an ontology that distinguishes what a system does from what it is capable of doing.
 
-### COMMERCIAL LAYER (Buyer-Facing)
+Enforce structural completeness
+SHACL rules ensure required information is explicit and nothing is assumed.
 
-**Location:** `/01_COMMERCIAL/`
+Apply regulatory logic deterministically
+SPARQL queries test whether the encoded system satisfies legal criteria.
 
-**ARCO_Pilot_Engagement_Scope.pdf**  
-Role: Statement of Work  
-Defines price ($25k), scope (1 system), timeline (4 weeks), and deliverables.  
-Use to close pilot engagements.
+Produce a traceable determination
+Every conclusion can be followed back to explicit facts and rules.
 
-**ARCO_Regulatory_Determination_Case.pdf**  
-Role: Sample Deliverable  
-Shows exactly what the client receives: a determination certificate, audit trace, and gap analysis.  
-Attach as Appendix A to the Pilot SOW.
+The output is not advice or opinion.
+It is a conclusion that follows logically from system structure.
 
-**ARCO_Assurance_Engine.pdf**  
-Role: Positioning Paper  
-Establishes the distinction between deterministic assurance and probabilistic governance tools.
+What this repository represents
 
-**StakeholderDeck.pdf**  
-Role: Executive Pitch  
-Visual, non-technical explanation of latent capability risk.
+This repository is not a SaaS product or automated compliance platform.
 
----
+It is a reference-grade assurance methodology and implementation that demonstrates:
 
-### SYSTEM OVERVIEW
+How deterministic regulatory classification can be performed
 
-**Location:** `/02_SYSTEM_OVERVIEW/`
+What artifacts such a process produces
 
-**TechnicalDeck.pdf**  
-Role: Architecture Manual  
-Detailed walkthrough of pipeline design and reasoning flow.
+How reasoning can be validated and audited
 
-**ARCO_Technical_Implementation.pdf**  
-Role: Implementation Reference  
-Bridges conceptual architecture to concrete technical artifacts.
+What a regulatory determination output looks like in practice
 
-**CommandCenter.pdf**  
-Role: Strategic Doctrine  
-Defines what ARCO is and is not.
+The included pilot materials show how the framework could be operationalized in a real engagement. They are intended to demonstrate capability and structure, not to imply production readiness, automation, or market scale.
 
----
+Where to start
 
-### TECHNICAL CORE (The IP)
+For first-time readers, the recommended order is:
 
-**Location:** `/03_TECHNICAL_CORE/`
+ARCO_Assurance_Engine.pdf
+Explains the motivation behind deterministic assurance and why probabilistic approaches fail in regulated domains.
 
-**Core Ontologies (.ttl)**  
-- `ARCO_core.ttl`  
-- `ARCO_governance_extension.ttl`  
-- `ARCO_instances_sentinel.ttl`  
-BFO-aligned structures defining systems, capabilities, dispositions, and regulatory triggers & Sentinel reference system used to demonstrate deterministic reasoning.
+ARCO_Regulatory_Determination_Case.pdf
+A concrete example of a determination produced by the framework.
 
+CommandCenter.pdf
+Defines the strategic boundaries of what ARCO is and is not.
 
-**Validation Shapes (.ttl)**  
-- `assessment_documentation_shape.ttl`  
+The technical files are included to show how the reasoning actually works, not because every reader is expected to run the pipeline.
 
-SHACL constraints enforcing structural admissibility and documentation completeness.
+What ARCO is not
 
-**Audit Queries (.sparql)**  
-- `check_assessment_traceability.sparql`  
-- `ask_assessment_doc_process_wiring.sparql`  
-- `ask_provider_role_inheres_in_org.sparql`  
+Not a probabilistic risk scoring tool
 
-Queries that generate the traceable determination logic.
+Not a compliance checklist generator
 
-**Execution Scripts (.py)**  
-- `run_pipeline.py`  
+Not a substitute for legal counsel
 
-Together these implement the neuro-symbolic pipeline:
+Not a plug-and-play automation platform
 
-**Interpretation → Representation → Validation → Inference → Trace**
+ARCO is best understood as a formal assurance instrument — similar in spirit to safety cases used in aerospace or medical systems, applied to AI regulatory classification.
 
----
+Status
 
-### DIAGRAMS AND MODELS
+ARCO is presented here as a reference-grade methodology and demonstration of capability.
 
-**Location:** `/04_DIAGRAMS_AND_MODELS/`
-
-Graph and architecture visualizations used across decks and documentation.
-
----
-
-### REFERENCE MATERIAL
-
-**Location:** `/90_REFERENCE/`
-
-**Glass_Box_Compliance_White_Paper.pdf**  
-Academic framing of deterministic assurance.
-
-**NCOR_Defense_Dossier.pdf**  
-Contextual reference material.
-
----
-
-### PERSONAL / NON-FRONT-FACING
-
-**Location:** `/personal/`
-
-Internal documents not part of the ARCO product surface.
-
----
-
-## CURRENT STATUS
-
-**Technical**  
-Complete enough to demonstrate non-trivial, deterministic regulatory reasoning.
-
-**Commercial**  
-Ready for pilot deployment as a fixed-scope assessment.
-
-**Primary Focus Going Forward**  
-Sequencing, packaging, and execution — not expanding the ontology surface area.
-
-
-
+The technical foundation is intentionally explicit and auditable.
+Future work focuses on validation, operational deployment, and refinement through real-world use.
