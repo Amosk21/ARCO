@@ -164,3 +164,7 @@ Ready for pilot deployment as a fixed-scope assessment.
 
 Primary Focus Going Forward:
 Sequencing, packaging, and execution — not expanding the ontology surface area.
+
+is this contextually the same? outside of formatting, just want to make sure evertything is there
+
+
