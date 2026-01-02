@@ -5,7 +5,7 @@ Assurance & Regulatory Classification Ontology
 
 ARCO is a framework for producing **clear, defensible regulatory classifications** for high-stakes AI systems.
 
-Instead of generating scores, confidence levels, or probabilistic assessments, ARCO produces **deterministic regulatory determinations** that can be traced directly back to the structure and capabilities of the system being evaluated.
+Instead of generating scores, confidence levels, or probabilistic assessments, ARCO produces **regulatory determinations** that can be traced directly back to the structure and capabilities of the system being evaluated.
 
 The goal is simple:
 
@@ -117,3 +117,4 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
