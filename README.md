@@ -46,22 +46,22 @@ And to make that answer:
 At a high level, ARCO works as follows:
 
 1. Start from system documentation  
-Hardware, software components, deployment context, and intended use.
+  Hardware, software components, deployment context, and intended use.
 
 2. Represent system capabilities explicitly  
-Capabilities are modeled formally, including latent capabilities that exist even if they are not currently enabled.
+  Capabilities are modeled formally, including latent capabilities that exist even if they are not currently enabled.
 
 3. Enforce structural completeness  
-SHACL rules ensure required information is explicit and nothing is assumed or inferred informally.
+  SHACL rules ensure required information is explicit and nothing is assumed or inferred informally.
 
 4. Apply regulatory logic deterministically  
-SPARQL queries test whether the encoded system satisfies legal criteria.
+  SPARQL queries test whether the encoded system satisfies legal criteria.
 
 5. Produce a traceable determination  
-Every conclusion can be followed back to explicit facts and rules.
+  Every conclusion can be followed back to explicit facts and rules.
 
 The output is not advice or opinion.  
-It is a conclusion that follows logically from system structure.
+  It is a conclusion that follows logically from system structure.
 
 ---
 
@@ -117,5 +117,6 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
