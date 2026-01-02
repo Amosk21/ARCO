@@ -126,7 +126,7 @@ SHACL constraints enforcing structural admissibility and documentation completen
 Queries that generate the traceable determination logic.
 
 **Execution Scripts (.py)**  
-- `run_checks.py`  
+- `run_pipeline.py`  
 
 Together these implement the neuro-symbolic pipeline:
 
@@ -172,5 +172,6 @@ Ready for pilot deployment as a fixed-scope assessment.
 
 **Primary Focus Going Forward**  
 Sequencing, packaging, and execution — not expanding the ontology surface area.
+
 
 
