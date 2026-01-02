@@ -94,7 +94,7 @@ For first-time readers, the recommended order is:
 3. **CommandCenter.pdf**  
    Defines what ARCO is, what it is not, and how it is intended to be used.
 
-The technical files are included to show how the reasoning actually works, not because every reader is expected to run the pipeline.
+Technical files for pipeline execution and additional reference documentation are included for detailed inspection.
 
 ---
 
@@ -117,6 +117,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
