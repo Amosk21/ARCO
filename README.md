@@ -18,6 +18,8 @@ The core objective is simple:
 ARCO does not provide advice, scores, or likelihoods.  
 It produces binding regulatory classifications as a matter of logical necessity.
 
+*ARCO is presented here as a reference-grade assurance methodology and demonstration of capability.
+The pilot engagement is structured to show how the framework would be operationalized in practice, not necessarily to imply production readiness, automation, or market scale.*
 ---
 
 ## WHAT ARCO DOES
@@ -174,3 +176,4 @@ Ready for pilot deployment as a fixed-scope assessment.
 
 **Primary Focus Going Forward**  
 Sequencing, packaging, and execution — not expanding the ontology surface area.
+
