@@ -83,28 +83,36 @@ They are intended to demonstrate structure, rigor, and end-to-end reasoning, not
 
 ## Where to start
 
-This repository is structured to support both strategic review and technical validation.
+This repository is structured to support both high-level review and hands-on technical validation.  
+Depending on what you are trying to understand, there are two recommended entry paths.
 
-### Phase 1: The Methodology (Strategic View)
-*Recommended for leadership and conceptual alignment.*
+---
 
-1. **ARCO_Assurance_Engine.pdf**
-   Explains why probabilistic approaches fail in regulated domains and defines the logic-first alternative.
+### Phase 1: Methodology (Strategic View)
 
-2. **CommandCenter.pdf**
-   The operational overview: defines scope, inputs, and the assurance process flow.
+Recommended for leadership, reviewers, and conceptual alignment.
 
-### Phase 2: The Execution (Operational View)
-*Recommended for technical validation and engagement modeling.*
+1. **ARCO_Assurance_Engine.pdf**  
+   Explains why probabilistic approaches break down in regulated domains and introduces the logic-first assurance model.
 
-3. **ARCO_Regulatory_Determination_Case.pdf**
-   A concrete example of a regulatory determination produced by the framework (The "Certificate").
+2. **CommandCenter.pdf**  
+   Provides the operational overview: scope, inputs, outputs, and how the assurance process is structured end to end.
 
-4. **01_COMMERCIAL / Pilot_Engagement_Model** (or specific SOW file name)
-   Defines how this framework is deployed in a client setting, including the Statement of Work (SOW) structure.
+---
 
-5. **03_TECHNICAL_CORE / scripts / run_pipeline.py**
-   The reference implementation. This script demonstrates the ingestion, reasoning, and validation pipeline in action.
+### Phase 2: Execution (Operational View)
+
+Recommended for technical validation and engagement modeling.
+
+3. **ARCO_Regulatory_Determination_Case.pdf**  
+   A concrete example of a regulatory determination produced by the framework, including the final certificate and traceability.
+
+4. **01_COMMERCIAL / Pilot_Engagement_Model**  
+   Defines how the framework would be deployed in a client setting, including the Statement of Work structure and engagement boundaries.
+
+5. **03_TECHNICAL_CORE / scripts / run_pipeline.py**  
+   The reference implementation. This script demonstrates ontology ingestion, deterministic reasoning, and SHACL validation in action.
+
 
 ---
 
@@ -127,6 +135,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
