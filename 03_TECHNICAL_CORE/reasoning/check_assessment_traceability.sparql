@@ -1,0 +1,7 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+
+ASK WHERE {
+  :AssessmentDoc_001 iao:0000136 :Sentinel_ID_System .
+  :AssessmentDoc_001 iao:0000136 :AnnexIII_Condition_Q1 .
+}

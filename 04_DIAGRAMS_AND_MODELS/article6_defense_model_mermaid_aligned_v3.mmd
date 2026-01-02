@@ -1,0 +1,51 @@
+flowchart TD
+  classDef universal fill:#406E8E,stroke:#fff,color:#fff
+  classDef ice fill:#B85C38,stroke:#fff,color:#fff
+  classDef system fill:#23395B,stroke:#fff,color:#fff
+  classDef process fill:#2E7D32,stroke:#fff,color:#fff
+  classDef org fill:#6A1B9A,stroke:#fff,color:#fff
+  classDef doc fill:#455A64,stroke:#fff,color:#fff
+
+  subgraph Reality["REALITY (BFO)"]
+    Sys["Sentinel-ID System<br>(:System)"]:::system
+    Disp(("Sentinel FaceID Disposition<br>(instance)")):::universal
+    BioCap[["Biometric Identification Capability<br>(Universal/Class)"]]:::universal
+    Sys -->|ro:0000053 bearer_of| Disp
+    Disp -.->|rdf:type| BioCap
+  end
+
+  subgraph Regulation["REGULATORY ICE (CCO/IAO)"]
+    Annex["Annex III Condition Q1<br>(:RegulatoryContent)"]:::ice
+    Annex -->|iao:0000136 is_about| BioCap
+  end
+
+  subgraph Operation["OPERATION (BFO Process)"]
+    Op["Surveillance Run 001<br>(:OperationalProcess)"]:::process
+    Op -->|ro:0000057 has_participant| Sys
+    Op -->|bfo:0000055 realizes| Disp
+    Out["FaceData Log 001<br>(:InformationOutput)"]:::doc
+    Op -->|cco:has_output| Out
+    Out -->|iao:0000136 is_about| Sys
+  end
+
+  subgraph Compliance["COMPLIANCE OUTPUT (Representation)"]
+    Det["High-Risk Determination 001<br>(:HighRiskDetermination)"]:::doc
+    Det -->|iao:0000136 is_about| Sys
+    Det -->|iao:0000136 is_about| Annex
+  end
+
+  subgraph Provider["PROVIDER + DOCUMENTATION (Mermaid commitments)"]
+    Org["Provider Organization<br>(:ProviderOrganization)"]:::org
+    Role["Provider Role<br>(:ProviderRole)"]:::universal
+    Org -->|ro:0000087 has_role| Role
+    Role -->|ro:0000052 inheres_in| Org
+
+    DocProc["Assessment Documentation Process 001<br>(:AssessmentDocumentationProcess)"]:::process
+    DocProc -->|ro:0000057 has_participant| Sys
+    DocProc -->|ro:0000057 has_participant| Role
+
+    Doc["Assessment Documentation 001<br>(:AssessmentDocumentation)"]:::doc
+    DocProc -->|cco:has_output| Doc
+    Doc -->|iao:0000136 is_about| Sys
+    Doc -->|iao:0000136 is_about| Annex
+  end

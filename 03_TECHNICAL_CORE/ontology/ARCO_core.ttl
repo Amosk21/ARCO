@@ -1,0 +1,93 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/core> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Core (Gold Standard) — Fixed Import IRI" ;
+  rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Ontology IRI is https://arco.ai/ontology/core so imports can be resolved consistently." .
+
+#################################################################
+# 1) REALITY-SIDE UNIVERSALS (BFO)
+#################################################################
+
+:System rdf:type owl:Class ;
+  rdfs:label "AI System" ;
+  rdfs:subClassOf bfo:0000027 ; # Object Aggregate
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty ro:0000053 ; # bearer of
+    owl:someValuesFrom :CapabilityDisposition
+  ] .
+
+:CapabilityDisposition rdf:type owl:Class ;
+  rdfs:label "AI Capability Disposition" ;
+  rdfs:subClassOf bfo:0000016 . # Disposition
+
+:BiometricIdentificationCapability rdf:type owl:Class ;
+  rdfs:label "Biometric Identification Capability" ;
+  rdfs:comment "A capability-disposition whose realizations include identifying or verifying individuals via biometric characteristics." ;
+  rdfs:subClassOf :CapabilityDisposition .
+
+:OperationalProcess rdf:type owl:Class ;
+  rdfs:label "Operational Process" ;
+  rdfs:subClassOf bfo:0000015 ; # Process
+  rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,               # has participant
+    [ a owl:Restriction ; owl:onProperty bfo:0000055 ; owl:someValuesFrom :CapabilityDisposition ] . # realizes
+
+#################################################################
+# 2) REPRESENTATION-SIDE UNIVERSALS (CCO/IAO)
+#################################################################
+
+:InformationOutput rdf:type owl:Class ;
+  rdfs:label "Information Output" ;
+  rdfs:subClassOf cco:InformationContentEntity .
+
+:RegulatoryContent rdf:type owl:Class ;
+  rdfs:label "Regulatory Content" ;
+  rdfs:subClassOf cco:InformationContentEntity .
+
+:ComplianceDetermination rdf:type owl:Class ;
+  rdfs:label "Compliance Determination Result" ;
+  rdfs:comment "Structured result of a compliance assessment (e.g., High-Risk, Limited-Risk, Prohibited)." ;
+  rdfs:subClassOf cco:InformationContentEntity .
+
+:HighRiskDetermination rdf:type owl:Class ;
+  rdfs:label "High-Risk Determination" ;
+  rdfs:subClassOf :ComplianceDetermination .
+
+#################################################################
+# 3) RELATION ANCHORS (labels only)
+#################################################################
+
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+
+# Minimal UI labels for the BFO classes you reference
+bfo:0000015 rdfs:label "Process" .
+bfo:0000016 rdfs:label "Disposition" .
+bfo:0000023 rdfs:label "Role" .
+bfo:0000027 rdfs:label "Object Aggregate" .
+
+# Minimal UI labels for BFO relations you reference
+bfo:0000051 rdfs:label "has part" .
+bfo:0000055 rdfs:label "realizes" .
+
+# Minimal UI labels for RO relations you reference
+ro:0000052 rdfs:label "inheres in" .
+ro:0000053 rdfs:label "bearer of" .
+ro:0000057 rdfs:label "has participant" .
+ro:0000087 rdfs:label "has role" .
+
+ro:0000053 rdfs:label "bearer of" .
+ro:0000057 rdfs:label "has participant" .
+bfo:0000055 rdfs:label "realizes" .
+bfo:0000051 rdfs:label "has part" .
+iao:0000136 rdfs:label "is about" .
+cco:has_output rdfs:label "has output" .

@@ -1,0 +1,83 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Sentinel-ID Instances — Extended (Mermaid-Aligned)" ;
+  rdfs:comment "Instances demonstrating: ICE grounded to reality-side universals; system bears a capability-disposition; operational realization; documentation workflow with ProviderRole tied to ProviderOrganization." ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# 1) REGULATORY LAYER (ICE grounded to reality)
+#################################################################
+
+:AnnexIII_List rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III List" ;
+  bfo:0000051 :AnnexIII_Condition_Q1 .  # has part
+
+:AnnexIII_Condition_Q1 rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III Q1 (Biometric Rule)" ;
+  iao:0000136 :BiometricIdentificationCapability . # is_about the Universal (class)
+
+#################################################################
+# 2) SYSTEM LAYER (reality-side particulars)
+#################################################################
+
+:Sentinel_ID_System rdf:type :System ;
+  rdfs:label "Sentinel-ID System" ;
+  ro:0000053 :Sentinel_FaceID_Disposition . # bearer of
+
+:Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability ;
+  rdfs:label "Sentinel Facial Recognition Disposition" .
+
+#################################################################
+# 3) OPERATIONAL LAYER (realization + outputs)
+#################################################################
+
+:Surveillance_Run_001 rdf:type :OperationalProcess ;
+  rdfs:label "Surveillance Run 001" ;
+  ro:0000057 :Sentinel_ID_System ;           # has participant
+  bfo:0000055 :Sentinel_FaceID_Disposition ; # realizes
+  cco:has_output :FaceData_Log_001 .         # has output
+
+:FaceData_Log_001 rdf:type :InformationOutput ;
+  rdfs:label "Face Data Log 001" ;
+  iao:0000136 :Sentinel_ID_System .
+
+#################################################################
+# 4) COMPLIANCE DETERMINATION (representation-side output)
+#################################################################
+
+:HighRisk_Determination_001 rdf:type :HighRiskDetermination ;
+  rdfs:label "High-Risk Determination 001" ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :AnnexIII_Condition_Q1 ;
+  rdfs:comment "Determination asserted for the demo: Sentinel-ID bears BiometricIdentificationCapability (disposition). AnnexIII_Condition_Q1 is_about that capability universal. This makes the reasoning chain auditable." .
+
+#################################################################
+# 5) PROVIDER + DOCUMENTATION WORKFLOW (Mermaid commitments)
+#################################################################
+
+:ProviderOrg_001 rdf:type :ProviderOrganization ;
+  rdfs:label "Sentinel-ID Provider Org (Example)" ;
+  ro:0000087 :ProviderRole_001 .
+
+:ProviderRole_001 rdf:type :ProviderRole ;
+  rdfs:label "Provider Role (bearer: ProviderOrg_001)" ;
+  ro:0000052 :ProviderOrg_001 .  # inheres in
+
+:AssessmentDocProcess_001 rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Assessment Documentation Process 001" ;
+  ro:0000057 :Sentinel_ID_System ;
+  ro:0000057 :ProviderRole_001 ;
+  cco:has_output :AssessmentDoc_001 .
+
+:AssessmentDoc_001 rdf:type :AssessmentDocumentation ;
+  rdfs:label "Assessment Documentation 001" ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :AnnexIII_Condition_Q1 .

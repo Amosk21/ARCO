@@ -1,0 +1,6 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+
+ASK WHERE {
+  :ProviderRole_001 ro:0000052 :ProviderOrg_001 .
+}

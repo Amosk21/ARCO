@@ -1,0 +1,64 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/governance> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Governance Extension — Minimal Commitments (Mermaid-Aligned)" ;
+  rdfs:comment "Minimal governance/role/documentation commitments that appear in the Mermaid diagram, formalized as simple OWL restrictions (kept intentionally lightweight for reliable Protégé + HermiT demos)." ;
+  owl:imports <https://arco.ai/ontology/core> .
+
+#################################################################
+# 1) ACTORS + ROLES
+#################################################################
+
+:ProviderOrganization rdf:type owl:Class ;
+  rdfs:label "Provider Organization" ;
+  rdfs:subClassOf cco:Organization ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty ro:0000087 ;   # has role
+    owl:someValuesFrom :ProviderRole
+  ] .
+
+:ProviderRole rdf:type owl:Class ;
+  rdfs:label "Provider Role" ;
+  rdfs:subClassOf bfo:0000023 .   # Role
+
+#################################################################
+# 2) DOCUMENTATION WORKFLOW
+#################################################################
+
+:AssessmentDocumentationProcess rdf:type owl:Class ;
+  rdfs:label "Assessment Documentation Process" ;
+  rdfs:subClassOf bfo:0000015 ; # Process
+  rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,
+    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :ProviderRole ] ,
+    [ a owl:Restriction ; owl:onProperty cco:has_output ; owl:someValuesFrom :AssessmentDocumentation ] .
+
+:AssessmentDocumentation rdf:type owl:Class ;
+  rdfs:label "Assessment Documentation" ;
+  rdfs:comment "A documentation artifact produced by the assessment documentation process; traceable to the assessed system and the regulatory content applied." ;
+  rdfs:subClassOf :InformationOutput ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;  # is about
+    owl:someValuesFrom :System
+  ] ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;  # is about
+    owl:someValuesFrom :RegulatoryContent
+  ] .
+
+#################################################################
+# 3) RELATION ANCHORS (labels only)
+#################################################################
+
+ro:0000087 rdfs:label "has role" .
+ro:0000052 rdfs:label "inheres in" .

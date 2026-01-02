@@ -1,0 +1,99 @@
+@prefix sh:  <http://www.w3.org/ns/shacl#> .
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+#################################################################
+# Shape 1: Your existing shape (kept as-is, minor formatting only)
+#################################################################
+
+:AssessmentDocumentationShape
+  a sh:NodeShape ;
+  sh:targetClass :AssessmentDocumentation ;
+
+  sh:property [
+    sh:path iao:0000136 ;          # is about
+    sh:class :System ;
+    sh:minCount 1 ;
+  ] ;
+
+  sh:property [
+    sh:path iao:0000136 ;          # is about
+    sh:class :RegulatoryContent ;
+    sh:minCount 1 ;
+  ] .
+
+#################################################################
+# Shape 2: Documentation process must include the expected links
+#################################################################
+
+:AssessmentDocumentationProcessShape
+  a sh:NodeShape ;
+  sh:targetClass :AssessmentDocumentationProcess ;
+
+  # must have participant System
+  sh:property [
+    sh:path ro:0000057 ;           # has participant
+    sh:class :System ;
+    sh:minCount 1 ;
+  ] ;
+
+  # must have participant ProviderRole
+  sh:property [
+    sh:path ro:0000057 ;           # has participant
+    sh:class :ProviderRole ;
+    sh:minCount 1 ;
+  ] ;
+
+  # must output at least one AssessmentDocumentation
+  sh:property [
+    sh:path cco:has_output ;
+    sh:class :AssessmentDocumentation ;
+    sh:minCount 1 ;
+  ] .
+
+#################################################################
+# Shape 3: ProviderRole must inhere in some ProviderOrganization
+#################################################################
+
+:ProviderRoleShape
+  a sh:NodeShape ;
+  sh:targetClass :ProviderRole ;
+
+  sh:property [
+    sh:path ro:0000052 ;           # inheres in
+    sh:class :ProviderOrganization ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+  ] .
+
+#################################################################
+# Shape 4: RegulatoryContent is about some OWL class (universal)
+# This matches your pattern: AnnexIII_Condition_Q1 is_about BiometricIdentificationCapability
+#################################################################
+
+:RegulatoryContentAboutUniversalShape
+  a sh:NodeShape ;
+  sh:targetClass :RegulatoryContent ;
+
+  sh:property [
+    sh:path iao:0000136 ;          # is about
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+  ] ;
+
+  sh:sparql [
+    a sh:SPARQLConstraint ;
+    sh:message "RegulatoryContent must have iao:0000136 pointing to an owl:Class (a universal)." ;
+    sh:select """
+      SELECT $this
+      WHERE {
+        $this iao:0000136 ?x .
+        FILTER NOT EXISTS { ?x rdf:type owl:Class . }
+      }
+    """ ;
+  ] .
