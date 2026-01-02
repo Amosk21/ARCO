@@ -83,18 +83,28 @@ They are intended to demonstrate structure, rigor, and end-to-end reasoning, not
 
 ## Where to start
 
-For first-time readers, the recommended order is:
+This repository is structured to support both strategic review and technical validation.
 
-1. **ARCO_Assurance_Engine.pdf**  
-   Explains the motivation behind deterministic assurance and why probabilistic approaches fail in regulated domains.
+### Phase 1: The Methodology (Strategic View)
+*Recommended for leadership and conceptual alignment.*
 
-2. **ARCO_Regulatory_Determination_Case.pdf**  
-   A concrete example of a regulatory determination produced by the framework.
+1. **ARCO_Assurance_Engine.pdf**
+   Explains why probabilistic approaches fail in regulated domains and defines the logic-first alternative.
 
-3. **CommandCenter.pdf**  
-   Defines what ARCO is, what it is not, and how it is intended to be used.
+2. **CommandCenter.pdf**
+   The operational overview: defines scope, inputs, and the assurance process flow.
 
-Technical files for pipeline execution and additional reference documentation are included for detailed inspection.
+### Phase 2: The Execution (Operational View)
+*Recommended for technical validation and engagement modeling.*
+
+3. **ARCO_Regulatory_Determination_Case.pdf**
+   A concrete example of a regulatory determination produced by the framework (The "Certificate").
+
+4. **01_COMMERCIAL / Pilot_Engagement_Model** (or specific SOW file name)
+   Defines how this framework is deployed in a client setting, including the Statement of Work (SOW) structure.
+
+5. **03_TECHNICAL_CORE / scripts / run_pipeline.py**
+   The reference implementation. This script demonstrates the ingestion, reasoning, and validation pipeline in action.
 
 ---
 
@@ -117,6 +127,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
