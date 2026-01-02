@@ -43,25 +43,29 @@ And to make that answer:
 
 ## What ARCO does
 
-At a high level, ARCO works as follows:
+At a high level, ARCO answers a single question:
 
-1. Start from system documentation  
-    Hardware, software components, deployment context, and intended use.
+> Given what this system is capable of, does it meet the legal criteria for a specific regulatory classification?
 
-2. Represent system capabilities explicitly  
-    Capabilities are modeled formally, including latent capabilities that exist even if they are not currently enabled.
+It does this as follows:
 
-3. Enforce structural completeness  
-    SHACL rules ensure required information is explicit and nothing is assumed or inferred informally.
+1. **Start from system documentation**  
+   Hardware, software components, deployment context, and intended use are treated as evidence, not narrative.
 
-4. Apply regulatory logic deterministically  
-    SPARQL queries test whether the encoded system satisfies legal criteria.
+2. **Represent system capabilities explicitly**  
+   Capabilities are encoded formally, including latent or conditional capabilities that may exist even if they are not currently active.
 
-5. Produce a traceable determination  
-    Every conclusion can be followed back to explicit facts and rules.
+3. **Enforce structural completeness**  
+   SHACL rules ensure required information is present and nothing material is assumed or inferred informally.
+
+4. **Apply regulatory logic deterministically**  
+   SPARQL queries test whether the encoded system satisfies the relevant legal criteria.
+
+5. **Produce a traceable determination**  
+   Every conclusion can be followed back to explicit facts and rules.
 
 The output is not advice or opinion.  
-    It is a conclusion that follows logically from system structure.
+It is a conclusion that follows logically from the system’s structure.
 
 ---
 
@@ -135,6 +139,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
