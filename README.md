@@ -99,7 +99,7 @@ Recommended for leadership, reviewers, and conceptual alignment.
 1. **ARCO_Assurance_Engine.pdf**  
    Explains why probabilistic approaches break down in regulated domains and introduces the logic-first assurance model.
 
-2. **CommandCenter.pdf**  
+2. **Command_Center.pdf**  
    Provides the operational overview: scope, inputs, outputs, and how the assurance process is structured end to end.
 
 ---
@@ -139,6 +139,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
