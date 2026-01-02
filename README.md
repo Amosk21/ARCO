@@ -117,8 +117,41 @@ Recommended for technical validation and engagement modeling.
 5. **03_TECHNICAL_CORE / scripts / run_pipeline.py**  
    The reference implementation. This script demonstrates ontology ingestion, deterministic reasoning, and SHACL validation in action.
 
+---
+
+## Getting started (run the reference pipeline)
+
+This repository includes a reference implementation that demonstrates the full ARCO assurance pipeline in execution.
+
+### Requirements
+- Python 3.10 or newer
+
+### Install dependencies
+From the repository root:
+
+```bash
+pip install rdflib pyshacl
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py
+```
+What you should see
+
+Loaded triples: <number>
+Confirms the ontology and instance graphs loaded correctly.
+
+SPARQL ASK result: True / False
+Confirms the regulatory logic query executed successfully.
+
+SHACL conforms: True / False
+Indicates whether the provided instance data satisfies the required documentation constraints.
+
+A False result does not indicate a system error.
+It means the SHACL validator identified missing or inconsistent required information, which is the intended behavior of the assurance process. The printed validation report shows exactly what is missing or invalid.
+
+This script is a reference execution used to demonstrate ingestion, structural validation, deterministic reasoning, and traceable output, not a production automation tool.
+
 
 ---
+
 
 ## What ARCO is not
 
@@ -139,6 +172,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
