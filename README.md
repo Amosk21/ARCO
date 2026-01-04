@@ -22,12 +22,12 @@ For readers who want a fast, system-level understanding before diving into the f
 **1. ARCO as a deployment gate**  
 A one-page diagram showing how ARCO functions as a formal regulatory decision point *before* model deployment.
 
-→ `04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png`
+→ [04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png](04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png)
 
 **2. Where ARCO sits in the governance ecosystem**  
 A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.
 
-→ `02_SYSTEM_OVERVIEW/ARCO_Positioning.md`
+→ [02_SYSTEM_OVERVIEW/ARCO_Positioning.md](02_SYSTEM_OVERVIEW/ARCO_Positioning.md)
 
 **3. Core assurance artifacts**  
 The detailed methodology, execution, and outputs are covered in the documents below.
