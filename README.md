@@ -1,142 +1,140 @@
-# ARCO
+# ARCO  
 **Assurance & Regulatory Classification Ontology**
 
 ## Overview
 
-ARCO is a framework for producing clear, defensible regulatory classifications for high-stakes AI systems.
+ARCO is a framework for producing **clear, defensible regulatory classifications** for high-stakes AI systems.
 
-Instead of generating scores, confidence levels, or probabilistic assessments, ARCO produces regulatory determinations that can be traced directly back to the structure and capabilities of the system being evaluated.
+Instead of generating scores, confidence levels, or probabilistic assessments, ARCO produces **regulatory determinations** that can be traced directly back to the structure and capabilities of the system being evaluated.
 
-The goal is simple: **Replace probabilistic "confidence" with regulator-defensible logical determination.**
+**The goal is simple:**
 
----
+> Replace probabilistic "confidence" with regulator-defensible logical determination.
 
-## 1. The Deployment Gate (How It Works)
-
-ARCO operates upstream of model deployment. It functions as a formal regulatory decision point: **Is this system allowed to exist in this context?**
-
-![ARCO Deployment Gate](04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png)
-
-**Key Concept:** Monitoring, XAI, and governance platforms add value only once a system is allowed to exist. ARCO determines whether that investment should happen at all.
+This repository contains the complete reference implementation and supporting materials for that approach.
 
 ---
 
-## 2. Where ARCO Fits in the Governance Ecosystem
+## Orientation (5-minute entry point)
 
-Most AI governance today happens downstream.
+For readers who want a fast, system-level understanding before diving into the full materials:
 
-Teams build systems, train models, wire pipelines, and only then ask whether what they've built is acceptable under regulation. At that point, governance becomes reactive. Risk is explained after the fact. Compliance is documented, not decided.
+**1. ARCO as a deployment gate**  
+A one-page diagram showing how ARCO functions as a formal regulatory decision point *before* model deployment.
 
-Regulatory frameworks like the EU AI Act, NIST RMF, and sector-specific rules assume a different order of operations. They are written around **prior determination**: before deployment, before exposure, before harm.
+→ `04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png`
 
-**This is the gap ARCO is designed to address.**
+**2. Where ARCO sits in the governance ecosystem**  
+A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.
 
-### From Interpretation to Determination
+→ `02_SYSTEM_OVERVIEW/ARCO_Positioning.md`
 
-ARCO operates at the point where intent, use case, and deployment context first become concrete. Rather than analyzing model behavior or training data directly, ARCO evaluates the nature of the system: what it is intended to do, where it will be deployed, who it affects, and under what constraints.
-
-This information is encoded in a formal, ontologically grounded structure and evaluated against regulatory criteria using deterministic logic. The result is not a probabilistic assessment or a policy checklist. It is a **formal risk classification** that can be treated as an authority signal: prohibited, high-risk with conditions, or approved within defined bounds.
-
-### A Deployment Gate, Not a Reporting Layer
-
-ARCO is not a monitoring tool, an explainability add-on, or a post-hoc audit artifact. Its output is designed to function as a **deployment gate**.
-
-If a system is classified as prohibited or unmitigated high risk, that determination can halt deployment before downstream investments are made. If a system is conditionally approved, the required mitigations are explicit and traceable. If a system is approved, that approval becomes a stable reference point for subsequent governance, monitoring, and assurance work.
-
-**This ordering matters.** Monitoring, XAI, and governance platforms add value only once a system is allowed to exist. ARCO determines whether that investment should happen at all.
-
-### Deterministic Structure, Human Accountability
-
-ARCO's core logic is deliberately deterministic. Probabilistic tools are useful for extraction and summarization, but regulatory decisions require stability. ARCO separates candidate generation from verification: probabilistic inputs may propose facts or classifications, but final determinations are produced through formal ontological encoding, structural validation, and rule-based reasoning.
-
-This produces outputs that are legible to auditors, defensible to regulators, and usable by risk and compliance teams. It also preserves human accountability. Judgment does not disappear; it is constrained, documented, and made explicit rather than implicit.
-
-### Position in the Ecosystem
-
-ARCO does not replace existing AI infrastructure. It precedes it.
-
-It sits upstream of model deployment, monitoring, and governance workflows, providing a clear answer to a foundational question: **Is this system allowed to exist in this context, under these rules?**
-
-By answering that question early, ARCO reduces wasted effort, bounds regulatory risk, and gives organizations a stable anchor for everything that follows.
+**3. Core assurance artifacts**  
+The detailed methodology, execution, and outputs are covered in the documents below.
 
 ---
 
-## 3. Core Documentation
-
-This repository is structured to support both strategic review (leadership) and technical validation (engineering).
-
-### 🏛️ Phase 1: Methodology (Strategic View)
-*Recommended for Leadership, Product Owners, and Conceptual Alignment*
-
-- **[The Logic-First Assurance Model](01_COMMERCIAL/ARCO_Assurance_Engine.pdf)**  
-  Explains why probabilistic approaches break down in regulated domains and introduces the logic-first assurance model.
-
-- **[Operational Command Center](01_COMMERCIAL/Command_Center.pdf)**  
-  Provides the operational overview: scope, inputs, outputs, and how the assurance process is structured end-to-end.
-
-### ⚙️ Phase 2: Execution (Operational View)
-*Recommended for Technical Validation and Engagement Modeling*
-
-- **[Sample Regulatory Certificate](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.pdf)**  
-  A concrete example of the final output: a traceable determination produced by the framework.
-
-- **[Pilot Engagement Model](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.pdf)**  
-  Defines how the framework would be deployed in a client setting, including the Statement of Work structure and engagement boundaries.
-
-- **[Reference Implementation](03_TECHNICAL_CORE/scripts/run_pipeline.py)**  
-  The executable pipeline demonstrating ontology ingestion, deterministic reasoning, and SHACL validation.
-
----
-
-## Why ARCO Exists
+## Why ARCO exists
 
 Most AI compliance tools try to answer questions like:
 
-- "How risky does this system appear?"
-- "How confident are we that it complies?"
-- "What score does the model produce?"
+- *How risky does this system appear?*
+- *How confident are we that it complies?*
+- *What score does the model produce?*
 
-Those questions break down in regulated environments.
+**Those questions break down in regulated environments.**
 
-**Regulators, auditors, and courts do not evaluate probability. They evaluate justification.**
+Regulators, auditors, and courts do not evaluate probability.  
+They evaluate **justification**.
 
 ARCO exists to answer a different question:
 
-> **Given what this system is capable of doing, does it meet the legal criteria for a specific regulatory classification, yes or no?**
+> *Given what this system is capable of doing, does it meet the legal criteria for a specific regulatory classification, yes or no?*
 
 And to make that answer:
 
-✓ **Deterministic**  
-✓ **Explainable**  
-✓ **Auditable**  
-✓ **Reproducible**
+- **Deterministic**  
+- **Explainable**  
+- **Auditable**  
+- **Reproducible**  
 
 ---
 
-## What ARCO Does
+## What ARCO does
 
-At a high level, the framework executes a five-step process:
+At a high level, ARCO answers a single question:
 
-1. **Start from system documentation**  
-   Hardware, software components, deployment context, and intended use are treated as evidence, not narrative.
+**Given what this system is capable of, does it meet the legal criteria for a specific regulatory classification?**
 
-2. **Represent system capabilities explicitly**  
-   Capabilities are encoded formally, including latent or conditional capabilities that may exist even if they are not currently active.
+It does this as follows:
 
-3. **Enforce structural completeness**  
-   SHACL rules ensure required information is present and nothing material is assumed or inferred informally.
+### 1. Start from system documentation
+Hardware, software components, deployment context, and intended use are treated as **evidence, not narrative**.
 
-4. **Apply regulatory logic deterministically**  
-   SPARQL queries test whether the encoded system satisfies the relevant legal criteria.
+### 2. Represent system capabilities explicitly
+Capabilities are encoded formally, including latent or conditional capabilities that may exist even if they are not currently active.
 
-5. **Produce a traceable determination**  
-   Every conclusion can be followed back to explicit facts and rules.
+### 3. Enforce structural completeness
+SHACL rules ensure required information is present and nothing material is assumed or inferred informally.
 
-**The output is not advice or opinion. It is a conclusion that follows logically from the system's structure.**
+### 4. Apply regulatory logic deterministically
+SPARQL queries test whether the encoded system satisfies the relevant legal criteria.
+
+### 5. Produce a traceable determination
+Every conclusion can be followed back to explicit facts and rules.
+
+**The output is not advice or opinion.**  
+**It is a conclusion that follows logically from the system's structure.**
 
 ---
 
-## Getting Started (Run the Reference Pipeline)
+## What this repository represents
+
+This repository is **not** a finished product or automated compliance platform.
+
+It is a **reference-grade assurance methodology and demonstration of capability** that shows:
+
+- How deterministic regulatory classification can be performed
+- What artifacts such a process produces
+- How reasoning can be validated and audited
+- What a regulatory determination looks like in practice
+
+The included pilot materials show how the framework could be operationalized in a real engagement.  
+They are intended to demonstrate structure, rigor, and end-to-end reasoning, not to imply full production readiness or automation at scale.
+
+---
+
+## Where to start
+
+This repository is structured to support both high-level review and hands-on technical validation.  
+Depending on what you are trying to understand, there are two recommended entry paths.
+
+### 🏛️ Phase 1: Methodology (Strategic View)
+
+*Recommended for leadership, reviewers, and conceptual alignment.*
+
+1. **[ARCO_Assurance_Engine.pdf](01_COMMERCIAL/ARCO_Assurance_Engine.pdf)**  
+   Explains why probabilistic approaches break down in regulated domains and introduces the logic-first assurance model.
+
+2. **[Command_Center.pdf](01_COMMERCIAL/Command_Center.pdf)**  
+   Provides the operational overview: scope, inputs, outputs, and how the assurance process is structured end to end.
+
+### ⚙️ Phase 2: Execution (Operational View)
+
+*Recommended for technical validation and engagement modeling.*
+
+3. **[ARCO_Regulatory_Determination_Case.pdf](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.pdf)**  
+   A concrete example of a regulatory determination produced by the framework, including the final certificate and traceability.
+
+4. **[Pilot_Engagement_Model.pdf](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.pdf)**  
+   Defines how the framework would be deployed in a client setting, including the Statement of Work structure and engagement boundaries.
+
+5. **[run_pipeline.py](03_TECHNICAL_CORE/scripts/run_pipeline.py)**  
+   The reference implementation. This script demonstrates ontology ingestion, deterministic reasoning, and SHACL validation in action.
+
+---
+
+## Getting started (run the reference pipeline)
 
 This repository includes a reference implementation that demonstrates the full ARCO assurance pipeline in execution.
 
@@ -144,6 +142,8 @@ This repository includes a reference implementation that demonstrates the full A
 - Python 3.10 or newer
 
 ### Install dependencies
+From the repository root:
+
 ```bash
 pip install rdflib pyshacl
 ```
@@ -155,22 +155,30 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 
 ### What you should see
 
-- **Loaded triples:** Confirms the ontology and instance graphs loaded correctly
-- **SPARQL ASK result:** `True` / `False` (Confirms the regulatory logic query executed successfully)
-- **SHACL conforms:** `True` / `False` (Indicates whether the provided instance data satisfies the required documentation constraints)
+**Loaded triples:** `<number>`  
+Confirms the ontology and instance graphs loaded correctly.
 
-**Note:** A `False` result does not indicate a system error. It means the SHACL validator identified missing or inconsistent required information, which is the intended behavior of the assurance process. The printed validation report shows exactly what is missing or invalid.
+**SPARQL ASK result:** `True` / `False`  
+Confirms the regulatory logic query executed successfully.
+
+**SHACL conforms:** `True` / `False`  
+Indicates whether the provided instance data satisfies the required documentation constraints.
+
+**A `False` result does not indicate a system error.**  
+It means the SHACL validator identified missing or inconsistent required information, which is the intended behavior of the assurance process. The printed validation report shows exactly what is missing or invalid.
+
+This script is a reference execution used to demonstrate ingestion, structural validation, deterministic reasoning, and traceable output, not a production automation tool.
 
 ---
 
-## What ARCO Is Not
+## What ARCO is not
 
 ARCO is **not**:
 
-- ❌ A probabilistic risk scoring tool
-- ❌ A checklist generator
-- ❌ A substitute for legal counsel
-- ❌ A plug-and-play compliance dashboard
+- A probabilistic risk scoring tool  
+- A checklist generator  
+- A substitute for legal counsel  
+- A plug-and-play compliance dashboard  
 
 ARCO is best understood as a **formal assurance instrument**, similar in spirit to safety cases used in aerospace or medical systems, applied to AI regulatory classification.
 
@@ -178,8 +186,7 @@ ARCO is best understood as a **formal assurance instrument**, similar in spirit 
 
 ## Status
 
-ARCO is presented here as a reference-grade methodology and capability demonstration.
+ARCO is presented here as a **reference-grade methodology and capability demonstration**.
 
-The technical foundation is intentionally explicit and auditable.
-
+The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
