@@ -27,7 +27,7 @@ A one-page diagram showing how ARCO functions as a formal regulatory decision po
 **2. Where ARCO sits in the governance ecosystem**  
 A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.
 
-→ [02_SYSTEM_OVERVIEW/ARCO_Positioning.pdf](02_SYSTEM_OVERVIEW/ARCO_Positioning.pdf)
+→ [02_SYSTEM_OVERVIEW/arco_positioning.pdf](02_SYSTEM_OVERVIEW/arco_positioning.pdf)
 
 **3. Core assurance artifacts**  
 The detailed methodology, execution, and outputs are covered in the documents below.
@@ -190,4 +190,5 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
