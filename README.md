@@ -15,6 +15,25 @@ This repository contains the complete reference implementation and supporting ma
 
 ---
 
+## Orientation (5-minute entry point)
+
+For readers who want a fast, system-level understanding before diving into the full materials:
+
+**1. ARCO as a deployment gate**  
+A one-page diagram showing how ARCO functions as a formal regulatory decision point *before* model deployment.
+
+- 04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png
+
+**2. Where ARCO sits in the governance ecosystem**  
+A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.
+
+- 02_SYSTEM_OVERVIEW/ARCO_Positioning.md
+
+**3. Core assurance artifacts**  
+The detailed methodology, execution, and outputs are covered in the documents below.
+
+---
+
 ## Why ARCO exists
 
 Most AI compliance tools try to answer questions like:
@@ -172,6 +191,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
