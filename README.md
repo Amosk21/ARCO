@@ -60,6 +60,10 @@ And to make that answer:
 
 ---
 
+**Why this matters:** Regulatory non-compliance is exponentially more expensive to fix later. Finding issues in design costs $10K-$100K. Finding them post-deployment costs $10M+ in fines, recalls, and reputational damage. ARCO operates at the design phase—when corrections are still cheap.
+
+---
+
 ## What ARCO does
 
 At a high level, ARCO answers a single question:
@@ -190,5 +194,6 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
