@@ -22,8 +22,7 @@ For readers who want a fast, system-level understanding before diving into the f
 **0. Executive overview (non-technical)**  
 A concise, business-facing overview of ARCO’s purpose, economic value, and positioning for decision-makers.
 
-→ 
-[01_COMMERCIAL/EXEC_PITCH.pdf](01_COMMERCIAL/EXEC_PITCH.pdf)
+→ [01_COMMERCIAL/EXEC_PITCH.pdf](01_COMMERCIAL/EXEC_PITCH.pdf)
 
 **1. ARCO as a deployment gate**  
 A one-page diagram showing how ARCO functions as a formal regulatory decision point *before* model deployment.
