@@ -19,6 +19,11 @@ This repository contains the complete reference implementation and supporting ma
 
 For readers who want a fast, system-level understanding before diving into the full materials:
 
+**0. Executive overview (non-technical)**  
+A concise, business-facing overview of ARCO’s purpose, economic value, and positioning for decision-makers.
+
+→ [01_COMMERCIAL/EXEC_PITCH.pdf](01_COMMERCIAL/EXEC_PITCH.pdf)
+
 **1. ARCO as a deployment gate**  
 A one-page diagram showing how ARCO functions as a formal regulatory decision point *before* model deployment.
 
@@ -196,6 +201,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
