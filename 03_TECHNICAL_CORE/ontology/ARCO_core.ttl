@@ -100,3 +100,5 @@ bfo:0000055 rdfs:label "realizes" .
 bfo:0000051 rdfs:label "has part" .
 iao:0000136 rdfs:label "is about" .
 cco:has_output rdfs:label "has output" .
+bfo:0000030 rdfs:label "Object" .
+bfo:0000050 rdfs:label "part of" .
