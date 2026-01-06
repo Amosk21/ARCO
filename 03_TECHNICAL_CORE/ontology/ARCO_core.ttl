@@ -12,16 +12,25 @@
   rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Ontology IRI is https://arco.ai/ontology/core so imports can be resolved consistently." .
 
 #################################################################
-# 1) REALITY-SIDE UNIVERSALS (BFO)
+# 1) REALITY-SIDE UNIVERSALS (BFO) - UPDATED
 #################################################################
+
+:HardwareComponent rdf:type owl:Class ;
+  rdfs:label "Hardware Component" ;
+  rdfs:subClassOf bfo:0000030 ; # Object
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty ro:0000053 ; # bearer of
+    owl:someValuesFrom :CapabilityDisposition
+  ] .
 
 :System rdf:type owl:Class ;
   rdfs:label "AI System" ;
   rdfs:subClassOf bfo:0000027 ; # Object Aggregate
   rdfs:subClassOf [
     a owl:Restriction ;
-    owl:onProperty ro:0000053 ; # bearer of
-    owl:someValuesFrom :CapabilityDisposition
+    owl:onProperty bfo:0000051 ; # has part
+    owl:someValuesFrom :HardwareComponent
   ] .
 
 :CapabilityDisposition rdf:type owl:Class ;
