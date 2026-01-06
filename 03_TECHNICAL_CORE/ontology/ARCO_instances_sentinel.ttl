@@ -25,13 +25,21 @@
   iao:0000136 :BiometricIdentificationCapability . # is_about the Universal (class)
 
 #################################################################
-# 2) SYSTEM LAYER (reality-side particulars)
+# 2) SYSTEM LAYER (Refactored for BFO Compliance)
 #################################################################
 
+# The System (Aggregate) now aggregates parts, rather than bearing the risk directly.
 :Sentinel_ID_System rdf:type :System ;
   rdfs:label "Sentinel-ID System" ;
+  bfo:0000051 :Sentinel_Camera_01 . # has part
+
+# The Component (Object) is the physical bearer of the capability.
+:Sentinel_Camera_01 rdf:type :HardwareComponent ;
+  rdfs:label "Sentinel-ID Optical Sensor Array" ;
+  bfo:0000050 :Sentinel_ID_System ;         # part of
   ro:0000053 :Sentinel_FaceID_Disposition . # bearer of
 
+# The Disposition remains the same, but is now anchored correctly.
 :Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability ;
   rdfs:label "Sentinel Facial Recognition Disposition" .
 

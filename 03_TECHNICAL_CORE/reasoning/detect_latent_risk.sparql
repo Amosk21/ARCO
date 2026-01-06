@@ -1,0 +1,9 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+
+ASK WHERE {
+  :Sentinel_ID_System bfo:0000051 ?component .
+  ?component ro:0000053 ?disposition .
+  ?disposition a :BiometricIdentificationCapability .
+}
