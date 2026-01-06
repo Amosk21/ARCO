@@ -113,6 +113,9 @@ It is a **reference-grade assurance methodology and demonstration of capability*
 The included pilot materials show how the framework could be operationalized in a real engagement.  
 They are intended to demonstrate structure, rigor, and end-to-end reasoning, not to imply full production readiness or automation at scale.
 
+**Instance authoring in pilot engagements:**  
+For pilot engagements, ARCO instances are authored directly from client-provided documentation (e.g., architecture diagrams, system descriptions, deployment notes) using a structured mapping method. This method identifies systems as object aggregates, models latent and active capabilities as dispositions, and links those capabilities to regulatory content via explicit "is about" relations. The resulting instances are then validated via SHACL and evaluated through deterministic queries. This approach ensures regulatory determinations are grounded in explicit structure rather than inferred from narrative descriptions.
+
 ---
 
 ## Where to start
@@ -201,6 +204,7 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
+
 
 
 
