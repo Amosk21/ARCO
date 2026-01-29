@@ -236,6 +236,6 @@ Future work focuses on validation, deployment, and refinement through real-world
 ## Contact
 
 Alex Moskowitz  
-[LinkedIn](https://linkedin.com/in/alexmoskowitz) · [Email](mailto:alex@example.com)
+[LinkedIn]([https://linkedin.com/in/alexmoskowitz](https://www.linkedin.com/in/alex-moskowitz/)) · [Email](alex.moskowitz97@gmail.com)
 
 *Interested in AI governance, regulatory technology, or applying formal methods to compliance problems? Let's talk.*
