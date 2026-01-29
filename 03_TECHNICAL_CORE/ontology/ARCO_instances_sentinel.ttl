@@ -51,13 +51,19 @@
 
 #################################################################
 # 4) COMPLIANCE DETERMINATION (representation-side output)
+#
+#    CRITICAL: The determination artifact is typed as
+#    :ComplianceDetermination (not :HighRiskDetermination).
+#
+#    The SYSTEM's classification as :HighRiskSystem is INFERRED
+#    by the reasoner via the bridge axiom in ARCO_core.ttl.
 #################################################################
 
-:HighRisk_Determination_001 rdf:type :HighRiskDetermination ;
+:HighRisk_Determination_001 rdf:type :ComplianceDetermination ;
   rdfs:label "High-Risk Determination 001" ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :AnnexIII_Condition_Q1 ;
-  rdfs:comment "Determination asserted for the demo: Sentinel-ID bears BiometricIdentificationCapability (disposition). AnnexIII_Condition_Q1 is_about that capability universal. This makes the reasoning chain auditable." .
+  rdfs:comment "This determination artifact documents the compliance assessment. The system's classification as HighRiskSystem is INFERRED by the reasoner from the bridge axioms." .
 
 #################################################################
 # 5) PROVIDER + DOCUMENTATION WORKFLOW (Mermaid commitments)

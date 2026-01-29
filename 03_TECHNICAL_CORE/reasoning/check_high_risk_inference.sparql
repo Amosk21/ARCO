@@ -1,0 +1,23 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#################################################################
+# check_high_risk_inference.sparql
+#
+# PURPOSE: Verify that the reasoner inferred the high-risk classification.
+#
+# EXPECTED RESULT:
+#   - BEFORE reasoning: FALSE (Sentinel_ID_System is only typed as :System)
+#   - AFTER reasoning:  TRUE  (reasoner infers :HighRiskSystem membership)
+#
+# INFERENCE CHAIN:
+#   1. Sentinel_ID_System rdf:type :System
+#   2. Sentinel_ID_System ro:0000053 (bearer_of) Sentinel_FaceID_Disposition
+#   3. Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability
+#   4. :HighRiskSystem = :System AND (ro:0000053 some :AnnexIIITriggeringCapability)
+#   => Sentinel_ID_System rdf:type :HighRiskSystem (INFERRED)
+#################################################################
+
+ASK WHERE {
+    :Sentinel_ID_System rdf:type :HighRiskSystem .
+}

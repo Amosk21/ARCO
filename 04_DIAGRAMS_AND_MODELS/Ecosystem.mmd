@@ -1,0 +1,124 @@
+graph TB
+    subgraph "System Design Phase"
+        A[System Design & Use Case Definition]
+        B[Deployment Context & Population Impact]
+        C[Functional Intent Documentation]
+    end
+    
+    subgraph "ARCO: Pre-Deployment Regulatory Determination Layer"
+        D[System Metadata Ingestion<br/>Not raw data - use case, context, populations]
+        E[Neuro Layer: LLM Candidate Extraction<br/>Probabilistic]
+        F[Symbolic Layer: Ontological Verification]
+        F1[BFO/CCO/IAO Encoding]
+        F2[SHACL Structural Validation]
+        F3[OWL + SPARQL Reasoning]
+        G[Formal Determination]
+    end
+    
+    subgraph "Regulatory Classification Outcomes"
+        H1[Prohibited Practice<br/>BLOCK]
+        H2[High Risk - No Mitigation<br/>BLOCK]
+        H3[High Risk - Mitigations Required<br/>CONDITIONAL]
+        H4[Limited Risk<br/>APPROVED]
+        H5[Minimal Risk<br/>APPROVED]
+    end
+    
+    subgraph "Deployment Authority Gate"
+        I[Go / No-Go / Conditional Signal]
+    end
+    
+    subgraph "Post-ARCO Ecosystem - Only If Approved"
+        J[Model Training & Deployment Pipelines<br/>MLOps: Databricks, Vertex AI, SageMaker]
+        K[XAI Tools<br/>SHAP, LIME - Explains approved systems]
+        L[Model Monitoring<br/>Arize, Fiddler - Tracks drift]
+        M[Governance Platforms<br/>Credo AI, Arthur - Process management]
+    end
+    
+    subgraph "Traditional Compliance Approaches - ARCO Replaces"
+        N[❌ Law Firms<br/>Manual review - slow, subjective]
+        O[❌ LLM Compliance Tools<br/>Probabilistic, hallucination risk]
+        P[❌ Self-Attestation Checklists<br/>Garbage in, garbage out]
+    end
+    
+    subgraph "Regulatory Framework - ARCO Operationalizes"
+        Q[EU AI Act Article 6 & Annex III]
+        R[NIST AI RMF]
+        S[Sector-Specific Regs<br/>FDA, SEC, GDPR]
+    end
+    
+    subgraph "Stakeholders - ARCO Serves"
+        T[Regulated AI Companies<br/>Healthcare, Finance, Defense]
+        U[Auditors & Regulators<br/>Require deterministic proof]
+        V[Insurance & Risk Management<br/>Need quantified risk]
+    end
+    
+    %% Design phase feeds ARCO
+    A --> D
+    B --> D
+    C --> D
+    
+    %% ARCO pipeline
+    D --> E --> F
+    F --> F1 --> F2 --> F3 --> G
+    
+    %% Regulations constrain ARCO
+    Q --> F3
+    R --> F3
+    S --> F3
+    
+    %% Determination outcomes
+    G --> H1
+    G --> H2
+    G --> H3
+    G --> H4
+    G --> H5
+    
+    %% Authority gate
+    H1 ==>|STOP| I
+    H2 ==>|STOP| I
+    H3 ==>|CONDITIONAL| I
+    H4 ==>|GO| I
+    H5 ==>|GO| I
+    
+    %% Only approved systems proceed
+    I -->|Only if GO/CONDITIONAL| J
+    J --> K
+    J --> L
+    J --> M
+    
+    %% ARCO outputs constrain downstream
+    G -.->|Certified determination feeds| K
+    G -.->|Audit trail feeds| L
+    G -.->|Risk classification feeds| M
+    
+    %% ARCO replaces traditional approaches
+    N -.->|ARCO makes obsolete| D
+    O -.->|ARCO makes obsolete| D
+    P -.->|ARCO makes obsolete| D
+    
+    %% Stakeholder relationships
+    I ==>|Deployment authority| T
+    G ==>|Machine-readable proof| U
+    G ==>|Quantified risk classification| V
+    
+    %% Styling
+    style D fill:#0066cc,stroke:#003d7a,stroke-width:3px,color:#fff
+    style F fill:#0066cc,stroke:#003d7a,stroke-width:3px,color:#fff
+    style F3 fill:#4a90e2,stroke:#2e5c8a,stroke-width:2px
+    style G fill:#9c27b0,stroke:#6a1b9a,stroke-width:3px,color:#fff
+    style I fill:#d32f2f,stroke:#b71c1c,stroke-width:4px,color:#fff
+    
+    style H1 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
+    style H2 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
+    style H3 fill:#fff3cd,stroke:#ff9800,stroke-width:2px
+    style H4 fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style H5 fill:#d4edda,stroke:#28a745,stroke-width:2px
+    
+    style N fill:#f0f0f0,stroke:#999,stroke-width:1px,stroke-dasharray: 5 5
+    style O fill:#f0f0f0,stroke:#999,stroke-width:1px,stroke-dasharray: 5 5
+    style P fill:#f0f0f0,stroke:#999,stroke-width:1px,stroke-dasharray: 5 5
+    
+    style J fill:#e3f2fd,stroke:#1976d2,stroke-width:1px
+    style K fill:#e3f2fd,stroke:#1976d2,stroke-width:1px
+    style L fill:#e3f2fd,stroke:#1976d2,stroke-width:1px
+    style M fill:#e3f2fd,stroke:#1976d2,stroke-width:1px

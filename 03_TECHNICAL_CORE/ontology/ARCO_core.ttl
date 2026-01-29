@@ -59,10 +59,38 @@
 
 :HighRiskDetermination rdf:type owl:Class ;
   rdfs:label "High-Risk Determination" ;
+  rdfs:comment "A compliance determination that classifies a system as high-risk. Can be asserted when documenting an inferred HighRiskSystem classification." ;
   rdfs:subClassOf :ComplianceDetermination .
 
 #################################################################
-# 3) RELATION ANCHORS (labels only)
+# 3) INFERRED CLASSIFICATION - Bridge Axioms
+#    These axioms enable the reasoner to INFER high-risk status
+#    rather than requiring it to be explicitly asserted.
+#################################################################
+
+:AnnexIIITriggeringCapability rdf:type owl:Class ;
+  rdfs:label "Annex III Triggering Capability" ;
+  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Extend the union to add new triggering capabilities." ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:unionOf ( :BiometricIdentificationCapability )
+  ] .
+
+:HighRiskSystem rdf:type owl:Class ;
+  rdfs:label "High-Risk AI System" ;
+  rdfs:comment "A system classified as high-risk by virtue of bearing a disposition that triggers Annex III. This class membership is INFERRED by the reasoner." ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :System
+      [ rdf:type owl:Restriction ;
+        owl:onProperty ro:0000053 ;
+        owl:someValuesFrom :AnnexIIITriggeringCapability ]
+    )
+  ] .
+
+#################################################################
+# 4) RELATION ANCHORS (labels only)
 #################################################################
 
 @prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .

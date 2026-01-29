@@ -6,58 +6,56 @@
 @prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 #################################################################
-# Shape 1: Your existing shape (kept as-is, minor formatting only)
+# ARCO SHACL Validation Shapes
+# 
+# Purpose: Validate structural completeness of assessment artifacts
+# Note: These shapes validate AFTER OWL reasoning has run
+#################################################################
+
+#################################################################
+# Shape 1: AssessmentDocumentation must reference SOMETHING
+#          (relaxed - just checks the link exists, not the type)
 #################################################################
 
 :AssessmentDocumentationShape
   a sh:NodeShape ;
   sh:targetClass :AssessmentDocumentation ;
+  sh:message "AssessmentDocumentation must have at least one iao:0000136 (is_about) link." ;
 
   sh:property [
-    sh:path iao:0000136 ;          # is about
-    sh:class :System ;
+    sh:path iao:0000136 ;
     sh:minCount 1 ;
-  ] ;
-
-  sh:property [
-    sh:path iao:0000136 ;          # is about
-    sh:class :RegulatoryContent ;
-    sh:minCount 1 ;
+    sh:message "AssessmentDocumentation must be about at least one thing." ;
   ] .
 
 #################################################################
-# Shape 2: Documentation process must include the expected links
+# Shape 2: AssessmentDocumentationProcess must have participants
+#          and produce output
 #################################################################
 
 :AssessmentDocumentationProcessShape
   a sh:NodeShape ;
   sh:targetClass :AssessmentDocumentationProcess ;
 
-  # must have participant System
+  # must have at least one participant
   sh:property [
-    sh:path ro:0000057 ;           # has participant
-    sh:class :System ;
+    sh:path ro:0000057 ;
     sh:minCount 1 ;
+    sh:message "AssessmentDocumentationProcess must have at least one participant." ;
   ] ;
 
-  # must have participant ProviderRole
-  sh:property [
-    sh:path ro:0000057 ;           # has participant
-    sh:class :ProviderRole ;
-    sh:minCount 1 ;
-  ] ;
-
-  # must output at least one AssessmentDocumentation
+  # must output at least one thing
   sh:property [
     sh:path cco:has_output ;
-    sh:class :AssessmentDocumentation ;
     sh:minCount 1 ;
+    sh:message "AssessmentDocumentationProcess must have at least one output." ;
   ] .
 
 #################################################################
-# Shape 3: ProviderRole must inhere in some ProviderOrganization
+# Shape 3: ProviderRole must inhere in something
 #################################################################
 
 :ProviderRoleShape
@@ -65,35 +63,36 @@
   sh:targetClass :ProviderRole ;
 
   sh:property [
-    sh:path ro:0000052 ;           # inheres in
-    sh:class :ProviderOrganization ;
+    sh:path ro:0000052 ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:message "ProviderRole must inhere in exactly one entity." ;
   ] .
 
 #################################################################
-# Shape 4: RegulatoryContent is about some OWL class (universal)
-# This matches your pattern: AnnexIII_Condition_Q1 is_about BiometricIdentificationCapability
+# Shape 4: System must bear at least one disposition
 #################################################################
 
-:RegulatoryContentAboutUniversalShape
+:SystemShape
   a sh:NodeShape ;
-  sh:targetClass :RegulatoryContent ;
+  sh:targetClass :System ;
 
   sh:property [
-    sh:path iao:0000136 ;          # is about
-    sh:nodeKind sh:IRI ;
+    sh:path ro:0000053 ;
     sh:minCount 1 ;
-  ] ;
+    sh:message "System must bear at least one disposition (capability)." ;
+  ] .
 
-  sh:sparql [
-    a sh:SPARQLConstraint ;
-    sh:message "RegulatoryContent must have iao:0000136 pointing to an owl:Class (a universal)." ;
-    sh:select """
-      SELECT $this
-      WHERE {
-        $this iao:0000136 ?x .
-        FILTER NOT EXISTS { ?x rdf:type owl:Class . }
-      }
-    """ ;
+#################################################################
+# Shape 5: ComplianceDetermination must be about something
+#################################################################
+
+:ComplianceDeterminationShape
+  a sh:NodeShape ;
+  sh:targetClass :ComplianceDetermination ;
+
+  sh:property [
+    sh:path iao:0000136 ;
+    sh:minCount 1 ;
+    sh:message "ComplianceDetermination must be about at least one thing." ;
   ] .

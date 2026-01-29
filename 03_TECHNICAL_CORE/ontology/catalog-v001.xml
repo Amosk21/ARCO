@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
-  <!-- Map ontology IRIs to local files -->
-  <uri name="https://arco.ai/ontology/core" uri="ARCO_core_gold_fixed_v3.ttl"/>
-  <uri name="https://arco.ai/ontology/governance" uri="ARCO_governance_extension_fixed_v3.ttl"/>
-  <uri name="https://arco.ai/ontology/gold" uri="ARCO_instances_gold_extended_fixed_v3.ttl"/>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
+<uri name="https://arco.ai/ontology/core" uri="ARCO_core.ttl"/>
+<uri name="https://arco.ai/ontology/governance" uri="ARCO_governance_extension.ttl"/>
+<uri name="https://arco.ai/ontology/instances" uri="ARCO_instances_sentinel.ttl"/>
 </catalog>
