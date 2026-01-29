@@ -1,6 +1,12 @@
 # ARCO  
 **Assurance & Regulatory Classification Ontology**
 
+## Why this exists (Design-time governance)
+
+The core problem in AI governance is not a lack of rules, transparency, or oversight. It is that systems are built without an explicit, shared model of what exists, what those things are capable of, and which processes can occur as a result. Early modeling choices quietly define reality for the system, fixing what can be perceived, optimized, or ignored. Because those choices are treated as technical configuration rather than structural commitments, they escape ownership and governance. By the time monitoring, audits, or ethics are applied, the ontology has already done the governing.
+
+Regulatory frameworks increasingly classify systems by capability, not configuration. Liability attaches to what a system is able to do, not only to what it happens to be doing. The real leverage point is design time, where continuants, capabilities, roles, and processes can still be made explicit, inspectable, and contestable.
+
 ## Overview
 
 ARCO is a framework for producing **clear, defensible regulatory classifications** for high-stakes AI systems.
@@ -20,7 +26,7 @@ This repository contains the complete reference implementation and supporting ma
 For readers who want a fast, system-level understanding before diving into the full materials:
 
 **0. Executive overview (non-technical)**  
-A concise, business-facing overview of ARCO’s purpose, economic value, and positioning for decision-makers.
+A concise, business-facing overview of ARCO's purpose, economic value, and positioning for decision-makers.
 
 → [01_COMMERCIAL/EXEC_PITCH.pdf](01_COMMERCIAL/EXEC_PITCH.pdf)
 
@@ -65,9 +71,9 @@ And to make that answer:
 
 ---
 
-**Why this matters:** Regulatory non-compliance is exponentially more expensive to fix later. Finding issues in design costs $10K-$100K. Finding them post-deployment costs $10M+ in fines, recalls, and reputational damage. ARCO operates at the design phase—when corrections are still cheap.
+**Why this matters:** Regulatory non-compliance is exponentially more expensive to fix later. Finding issues in design costs $10K–$100K. Finding them post-deployment costs $10M+ in fines, recalls, and reputational damage. ARCO operates at the design phase—when corrections are still cheap.
 
-- [04_DIAGRAMS_AND_MODELS/arco_value.jpg](04_DIAGRAMS_AND_MODELS/arco_value.jpg)
+→ [04_DIAGRAMS_AND_MODELS/arco_value.jpg](04_DIAGRAMS_AND_MODELS/arco_value.jpg)
 
 ---
 
@@ -103,15 +109,15 @@ Every conclusion can be followed back to explicit facts and rules.
 
 This repository is **not** a finished product or automated compliance platform.
 
-It is a **reference-grade assurance methodology and demonstration of capability** that shows:
+It is a **reference-grade assurance methodology and end-to-end capability demonstration** that shows:
 
 - How deterministic regulatory classification can be performed
 - What artifacts such a process produces
 - How reasoning can be validated and audited
 - What a regulatory determination looks like in practice
+- **How such a framework becomes a real engagement** (scoping, deliverables, pricing structure)
 
-The included pilot materials show how the framework could be operationalized in a real engagement.  
-They are intended to demonstrate structure, rigor, and end-to-end reasoning, not to imply full production readiness or automation at scale.
+The included materials span technical implementation through commercial operationalization—because building something that works is only half the problem. The other half is deploying it in a way that creates value.
 
 **Instance authoring in pilot engagements:**  
 For pilot engagements, ARCO instances are authored directly from client-provided documentation (e.g., architecture diagrams, system descriptions, deployment notes) using a structured mapping method. This method identifies systems as object aggregates, models latent and active capabilities as dispositions, and links those capabilities to regulatory content via explicit "is about" relations. The resulting instances are then validated via SHACL and evaluated through deterministic queries. This approach ensures regulatory determinations are grounded in explicit structure rather than inferred from narrative descriptions.
@@ -121,7 +127,7 @@ For pilot engagements, ARCO instances are authored directly from client-provided
 ## Where to start
 
 This repository is structured to support both high-level review and hands-on technical validation.  
-Depending on what you are trying to understand, there are two recommended entry paths.
+Depending on what you are trying to understand, there are three recommended entry paths.
 
 ### 🏛️ Phase 1: Methodology (Strategic View)
 
@@ -133,17 +139,24 @@ Depending on what you are trying to understand, there are two recommended entry 
 2. **[Command_Center.pdf](01_COMMERCIAL/Command_Center.pdf)**  
    Provides the operational overview: scope, inputs, outputs, and how the assurance process is structured end to end.
 
-### ⚙️ Phase 2: Execution (Operational View)
+### 📄 Phase 2: Technical Deep-Dive
+
+*Recommended for technical reviewers who want to understand the architecture before touching code.*
+
+3. **[ARCO_Technical_Overview.pdf](02_SYSTEM_OVERVIEW/ARCO_Technical_Overview.pdf)**  
+   A standalone 10-page document covering the problem statement, architectural decisions, BFO grounding, the Sentinel-ID worked example, and scope limitations. This is the canonical technical reference for understanding how ARCO works and why it's built the way it is.
+
+### ⚙️ Phase 3: Execution (Operational View)
 
 *Recommended for technical validation and engagement modeling.*
 
-3. **[ARCO_Regulatory_Determination_Case.pdf](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.pdf)**  
+4. **[ARCO_Regulatory_Determination_Case.pdf](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.pdf)**  
    A concrete example of a regulatory determination produced by the framework, including the final certificate and traceability.
 
-4. **[Pilot_Engagement_Model.pdf](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.pdf)**  
-   Defines how the framework would be deployed in a client setting, including the Statement of Work structure and engagement boundaries.
+5. **[ARCO_Pilot_Engagement_Scope.pdf](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.pdf)**  
+   Defines how the framework would be deployed in a client setting: 4-week engagement, fixed deliverables, explicit exclusions. This shows what operationalization looks like.
 
-5. **[run_pipeline.py](03_TECHNICAL_CORE/scripts/run_pipeline.py)**  
+6. **[run_pipeline.py](03_TECHNICAL_CORE/scripts/run_pipeline.py)**  
    The reference implementation. This script demonstrates ontology ingestion, deterministic reasoning, and SHACL validation in action.
 
 ---
@@ -181,7 +194,20 @@ Indicates whether the provided instance data satisfies the required documentatio
 **A `False` result does not indicate a system error.**  
 It means the SHACL validator identified missing or inconsistent required information, which is the intended behavior of the assurance process. The printed validation report shows exactly what is missing or invalid.
 
-This script is a reference execution used to demonstrate ingestion, structural validation, deterministic reasoning, and traceable output, not a production automation tool.
+This script is a reference execution used to demonstrate ingestion, structural validation, deterministic reasoning, and traceable output—not a production automation tool.
+
+---
+
+## Repository structure
+
+```
+ARCO/
+├── 01_COMMERCIAL/          # Engagement materials, pricing, methodology docs
+├── 02_SYSTEM_OVERVIEW/     # Positioning, technical overview, presentations
+├── 03_TECHNICAL_CORE/      # Ontologies, SHACL shapes, SPARQL queries, scripts
+├── 04_DIAGRAMS_AND_MODELS/ # Architecture diagrams, visual assets
+└── 05_TECHNICAL_IMPLEMENTATION/  # Detailed architectural decisions
+```
 
 ---
 
@@ -205,10 +231,11 @@ ARCO is presented here as a **reference-grade methodology and capability demonst
 The technical foundation is intentionally explicit and auditable.  
 Future work focuses on validation, deployment, and refinement through real-world use.
 
+---
 
+## Contact
 
+Alex Moskowitz  
+[LinkedIn](https://linkedin.com/in/alexmoskowitz) · [Email](mailto:alex@example.com)
 
-
-
-
-
+*Interested in AI governance, regulatory technology, or applying formal methods to compliance problems? Let's talk.*
