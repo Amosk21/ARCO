@@ -7,6 +7,24 @@ The core problem in AI governance is not a lack of rules, transparency, or overs
 
 Regulatory frameworks increasingly classify systems by capability, not configuration. Liability attaches to what a system is able to do, not only to what it happens to be doing. The real leverage point is design time, where continuants, capabilities, roles, and processes can still be made explicit, inspectable, and contestable.
 
+### Regulatory classification as a design-time problem
+
+Modern AI regulation increasingly classifies systems by *capability*, not by configuration or stated intent. Under the EU Artificial Intelligence Act, this shift is explicit: Article 6 and Annex III define high-risk status in terms of what a system is structurally capable of doing, regardless of whether those capabilities are currently enabled.
+
+ARCO operates on top of this regulatory reality.
+
+Rather than treating regulatory classification as an interpretive or post-hoc exercise, ARCO formalizes Article 6 and Annex III criteria as explicit, capability-based conditions that can be evaluated at design time. If a system’s structure supports the realization of a regulated capability, that classification follows as a matter of logical consequence. If it does not, the classification does not resolve.
+
+This framing establishes the minimum foundation required for ARCO to function: a shared, explicit model of system structure, capabilities, and regulatory triggers that can be inspected, validated, and reasoned over deterministically.
+
+### Ontological grounding (why structure matters)
+
+For regulatory classification to be derived from system structure, the underlying model must distinguish clearly between what *exists*, what it is *capable of*, and what *processes* may occur as a result.
+
+ARCO is grounded in a realist ontological framework aligned with the Basic Formal Ontology (BFO). This grounding enforces explicit separation between material entities, dispositions (capabilities), roles, and processes, preventing regulatory classifications from being inferred from informal descriptions, policy language, or implementation detail alone.
+
+This is what allows ARCO to treat capability as something that resolves from structure rather than something asserted by documentation or intent. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes.
+
 ## Overview
 
 ARCO is a framework for producing **clear, defensible regulatory classifications** for high-stakes AI systems.
@@ -28,21 +46,27 @@ ARCO is under active development. Ontological commitments and determination mech
 For readers who want a fast, system-level understanding before diving into the full materials:
 
 **0. Executive overview (non-technical)**  
-A concise, business-facing overview of ARCO's purpose, economic value, and positioning for decision-makers.
+A concise, business-facing overview of ARCO's purpose, economic value, and positioning for decision-makers.  
 
 → [01_COMMERCIAL/EXEC_PITCH.md](01_COMMERCIAL/EXEC_PITCH.md)
 
 **1. ARCO as a deployment gate**  
-A one-page diagram showing how ARCO functions as a formal regulatory decision point *before* model deployment.
+A one-page diagram showing how ARCO functions as a formal regulatory decision point *before* model deployment.  
 
 → [04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png](04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png)
 
 **2. Where ARCO sits in the governance ecosystem**  
-A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.
+A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.  
 
 → [02_SYSTEM_OVERVIEW/arco_positioning.pdf](02_SYSTEM_OVERVIEW/arco_positioning.pdf)
 
-**3. Core assurance artifacts**  
+**3. EU AI Act classification models (reference diagrams)**  
+Visual models showing how Article 6 and Annex III classification criteria are represented and evaluated within ARCO.  
+
+→ [04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png](04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png)  
+→ [04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png](04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png)
+
+**4. Core assurance artifacts**  
 The detailed methodology, execution, and outputs are covered in the documents below.
 
 ---
