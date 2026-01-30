@@ -19,6 +19,8 @@ Instead of generating scores, confidence levels, or probabilistic assessments, A
 
 This repository contains the complete reference implementation and supporting materials for that approach.
 
+ARCO is under active development. Ontological commitments and determination mechanics are stable; documentation and additional regulatory regimes, extensions, and integrations are evolving.
+
 ---
 
 ## Orientation (5-minute entry point)
