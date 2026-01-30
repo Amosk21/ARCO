@@ -66,41 +66,6 @@ Visual models showing how Article 6 and Annex III classification criteria are re
 → [04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png](04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png)  
 → [04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png](04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png)
 
-**4. Core assurance artifacts**  
-The detailed methodology, execution, and outputs are covered in the documents below.
-
----
-
-## Why ARCO exists
-
-Most AI compliance tools try to answer questions like:
-
-- *How risky does this system appear?*
-- *How confident are we that it complies?*
-- *What score does the model produce?*
-
-**Those questions break down in regulated environments.**
-
-Regulators, auditors, and courts do not evaluate probability.  
-They evaluate **justification**.
-
-ARCO exists to answer a different question:
-
-> *Given what this system is capable of doing, does it meet the legal criteria for a specific regulatory classification, yes or no?*
-
-And to make that answer:
-
-- **Deterministic**  
-- **Explainable**  
-- **Auditable**  
-- **Reproducible**  
-
----
-
-**Why this matters:** Regulatory non-compliance is exponentially more expensive to fix later. Finding issues in design costs $10K–$100K. Finding them post-deployment costs $10M+ in fines, recalls, and reputational damage. ARCO operates at the design phase—when corrections are still cheap.
-
-→ [04_DIAGRAMS_AND_MODELS/arco_value.jpg](04_DIAGRAMS_AND_MODELS/arco_value.jpg)
-
 ---
 
 ## What ARCO does
@@ -109,44 +74,6 @@ At a high level, ARCO answers a single question:
 
 **Given what this system is capable of, does it meet the legal criteria for a specific regulatory classification?**
 
-It does this as follows:
-
-### 1. Start from system documentation
-Hardware, software components, deployment context, and intended use are treated as **evidence, not narrative**.
-
-### 2. Represent system capabilities explicitly
-Capabilities are encoded formally, including latent or conditional capabilities that may exist even if they are not currently active.
-
-### 3. Enforce structural completeness
-SHACL rules ensure required information is present and nothing material is assumed or inferred informally.
-
-### 4. Apply regulatory logic deterministically
-SPARQL queries test whether the encoded system satisfies the relevant legal criteria.
-
-### 5. Produce a traceable determination
-Every conclusion can be followed back to explicit facts and rules.
-
-**The output is not advice or opinion.**  
-**It is a conclusion that follows logically from the system's structure.**
-
----
-
-## What this repository represents
-
-This repository is **not** a finished product or automated compliance platform.
-
-It is a **reference-grade assurance methodology and end-to-end capability demonstration** that shows:
-
-- How deterministic regulatory classification can be performed
-- What artifacts such a process produces
-- How reasoning can be validated and audited
-- What a regulatory determination looks like in practice
-- **How such a framework becomes a real engagement** (scoping, deliverables, pricing structure)
-
-The included materials span technical implementation through commercial operationalization—because building something that works is only half the problem. The other half is deploying it in a way that creates value.
-
-**Instance authoring in pilot engagements:**  
-For pilot engagements, ARCO instances are authored directly from client-provided documentation (e.g., architecture diagrams, system descriptions, deployment notes) using a structured mapping method. This method identifies systems as object aggregates, models latent and active capabilities as dispositions, and links those capabilities to regulatory content via explicit "is about" relations. The resulting instances are then validated via SHACL and evaluated through deterministic queries. This approach ensures regulatory determinations are grounded in explicit structure rather than inferred from narrative descriptions.
 
 ---
 
