@@ -13,7 +13,7 @@ Modern AI regulation increasingly classifies systems by *capability*, not by con
 
 ARCO operates on top of this regulatory reality.
 
-Rather than treating regulatory classification as an interpretive or post-hoc exercise, ARCO formalizes Article 6 and Annex III criteria as explicit, capability-based conditions that can be evaluated at design time. If a system’s structure supports the realization of a regulated capability, that classification follows as a matter of logical consequence. If it does not, the classification does not resolve.
+Rather than treating regulatory classification as an interpretive or post-hoc exercise, ARCO formalizes Article 6 and Annex III criteria as explicit, capability-based conditions that can be evaluated at design time, using a general assurance architecture designed for capability-based regulation.
 
 This framing establishes the minimum foundation required for ARCO to function: a shared, explicit model of system structure, capabilities, and regulatory triggers that can be inspected, validated, and reasoned over deterministically.
 
