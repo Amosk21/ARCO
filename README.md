@@ -28,7 +28,7 @@ For readers who want a fast, system-level understanding before diving into the f
 **0. Executive overview (non-technical)**  
 A concise, business-facing overview of ARCO's purpose, economic value, and positioning for decision-makers.
 
-→ [01_COMMERCIAL/EXEC_PITCH.pdf](01_COMMERCIAL/EXEC_PITCH.pdf)
+→ [01_COMMERCIAL/EXEC_PITCH.md](01_COMMERCIAL/EXEC_PITCH.md)
 
 **1. ARCO as a deployment gate**  
 A one-page diagram showing how ARCO functions as a formal regulatory decision point *before* model deployment.
@@ -133,7 +133,7 @@ Depending on what you are trying to understand, there are three recommended entr
 
 *Recommended for leadership, reviewers, and conceptual alignment.*
 
-1. **[ARCO_Assurance_Engine.pdf](01_COMMERCIAL/ARCO_Assurance_Engine.pdf)**  
+1. **[ARCO_Assurance_Engine.md](01_COMMERCIAL/ARCO_Assurance_Engine.md)**  
    Explains why probabilistic approaches break down in regulated domains and introduces the logic-first assurance model.
 
 2. **[Command_Center.pdf](01_COMMERCIAL/Command_Center.pdf)**  
@@ -150,7 +150,7 @@ Depending on what you are trying to understand, there are three recommended entr
 
 *Recommended for technical validation and engagement modeling.*
 
-4. **[ARCO_Regulatory_Determination_Case.pdf](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.pdf)**  
+4. **[ARCO_Regulatory_Determination_Case.md](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)**  
    A concrete example of a regulatory determination produced by the framework, including the final certificate and traceability.
 
 5. **[ARCO_Pilot_Engagement_Scope.pdf](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.pdf)**  
