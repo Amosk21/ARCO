@@ -8,8 +8,8 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 <https://arco.ai/ontology/instances> rdf:type owl:Ontology ;
-  rdfs:label "ARCO Sentinel-ID Instances — Extended (Mermaid-Aligned)" ;
-  rdfs:comment "Instances demonstrating: ICE grounded to reality-side universals; system bears a capability-disposition; operational realization; documentation workflow with ProviderRole tied to ProviderOrganization." ;
+  rdfs:label "ARCO Sentinel-ID Instances – Extended (Mermaid-Aligned)" ;
+  rdfs:comment "Instances demonstrating: ICE grounded to reality-side universals; system has hardware component that bears capability-disposition; operational realization; documentation workflow with ProviderRole tied to ProviderOrganization." ;
   owl:imports <https://arco.ai/ontology/governance> .
 
 #################################################################
@@ -25,12 +25,17 @@
   iao:0000136 :BiometricIdentificationCapability . # is_about the Universal (class)
 
 #################################################################
-# 2) SYSTEM LAYER (reality-side particulars)
+# 2) SYSTEM LAYER (reality-side particulars) - UPDATED
 #################################################################
+
+:Sentinel_FaceID_Module rdf:type :HardwareComponent ;
+  rdfs:label "Sentinel Facial Recognition Module" ;
+  rdfs:comment "Hardware component containing biometric sensors and processing capability." ;
+  ro:0000091 :Sentinel_FaceID_Disposition . # has disposition
 
 :Sentinel_ID_System rdf:type :System ;
   rdfs:label "Sentinel-ID System" ;
-  ro:0000053 :Sentinel_FaceID_Disposition . # bearer of
+  bfo:0000051 :Sentinel_FaceID_Module . # has part
 
 :Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability ;
   rdfs:label "Sentinel Facial Recognition Disposition" .

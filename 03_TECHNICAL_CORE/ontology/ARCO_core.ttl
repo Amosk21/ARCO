@@ -8,20 +8,25 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 <https://arco.ai/ontology/core> rdf:type owl:Ontology ;
-  rdfs:label "ARCO Core (Gold Standard) — Fixed Import IRI" ;
+  rdfs:label "ARCO Core (Gold Standard) – Fixed Import IRI" ;
   rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Ontology IRI is https://arco.ai/ontology/core so imports can be resolved consistently." .
 
 #################################################################
-# 1) REALITY-SIDE UNIVERSALS (BFO)
+# 1) REALITY-SIDE UNIVERSALS (BFO) - UPDATED
 #################################################################
+
+:HardwareComponent rdf:type owl:Class ;
+  rdfs:label "Hardware Component" ;
+  rdfs:comment "A material object that is part of an AI system and can bear capability dispositions." ;
+  rdfs:subClassOf bfo:0000030 . # Object
 
 :System rdf:type owl:Class ;
   rdfs:label "AI System" ;
   rdfs:subClassOf bfo:0000027 ; # Object Aggregate
   rdfs:subClassOf [
     a owl:Restriction ;
-    owl:onProperty ro:0000053 ; # bearer of
-    owl:someValuesFrom :CapabilityDisposition
+    owl:onProperty bfo:0000051 ; # has part
+    owl:someValuesFrom :HardwareComponent
   ] .
 
 :CapabilityDisposition rdf:type owl:Class ;
@@ -63,9 +68,10 @@
   rdfs:subClassOf :ComplianceDetermination .
 
 #################################################################
-# 3) INFERRED CLASSIFICATION - Bridge Axioms
+# 3) INFERRED CLASSIFICATION - Bridge Axioms (UPDATED)
 #    These axioms enable the reasoner to INFER high-risk status
-#    rather than requiring it to be explicitly asserted.
+#    by traversing: System → has_part → HardwareComponent → 
+#    has_disposition → AnnexIIITriggeringCapability
 #################################################################
 
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
@@ -78,44 +84,49 @@
 
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "High-Risk AI System" ;
-  rdfs:comment "A system classified as high-risk by virtue of bearing a disposition that triggers Annex III. This class membership is INFERRED by the reasoner." ;
+  rdfs:comment "A system classified as high-risk by virtue of having a hardware component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:intersectionOf (
       :System
       [ rdf:type owl:Restriction ;
-        owl:onProperty ro:0000053 ;
-        owl:someValuesFrom :AnnexIIITriggeringCapability ]
+        owl:onProperty bfo:0000051 ; # has part
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :HardwareComponent
+            [ rdf:type owl:Restriction ;
+              owl:onProperty ro:0000091 ; # has disposition
+              owl:someValuesFrom :AnnexIIITriggeringCapability
+            ]
+          )
+        ]
+      ]
     )
   ] .
 
 #################################################################
-# 4) RELATION ANCHORS (labels only)
+# 4) RELATION ANCHORS (labels only) - UPDATED
 #################################################################
-
-@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
-@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
-@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
 
 # Minimal UI labels for the BFO classes you reference
 bfo:0000015 rdfs:label "Process" .
 bfo:0000016 rdfs:label "Disposition" .
 bfo:0000023 rdfs:label "Role" .
 bfo:0000027 rdfs:label "Object Aggregate" .
+bfo:0000030 rdfs:label "Object" .
 
 # Minimal UI labels for BFO relations you reference
+bfo:0000050 rdfs:label "part of" .
 bfo:0000051 rdfs:label "has part" .
 bfo:0000055 rdfs:label "realizes" .
 
 # Minimal UI labels for RO relations you reference
 ro:0000052 rdfs:label "inheres in" .
-ro:0000053 rdfs:label "bearer of" .
 ro:0000057 rdfs:label "has participant" .
 ro:0000087 rdfs:label "has role" .
+ro:0000091 rdfs:label "has disposition" .
 
-ro:0000053 rdfs:label "bearer of" .
-ro:0000057 rdfs:label "has participant" .
-bfo:0000055 rdfs:label "realizes" .
-bfo:0000051 rdfs:label "has part" .
+# Additional labels
 iao:0000136 rdfs:label "is about" .
 cco:has_output rdfs:label "has output" .

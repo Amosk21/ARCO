@@ -174,7 +174,7 @@ ARCO/
 │   └── TechnicalDeck.md              # Technical presentation
 ├── 03_TECHNICAL_CORE/
 │   ├── ontology/                     # ARCO ontologies (TTL)
-│   ├── reasoning/                    # SPARQL queries
+│   ├── reasoning/                    # SPARQL queries (audit/verification)
 │   ├── scripts/                      # Pipeline implementation
 │   └── validation/                   # SHACL shapes
 ├── 04_DIAGRAMS_AND_MODELS/           # Architecture diagrams, visual assets

@@ -9,7 +9,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 #################################################################
-# ARCO SHACL Validation Shapes
+# ARCO SHACL Validation Shapes - UPDATED
 # 
 # Purpose: Validate structural completeness of assessment artifacts
 # Note: These shapes validate AFTER OWL reasoning has run
@@ -70,7 +70,7 @@
   ] .
 
 #################################################################
-# Shape 4: System must bear at least one disposition
+# Shape 4: System must have at least one hardware component - UPDATED
 #################################################################
 
 :SystemShape
@@ -78,13 +78,27 @@
   sh:targetClass :System ;
 
   sh:property [
-    sh:path ro:0000053 ;
+    sh:path bfo:0000051 ;
     sh:minCount 1 ;
-    sh:message "System must bear at least one disposition (capability)." ;
+    sh:message "System must have at least one hardware component." ;
   ] .
 
 #################################################################
-# Shape 5: ComplianceDetermination must be about something
+# Shape 5: HardwareComponent must have at least one disposition - NEW
+#################################################################
+
+:HardwareComponentShape
+  a sh:NodeShape ;
+  sh:targetClass :HardwareComponent ;
+
+  sh:property [
+    sh:path ro:0000091 ;
+    sh:minCount 1 ;
+    sh:message "HardwareComponent must have at least one disposition (capability)." ;
+  ] .
+
+#################################################################
+# Shape 6: ComplianceDetermination must be about something
 #################################################################
 
 :ComplianceDeterminationShape

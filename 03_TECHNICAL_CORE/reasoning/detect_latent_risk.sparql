@@ -1,0 +1,22 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+
+#################################################################
+# detect_latent_risk.sparql
+#
+# PURPOSE: Detect latent high-risk capability via component traversal
+#
+# QUERY PATTERN:
+#   System → has_part → HardwareComponent → has_disposition → 
+#   BiometricIdentificationCapability
+#
+# This query detects regulatory risk at the hardware level,
+# even when the capability is not currently active/realized.
+#################################################################
+
+ASK WHERE {
+  :Sentinel_ID_System bfo:0000051 ?component .
+  ?component ro:0000091 ?disposition .
+  ?disposition a :BiometricIdentificationCapability .
+}
