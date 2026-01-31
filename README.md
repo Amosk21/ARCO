@@ -5,9 +5,9 @@ ARCO produces regulatory classifications as logical consequences of explicitly m
 
 ## Why this exists (Design-time governance)
 
-The core problem in AI governance is not a lack of rules, transparency, or oversight. It is that systems are built without an explicit, shared model of what exists, what those things are capable of, and which processes can occur as a result. Early modeling choices quietly define reality for the system, fixing what can be perceived, optimized, or ignored. Because those choices are treated as technical configuration rather than structural commitments, they escape ownership and governance. By the time monitoring, audits, or ethics are applied, the ontology has already done the governing.
+The core problem in AI governance is not a lack of rules, transparency, or oversight. It is that systems are built without an explicit, shared model of what exists, what those things are capable of, and which processes can occur as a result. Early modeling choices quietly define reality for the system, fixing what can be perceived, optimized, or ignored. Because those choices are treated as technical configuration rather than structural commitments, they escape ownership and governance.
 
-Regulatory frameworks increasingly classify systems by capability, not configuration. Liability attaches to what a system is able to do, not only to what it happens to be doing. The real leverage point is design time, where continuants, capabilities, roles, and processes can still be made explicit, inspectable, and contestable.
+Liability attaches to what a system is able to do, not only to what it happens to be doing. The real leverage point is design time, where continuants, capabilities, roles, and processes can still be made explicit, inspectable, and contestable.
 
 ### Regulatory classification as a design-time problem
 
@@ -17,13 +17,11 @@ ARCO operates on top of this regulatory reality.
 
 Rather than treating regulatory classification as an interpretive or post-hoc exercise, ARCO formalizes Article 6 and Annex III criteria as explicit, capability-based conditions that can be evaluated at design time, using a general assurance architecture designed for capability-based regulation.
 
-This framing establishes the minimum foundation required for ARCO to function: a shared, explicit model of system structure, capabilities, and regulatory triggers that can be inspected, validated, and reasoned over deterministically.
-
 ### Ontological grounding (why structure matters)
 
 For regulatory classification to be derived from system structure, the underlying model must distinguish clearly between what *exists*, what it is *capable of*, and what *processes* may occur as a result.
 
-ARCO is grounded in a realist ontological framework aligned with the Basic Formal Ontology (BFO). This grounding enforces explicit separation between material entities, dispositions (capabilities), roles, and processes, preventing regulatory classifications from being inferred from informal descriptions, policy language, or implementation detail alone.
+ARCO is grounded in a realist ontological framework aligned with the Basic Formal Ontology (BFO). This grounding enforces explicit separation between material entities, dispositions (capabilities), roles, and processes, preventing regulatory classifications from being inferred from implementation detail alone.
 
 This is what allows ARCO to treat capability as something that resolves from structure rather than something asserted by documentation or intent. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes.
 
@@ -31,6 +29,7 @@ This is what allows ARCO to treat capability as something that resolves from str
 
 ARCO is a framework for producing **clear, defensible regulatory classifications** for high-stakes AI systems.
 
+ARCO is system-agnostic by design. New AI systems are evaluated by authoring new instance data against the same ontological and reasoning framework; the core ontology, validation rules, and classification logic do not change.
 Instead of generating scores, confidence levels, or probabilistic assessments, ARCO produces **regulatory determinations** that can be traced directly back to the structure and capabilities of the system being evaluated.
 
 **The goal is simple:**
