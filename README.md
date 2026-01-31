@@ -58,7 +58,7 @@ A one-page diagram showing how ARCO functions as a formal regulatory decision po
 **2. Where ARCO sits in the governance ecosystem**  
 A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.  
 
-→ [02_SYSTEM_OVERVIEW/arco_positioning.pdf](02_SYSTEM_OVERVIEW/arco_positioning.pdf)
+→ [02_SYSTEM_OVERVIEW/arco_positioning.md](02_SYSTEM_OVERVIEW/arco_positioning.md)
 
 **3. EU AI Act classification models (reference diagrams)**  
 Visual models showing how Article 6 and Annex III classification criteria are represented and evaluated within ARCO.  
@@ -89,28 +89,34 @@ Depending on what you are trying to understand, there are three recommended entr
 1. **[ARCO_Assurance_Engine.md](01_COMMERCIAL/ARCO_Assurance_Engine.md)**  
    Explains why probabilistic approaches break down in regulated domains and introduces the logic-first assurance model.
 
-2. **[Command_Center.pdf](01_COMMERCIAL/Command_Center.pdf)**  
-   Provides the operational overview: scope, inputs, outputs, and how the assurance process is structured end to end.
+2. **[Command_Center.md](02_SYSTEM_OVERVIEW/Command_Center.md)**  
+   Foundational doctrine covering the technical logic, modeling commitments, implementation layers, and strategic positioning.
+
+3. **[Glass_Box_Compliance_White_Paper.md](02_SYSTEM_OVERVIEW/Glass_Box_Compliance_White_Paper.md)**  
+   Academic framing of ontological classification for regulatory risk, covering the conceptual approach and epistemic boundaries.
 
 ### 📄 Phase 2: Technical Deep-Dive
 
 *Recommended for technical reviewers who want to understand the architecture before touching code.*
 
-3. **[ARCO_Technical_Overview.pdf](02_SYSTEM_OVERVIEW/ARCO_Technical_Overview.pdf)**  
-   A standalone 10-page document covering the problem statement, architectural decisions, BFO grounding, the Sentinel-ID worked example, and scope limitations. This is the canonical technical reference for understanding how ARCO works and why it's built the way it is.
+4. **[TechnicalDeck.md](02_SYSTEM_OVERVIEW/TechnicalDeck.md)**  
+   Comprehensive technical presentation covering the problem context, architecture, BFO grounding, the Sentinel-ID worked example, and operational validation.
+
+5. **[ARCO_Technical_Implementation.md](05_TECHNICAL_IMPLEMENTATION/ARCO_Technical_Implementation.md)**  
+   Detailed architectural decisions: modeling latent risk via BFO dispositions, structural integrity via SHACL, deterministic audit via SPARQL ASK, and the execution pipeline.
 
 ### ⚙️ Phase 3: Execution (Operational View)
 
 *Recommended for technical validation and engagement modeling.*
 
-4. **[ARCO_Regulatory_Determination_Case.md](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)**  
+6. **[ARCO_Regulatory_Determination_Case.md](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)**  
    A concrete example of a regulatory determination produced by the framework, including the final certificate and traceability.
 
-5. **[ARCO_Pilot_Engagement_Scope.pdf](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.pdf)**  
+7. **[ARCO_Pilot_Engagement_Scope.md](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.md)**  
    Defines how the framework would be deployed in a client setting: 4-week engagement, fixed deliverables, explicit exclusions. This shows what operationalization looks like.
 
-6. **[run_pipeline.py](03_TECHNICAL_CORE/scripts/run_pipeline.py)**  
-   The reference implementation. This script demonstrates ontology ingestion, deterministic reasoning, and SHACL validation in action.
+8. **[run_pipeline.py](03_TECHNICAL_CORE/scripts/run_pipeline.py)**  
+   The reference implementation. This script demonstrates ontology ingestion, deterministic evaluation, and SHACL validation in action.
 
 ---
 
@@ -147,7 +153,7 @@ Indicates whether the provided instance data satisfies the required documentatio
 **A `False` result does not indicate a system error.**  
 It means the SHACL validator identified missing or inconsistent required information, which is the intended behavior of the assurance process. The printed validation report shows exactly what is missing or invalid.
 
-This script is a reference execution used to demonstrate ingestion, structural validation, deterministic reasoning, and traceable output—not a production automation tool.
+This script is a reference execution used to demonstrate ingestion, structural validation, deterministic evaluation, and traceable output—not a production automation tool.
 
 ---
 
@@ -155,11 +161,24 @@ This script is a reference execution used to demonstrate ingestion, structural v
 
 ```
 ARCO/
-├── 01_COMMERCIAL/          # Engagement materials, pricing, methodology docs
-├── 02_SYSTEM_OVERVIEW/     # Positioning, technical overview, presentations
-├── 03_TECHNICAL_CORE/      # Ontologies, SHACL shapes, SPARQL queries, scripts
-├── 04_DIAGRAMS_AND_MODELS/ # Architecture diagrams, visual assets
-└── 05_TECHNICAL_IMPLEMENTATION/  # Detailed architectural decisions
+├── 01_COMMERCIAL/
+│   ├── ARCO_Assurance_Engine.md      # Core methodology
+│   ├── ARCO_Pilot_Engagement_Scope.md # Engagement model
+│   ├── ARCO_Regulatory_Determination_Case.md # Worked example
+│   └── EXEC_PITCH.md                 # Executive overview
+├── 02_SYSTEM_OVERVIEW/
+│   ├── arco_positioning.md           # Ecosystem positioning
+│   ├── Command_Center.md             # Foundational doctrine
+│   ├── Glass_Box_Compliance_White_Paper.md # Academic framing
+│   └── TechnicalDeck.md              # Technical presentation
+├── 03_TECHNICAL_CORE/
+│   ├── ontology/                     # ARCO ontologies (TTL)
+│   ├── reasoning/                    # SPARQL queries
+│   ├── scripts/                      # Pipeline implementation
+│   └── validation/                   # SHACL shapes
+├── 04_DIAGRAMS_AND_MODELS/           # Architecture diagrams, visual assets
+└── 05_TECHNICAL_IMPLEMENTATION/
+    └── ARCO_Technical_Implementation.md # Architectural decisions
 ```
 
 ---
