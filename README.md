@@ -1,6 +1,8 @@
 # ARCO  
 **Assurance & Regulatory Classification Ontology**
 
+ARCO produces regulatory classifications as logical consequences of explicitly modeled system capabilities, rather than probabilistic assessments.
+
 ## Why this exists (Design-time governance)
 
 The core problem in AI governance is not a lack of rules, transparency, or oversight. It is that systems are built without an explicit, shared model of what exists, what those things are capable of, and which processes can occur as a result. Early modeling choices quietly define reality for the system, fixing what can be perceived, optimized, or ignored. Because those choices are treated as technical configuration rather than structural commitments, they escape ownership and governance. By the time monitoring, audits, or ethics are applied, the ontology has already done the governing.
