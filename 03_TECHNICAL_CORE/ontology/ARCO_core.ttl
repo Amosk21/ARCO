@@ -1,6 +1,5 @@
 @prefix :    <https://arco.ai/ontology/core#> .
 @prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
-@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
 @prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
 @prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -8,17 +7,19 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 <https://arco.ai/ontology/core> rdf:type owl:Ontology ;
-  rdfs:label "ARCO Core (Gold Standard) – Fixed Import IRI" ;
-  rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Ontology IRI is https://arco.ai/ontology/core so imports can be resolved consistently." .
+  rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned" ;
+  rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Uses ro:0000091 (has_disposition) per RO best practices." .
 
 #################################################################
-# 1) REALITY-SIDE UNIVERSALS (BFO) - UPDATED
+# 1) REALITY-SIDE UNIVERSALS (BFO)
+#
+# Design Decision: We use ro:0000091 (has_disposition) rather than
+# ro:0000053 (bearer_of) because:
+#   - has_disposition is more specific in the RO property hierarchy
+#   - has_disposition has domain: independent continuant, range: disposition
+#   - bearer_of is generic (covers qualities, roles, functions, dispositions)
+#   - This aligns with OBO Foundry best practices
 #################################################################
-
-:HardwareComponent rdf:type owl:Class ;
-  rdfs:label "Hardware Component" ;
-  rdfs:comment "A material object that is part of an AI system and can bear capability dispositions." ;
-  rdfs:subClassOf bfo:0000030 . # Object
 
 :System rdf:type owl:Class ;
   rdfs:label "AI System" ;
@@ -27,6 +28,15 @@
     a owl:Restriction ;
     owl:onProperty bfo:0000051 ; # has part
     owl:someValuesFrom :HardwareComponent
+  ] .
+
+:HardwareComponent rdf:type owl:Class ;
+  rdfs:label "Hardware Component" ;
+  rdfs:subClassOf bfo:0000030 ; # Object
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty ro:0000091 ; # has disposition (RO-specific)
+    owl:someValuesFrom :CapabilityDisposition
   ] .
 
 :CapabilityDisposition rdf:type owl:Class ;
@@ -42,25 +52,25 @@
   rdfs:label "Operational Process" ;
   rdfs:subClassOf bfo:0000015 ; # Process
   rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,               # has participant
+    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,                 # has participant
     [ a owl:Restriction ; owl:onProperty bfo:0000055 ; owl:someValuesFrom :CapabilityDisposition ] . # realizes
 
 #################################################################
-# 2) REPRESENTATION-SIDE UNIVERSALS (CCO/IAO)
+# 2) REPRESENTATION-SIDE UNIVERSALS (IAO)
 #################################################################
 
 :InformationOutput rdf:type owl:Class ;
   rdfs:label "Information Output" ;
-  rdfs:subClassOf cco:InformationContentEntity .
+  rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :RegulatoryContent rdf:type owl:Class ;
   rdfs:label "Regulatory Content" ;
-  rdfs:subClassOf cco:InformationContentEntity .
+  rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :ComplianceDetermination rdf:type owl:Class ;
   rdfs:label "Compliance Determination Result" ;
   rdfs:comment "Structured result of a compliance assessment (e.g., High-Risk, Limited-Risk, Prohibited)." ;
-  rdfs:subClassOf cco:InformationContentEntity .
+  rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :HighRiskDetermination rdf:type owl:Class ;
   rdfs:label "High-Risk Determination" ;
@@ -68,10 +78,12 @@
   rdfs:subClassOf :ComplianceDetermination .
 
 #################################################################
-# 3) INFERRED CLASSIFICATION - Bridge Axioms (UPDATED)
-#    These axioms enable the reasoner to INFER high-risk status
-#    by traversing: System → has_part → HardwareComponent → 
-#    has_disposition → AnnexIIITriggeringCapability
+# 3) INFERRED CLASSIFICATION - Bridge Axioms
+#
+# These axioms enable the reasoner to INFER high-risk status
+# rather than requiring it to be explicitly asserted.
+#
+# CRITICAL: Uses ro:0000091 (has_disposition) to match instance data
 #################################################################
 
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
@@ -84,7 +96,7 @@
 
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "High-Risk AI System" ;
-  rdfs:comment "A system classified as high-risk by virtue of having a hardware component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
+  rdfs:comment "A system classified as high-risk by virtue of having a component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:intersectionOf (
@@ -92,41 +104,36 @@
       [ rdf:type owl:Restriction ;
         owl:onProperty bfo:0000051 ; # has part
         owl:someValuesFrom [
-          rdf:type owl:Class ;
-          owl:intersectionOf (
-            :HardwareComponent
-            [ rdf:type owl:Restriction ;
-              owl:onProperty ro:0000091 ; # has disposition
-              owl:someValuesFrom :AnnexIIITriggeringCapability
-            ]
-          )
+          rdf:type owl:Restriction ;
+          owl:onProperty ro:0000091 ; # has disposition (ALIGNED WITH INSTANCES)
+          owl:someValuesFrom :AnnexIIITriggeringCapability
         ]
       ]
     )
   ] .
 
 #################################################################
-# 4) RELATION ANCHORS (labels only) - UPDATED
+# 4) RELATION ANCHORS (labels for UI/debugging)
 #################################################################
 
-# Minimal UI labels for the BFO classes you reference
+# BFO classes
 bfo:0000015 rdfs:label "Process" .
 bfo:0000016 rdfs:label "Disposition" .
 bfo:0000023 rdfs:label "Role" .
 bfo:0000027 rdfs:label "Object Aggregate" .
 bfo:0000030 rdfs:label "Object" .
 
-# Minimal UI labels for BFO relations you reference
+# BFO relations
 bfo:0000050 rdfs:label "part of" .
 bfo:0000051 rdfs:label "has part" .
 bfo:0000055 rdfs:label "realizes" .
 
-# Minimal UI labels for RO relations you reference
+# RO relations
 ro:0000052 rdfs:label "inheres in" .
+ro:0000053 rdfs:label "bearer of" .
 ro:0000057 rdfs:label "has participant" .
 ro:0000087 rdfs:label "has role" .
 ro:0000091 rdfs:label "has disposition" .
 
-# Additional labels
+# IAO relations
 iao:0000136 rdfs:label "is about" .
-cco:has_output rdfs:label "has output" .

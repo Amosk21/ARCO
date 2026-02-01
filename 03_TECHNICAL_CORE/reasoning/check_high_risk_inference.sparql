@@ -10,11 +10,13 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 #   - BEFORE reasoning: FALSE (Sentinel_ID_System is only typed as :System)
 #   - AFTER reasoning:  TRUE  (reasoner infers :HighRiskSystem membership)
 #
-# INFERENCE CHAIN:
+# INFERENCE CHAIN (using ro:0000091 has_disposition):
 #   1. Sentinel_ID_System rdf:type :System
-#   2. Sentinel_ID_System ro:0000053 (bearer_of) Sentinel_FaceID_Disposition
-#   3. Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability
-#   4. :HighRiskSystem = :System AND (ro:0000053 some :AnnexIIITriggeringCapability)
+#   2. Sentinel_ID_System bfo:0000051 (has_part) Sentinel_FaceID_Module
+#   3. Sentinel_FaceID_Module ro:0000091 (has_disposition) Sentinel_FaceID_Disposition
+#   4. Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability
+#   5. :BiometricIdentificationCapability subClassOf :AnnexIIITriggeringCapability (via equivalentClass)
+#   6. :HighRiskSystem equivalentClass :System AND (bfo:0000051 some (ro:0000091 some :AnnexIIITriggeringCapability))
 #   => Sentinel_ID_System rdf:type :HighRiskSystem (INFERRED)
 #################################################################
 
