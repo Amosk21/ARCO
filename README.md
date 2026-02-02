@@ -3,6 +3,19 @@
 
 ARCO produces regulatory classifications as logical consequences of explicitly modeled system capabilities, rather than probabilistic assessments.
 
+## Instant understanding
+
+- **Input:** A system description modeled as instances (components, roles, capabilities, intended context)  
+- **Output:** A deterministic regulatory determination plus traceability artifacts (validation report + query evidence)  
+- **Mechanism:** BFO-aligned ontology + SHACL completeness validation + SPARQL ASK audit queries  
+
+**Why:** Replace probabilistic "confidence" with audit-traceable logical determination.
+
+A concrete example of a produced determination is available here:  
+→ [01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
+
+---
+
 ## Why this exists (Design-time governance)
 
 The core problem in AI governance is not a lack of rules, transparency, or oversight. It is that systems are built without an explicit, shared model of what exists, what those things are capable of, and which processes can occur as a result. Early modeling choices quietly define reality for the system, fixing what can be perceived, optimized, or ignored. Because those choices are treated as technical configuration rather than structural commitments, they escape ownership and governance.
@@ -25,16 +38,18 @@ ARCO is grounded in a realist ontological framework aligned with the Basic Forma
 
 This is what allows ARCO to treat capability as something that resolves from structure rather than something asserted by documentation or intent. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes.
 
+---
+
 ## Overview
 
 ARCO is a framework for producing **clear, defensible regulatory classifications** for high-stakes AI systems.
 
-ARCO is system-agnostic by design. New AI systems are evaluated by authoring new instance data against the same ontological and reasoning framework; the core ontology, validation rules, and classification logic do not change.
+ARCO is system-agnostic by design. New AI systems are evaluated by authoring new instance data against the same ontological and reasoning framework; the core ontology, validation rules, and classification logic do not change.  
 Instead of generating scores, confidence levels, or probabilistic assessments, ARCO produces **regulatory determinations** that can be traced directly back to the structure and capabilities of the system being evaluated.
 
 **The goal is simple:**
 
-> Replace probabilistic "confidence" with regulator-defensible logical determination.
+> Replace probabilistic "confidence" with audit-traceable logical determination.
 
 This repository contains the complete reference implementation and supporting materials for that approach.
 
@@ -75,7 +90,6 @@ At a high level, ARCO answers a single question:
 
 **Given what this system is capable of, does it meet the legal criteria for a specific regulatory classification?**
 
-
 ---
 
 ## Where to start
@@ -85,39 +99,20 @@ Depending on what you are trying to understand, there are three recommended entr
 
 ### 🏛️ Phase 1: Methodology (Strategic View)
 
-*Recommended for leadership, reviewers, and conceptual alignment.*
-
 1. **[ARCO_Assurance_Engine.md](01_COMMERCIAL/ARCO_Assurance_Engine.md)**  
-   Explains why probabilistic approaches break down in regulated domains and introduces the logic-first assurance model.
-
 2. **[Command_Center.md](02_SYSTEM_OVERVIEW/Command_Center.md)**  
-   Foundational doctrine covering the technical logic, modeling commitments, implementation layers, and strategic positioning.
-
 3. **[Glass_Box_Compliance_White_Paper.md](02_SYSTEM_OVERVIEW/Glass_Box_Compliance_White_Paper.md)**  
-   Academic framing of ontological classification for regulatory risk, covering the conceptual approach and epistemic boundaries.
 
 ### 📄 Phase 2: Technical Deep-Dive
 
-*Recommended for technical reviewers who want to understand the architecture before touching code.*
-
 4. **[TechnicalDeck.md](02_SYSTEM_OVERVIEW/TechnicalDeck.md)**  
-   Comprehensive technical presentation covering the problem context, architecture, BFO grounding, the Sentinel-ID worked example, and operational validation.
-
 5. **[ARCO_Technical_Implementation.md](05_TECHNICAL_IMPLEMENTATION/ARCO_Technical_Implementation.md)**  
-   Detailed architectural decisions: modeling latent risk via BFO dispositions, structural integrity via SHACL, deterministic audit via SPARQL ASK, and the execution pipeline.
 
 ### ⚙️ Phase 3: Execution (Operational View)
 
-*Recommended for technical validation and engagement modeling.*
-
 6. **[ARCO_Regulatory_Determination_Case.md](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)**  
-   A concrete example of a regulatory determination produced by the framework, including the final certificate and traceability.
-
 7. **[ARCO_Pilot_Engagement_Scope.md](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.md)**  
-   Defines how the framework would be deployed in a client setting: 4-week engagement, fixed deliverables, explicit exclusions. This shows what operationalization looks like.
-
 8. **[run_pipeline.py](03_TECHNICAL_CORE/scripts/run_pipeline.py)**  
-   The reference implementation. This script demonstrates ontology ingestion, deterministic evaluation, and SHACL validation in action.
 
 ---
 
@@ -129,86 +124,5 @@ This repository includes a reference implementation that demonstrates the full A
 - Python 3.10 or newer
 
 ### Install dependencies
-From the repository root:
-
 ```bash
 pip install rdflib pyshacl
-```
-
-### Run the pipeline
-```bash
-python 03_TECHNICAL_CORE/scripts/run_pipeline.py
-```
-
-### What you should see
-
-**Loaded triples:** `<number>`  
-Confirms the ontology and instance graphs loaded correctly.
-
-**SPARQL ASK result:** `True` / `False`  
-Confirms the regulatory logic query executed successfully.
-
-**SHACL conforms:** `True` / `False`  
-Indicates whether the provided instance data satisfies the required documentation constraints.
-
-**A `False` result does not indicate a system error.**  
-It means the SHACL validator identified missing or inconsistent required information, which is the intended behavior of the assurance process. The printed validation report shows exactly what is missing or invalid.
-
-This script is a reference execution used to demonstrate ingestion, structural validation, deterministic evaluation, and traceable output—not a production automation tool.
-
----
-
-## Repository structure
-
-```
-ARCO/
-├── 01_COMMERCIAL/
-│   ├── ARCO_Assurance_Engine.md      # Core methodology
-│   ├── ARCO_Pilot_Engagement_Scope.md # Engagement model
-│   ├── ARCO_Regulatory_Determination_Case.md # Worked example
-│   └── EXEC_PITCH.md                 # Executive overview
-├── 02_SYSTEM_OVERVIEW/
-│   ├── arco_positioning.md           # Ecosystem positioning
-│   ├── Command_Center.md             # Foundational doctrine
-│   ├── Glass_Box_Compliance_White_Paper.md # Academic framing
-│   └── TechnicalDeck.md              # Technical presentation
-├── 03_TECHNICAL_CORE/
-│   ├── ontology/                     # ARCO ontologies (TTL)
-│   ├── reasoning/                    # SPARQL queries (audit/verification)
-│   ├── scripts/                      # Pipeline implementation
-│   └── validation/                   # SHACL shapes
-├── 04_DIAGRAMS_AND_MODELS/           # Architecture diagrams, visual assets
-└── 05_TECHNICAL_IMPLEMENTATION/
-    └── ARCO_Technical_Implementation.md # Architectural decisions
-```
-
----
-
-## What ARCO is not
-
-ARCO is **not**:
-
-- A probabilistic risk scoring tool  
-- A checklist generator  
-- A substitute for legal counsel  
-- A plug-and-play compliance dashboard  
-
-ARCO is best understood as a **formal assurance instrument**, similar in spirit to safety cases used in aerospace or medical systems, applied to AI regulatory classification.
-
----
-
-## Status
-
-ARCO is presented here as a **reference-grade methodology and capability demonstration**.
-
-The technical foundation is intentionally explicit and auditable.  
-Future work focuses on validation, deployment, and refinement through real-world use.
-
----
-
-## Contact
-
-Alex Moskowitz  
-[LinkedIn](https://www.linkedin.com/in/alex-moskowitz/) · [Email](alex.moskowitz97@gmail.com)
-
-*Interested in AI governance, regulatory technology, or applying formal methods to compliance problems? Let's talk.*
