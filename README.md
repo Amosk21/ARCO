@@ -7,7 +7,7 @@ ARCO produces regulatory classifications as logical consequences of explicitly m
 
 - **Input:** A system description modeled as instances (components, roles, capabilities, intended context)  
 - **Output:** A deterministic regulatory determination plus traceability artifacts (validation report + query evidence)  
-- **Mechanism:** BFO-aligned ontology + SHACL completeness validation + SPARQL ASK audit queries  
+- **Mechanism:** BFO-aligned OWL ontology (axioms) + SHACL completeness validation + SPARQL ASK audit queries
 
 **Why:** Replace probabilistic "confidence" with audit-traceable logical determination.
 
