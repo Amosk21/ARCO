@@ -1,0 +1,61 @@
+# .github/workflows/arco-demo.yml
+name: ARCO Demo Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      case:
+        description: "Demo case selector (used if your pipeline supports it)"
+        required: false
+        default: "default"
+
+jobs:
+  arco-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Keep these explicit so the demo run is robust even if requirements.txt changes
+          pip install rdflib pyshacl
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Prepare output directory
+        run: |
+          mkdir -p runs/demo
+          echo "case=${{ inputs.case }}" > runs/demo/run_meta.txt
+          echo "utc_started=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> runs/demo/run_meta.txt
+
+      - name: Run ARCO reference pipeline (stream logs)
+        env:
+          ARCO_DEMO_CASE: ${{ inputs.case }}
+          ARCO_OUTDIR: runs/demo
+        run: |
+          set -e
+          echo "[ARCO] Demo case: $ARCO_DEMO_CASE"
+          echo "[ARCO] Outdir: $ARCO_OUTDIR"
+          # If your pipeline supports args, prefer:
+          # python -u 03_TECHNICAL_CORE/scripts/run_pipeline.py --case "$ARCO_DEMO_CASE" --outdir "$ARCO_OUTDIR"
+          #
+          # Otherwise, keep the current entrypoint:
+          python -u 03_TECHNICAL_CORE/scripts/run_pipeline.py
+
+      - name: Upload demo artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: arco-demo-artifacts
+          path: |
+            runs/demo
+            03_TECHNICAL_CORE/runs
+            03_TECHNICAL_CORE/output
+          if-no-files-found: warn
