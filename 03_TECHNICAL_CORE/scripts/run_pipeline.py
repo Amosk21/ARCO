@@ -97,13 +97,13 @@ def run_sparql_ask_from_file(data_graph: Graph, query_path: Path) -> bool:
 # ---------------------------
 
 def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
-    if not HAS_OWLRL:
-        sub("REASONING")
-        print("owlrl not installed -> skipping reasoning")
-        print("Install: pip install owlrl")
-        return data_graph, len(data_graph), 0
-
     sub("REASONING")
+    if not HAS_OWLRL:
+        raise RuntimeError(
+            "owlrl is not installed, but this pipeline requires reasoning.\n"
+            "Install: pip install owlrl"
+        )
+
     initial = len(data_graph)
     print("Running OWL-RL closure (materializing entailments)...")
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(data_graph)
