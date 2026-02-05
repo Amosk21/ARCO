@@ -1,397 +1,85 @@
-# 03_TECHNICAL_CORE/scripts/run_pipeline.py
-"""
-ARCO Compliance Verification Pipeline — BFO/RO Aligned Version (RO:0000091 has_disposition)
+# .github/workflows/arco-demo.yml
+name: ARCO Demo Run
 
-Stages:
-1) Load ontology + instance data
-2) OWL-RL reasoning (materialize entailments)
-3) SHACL validation
-4) SPARQL audit checks (ASK)
-5) Verify HighRiskSystem entailment + show the evidence path that makes it hold
+on:
+  workflow_dispatch:
 
-Alignment:
-- Primary modeling relation: RO_0000091 has_disposition
-- Legacy diagnostic: RO_0000053 bearer_of (kept only to detect older patterns)
+jobs:
+  arco-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
-Outputs (for GitHub Actions demo):
-- Writes machine-readable summary to: $ARCO_OUTDIR/arco_results.json
-- Writes full console log (handled by workflow via tee): $ARCO_OUTDIR/demo.log
-- Writes SHACL report: $ARCO_OUTDIR/shacl_report.txt
-- Writes reasoned graph TTL (optional, enabled by default): $ARCO_OUTDIR/reasoned_graph.ttl
-"""
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-from __future__ import annotations
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Ensure reasoning works in the demo:
+          pip install rdflib pyshacl owlrl
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run ARCO pipeline (stream logs + capture)
+        env:
+          ARCO_OUTDIR: runs/demo
+          ARCO_EXPORT_REASONED_TTL: "1"
+        run: |
+          set -e
+          mkdir -p runs/demo
+          python -u 03_TECHNICAL_CORE/scripts/run_pipeline.py | tee runs/demo/demo.log
+
+      - name: Publish Summary (no log-hunting)
+        if: always()
+        run: |
+          echo "## ARCO Demo Result" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f runs/demo/arco_results.json ]; then
+            python - << 'PY' >> "$GITHUB_STEP_SUMMARY"
 import json
-import os
-from pathlib import Path
-from rdflib import Graph
-from pyshacl import validate
-
-try:
-    import owlrl
-    HAS_OWLRL = True
-except ImportError:
-    HAS_OWLRL = False
-
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-
-ONTOLOGY_DIR = REPO_ROOT / "03_TECHNICAL_CORE" / "ontology"
-VALIDATION_DIR = REPO_ROOT / "03_TECHNICAL_CORE" / "validation"
-REASONING_DIR = REPO_ROOT / "03_TECHNICAL_CORE" / "reasoning"
-
-CORE = ONTOLOGY_DIR / "ARCO_core.ttl"
-GOV = ONTOLOGY_DIR / "ARCO_governance_extension.ttl"
-INSTANCES = ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"
-
-SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
-
-TRACEABILITY_QUERY = REASONING_DIR / "check_assessment_traceability.sparql"
-LATENT_RISK_QUERY = REASONING_DIR / "detect_latent_risk.sparql"
-HIGH_RISK_INFERENCE_QUERY = REASONING_DIR / "check_high_risk_inference.sparql"
-
-
-# ---------------------------
-# output helpers
-# ---------------------------
-
-def get_outdir() -> Path:
-    # Default works locally and in Actions, and does not depend on repo structure beyond REPO_ROOT.
-    return Path(os.environ.get("ARCO_OUTDIR", str(REPO_ROOT / "runs" / "demo")))
-
-def ensure_outdir(outdir: Path) -> None:
-    outdir.mkdir(parents=True, exist_ok=True)
-
-def write_text(outdir: Path, filename: str, text: str) -> None:
-    ensure_outdir(outdir)
-    (outdir / filename).write_text(text, encoding="utf-8")
-
-def write_json(outdir: Path, filename: str, payload: dict) -> None:
-    ensure_outdir(outdir)
-    (outdir / filename).write_text(json.dumps(payload, indent=2), encoding="utf-8")
-
-
-# ---------------------------
-# console helpers
-# ---------------------------
-
-def hr(title: str, width: int = 72) -> None:
-    print("\n" + "=" * width)
-    print(title)
-    print("=" * width)
-
-def sub(title: str, width: int = 72) -> None:
-    print("\n" + "-" * width)
-    print(title)
-    print("-" * width)
-
-
-# ---------------------------
-# graph + SPARQL helpers
-# ---------------------------
-
-def load_union_graph(*paths: Path) -> Graph:
-    g = Graph()
-    for p in paths:
-        if not p.exists():
-            raise FileNotFoundError(f"Missing file: {p}")
-        g.parse(p.as_posix(), format="turtle")
-    return g
-
-def clone_graph(g: Graph) -> Graph:
-    h = Graph()
-    for t in g:
-        h.add(t)
-    return h
-
-def run_sparql_ask_inline(data_graph: Graph, query: str) -> bool:
-    result = data_graph.query(query)
-    if isinstance(result, bool):
-        return result
-    rows = list(result)
-    return bool(rows[0]) if rows else False
-
-def run_sparql_ask_from_file(data_graph: Graph, query_path: Path) -> bool:
-    if not query_path.exists():
-        raise FileNotFoundError(f"Missing SPARQL query file: {query_path}")
-    q = query_path.read_text(encoding="utf-8").strip()
-    try:
-        result = data_graph.query(q)
-        if isinstance(result, bool):
-            return result
-        rows = list(result)
-        return bool(rows[0]) if rows else False
-    except Exception as e:
-        raise RuntimeError(f"SPARQL query failed: {query_path}\n{e}")
-
-
-# ---------------------------
-# reasoning / validation
-# ---------------------------
-
-def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
-    if not HAS_OWLRL:
-        sub("REASONING")
-        print("owlrl not installed -> skipping reasoning")
-        print("Install: pip install owlrl")
-        return data_graph, len(data_graph), 0
-
-    sub("REASONING")
-    initial = len(data_graph)
-    print("Running OWL-RL closure (materializing entailments)...")
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(data_graph)
-    final = len(data_graph)
-    added = final - initial
-    print(f"Triples: {initial} -> {final}   (+{added} entailed)")
-    return data_graph, initial, added
-
-def run_shacl(data_graph: Graph, outdir: Path) -> bool:
-    sub("SHACL")
-    if not SHAPES.exists():
-        raise FileNotFoundError(f"Missing SHACL shapes file: {SHAPES}")
-
-    print("Validating SHACL shapes against the reasoned graph...")
-    shapes_graph = Graph().parse(SHAPES.as_posix(), format="turtle")
-
-    conforms, _, report_text = validate(
-        data_graph=data_graph,
-        shacl_graph=shapes_graph,
-        inference="none",
-        abort_on_first=False,
-        allow_infos=True,
-        allow_warnings=True,
-        meta_shacl=False,
-        advanced=True,
-    )
-
-    print(f"Conforms: {conforms}")
-
-    # Always write report so reviewers can inspect even on PASS.
-    write_text(outdir, "shacl_report.txt", report_text)
-
-    if not conforms:
-        print("\nSHACL report:\n")
-        print(report_text)
-
-    return bool(conforms)
-
-
-# ---------------------------
-# proof / evidence extraction
-# ---------------------------
-
-ASK_ASSERTED_HIGHRISK = """
-PREFIX : <https://arco.ai/ontology/core#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-ASK WHERE { :Sentinel_ID_System rdf:type :HighRiskSystem . }
-"""
-
-ASK_PRIMARY_PATH = """
-PREFIX : <https://arco.ai/ontology/core#>
-PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
-PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
-ASK WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
-  ?component ro:0000091 ?d .
-  ?d a :AnnexIIITriggeringCapability .
-}
-"""
-
-ASK_LEGACY_PATH = """
-PREFIX : <https://arco.ai/ontology/core#>
-PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
-PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
-ASK WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
-  ?component ro:0000053 ?d .
-  ?d a :AnnexIIITriggeringCapability .
-}
-"""
-
-SELECT_PRIMARY_BINDINGS = """
-PREFIX : <https://arco.ai/ontology/core#>
-PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
-PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
-SELECT ?component ?d WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
-  ?component ro:0000091 ?d .
-  ?d a :AnnexIIITriggeringCapability .
-}
-LIMIT 5
-"""
-
-def get_primary_bindings(g: Graph) -> list[tuple[str, str]]:
-    rows: list[tuple[str, str]] = []
-    try:
-        qres = g.query(SELECT_PRIMARY_BINDINGS)
-        for r in qres:
-            rows.append((str(r.component), str(r.d)))
-    except Exception:
-        return []
-    return rows
-
-def verify_high_risk_inference(reasoned: Graph, source: Graph) -> dict:
-    hr("ARCO RESULT (ENTAILMENT + PROOF SKETCH)")
-
-    asserted_pre = run_sparql_ask_inline(source, ASK_ASSERTED_HIGHRISK)
-
-    if HIGH_RISK_INFERENCE_QUERY.exists():
-        entailed_post = run_sparql_ask_from_file(reasoned, HIGH_RISK_INFERENCE_QUERY)
-    else:
-        entailed_post = run_sparql_ask_inline(reasoned, ASK_ASSERTED_HIGHRISK)
-
-    print(f"HighRiskSystem in source data (pre-reasoning):   {asserted_pre}")
-    print(f"HighRiskSystem in reasoned graph (post-reason):  {entailed_post}")
-
-    primary_path = run_sparql_ask_inline(reasoned, ASK_PRIMARY_PATH)
-    legacy_path = run_sparql_ask_inline(reasoned, ASK_LEGACY_PATH)
-
-    sub("EVIDENCE PATH CHECKS")
-    print(f"PRIMARY (RO_0000091 has_disposition): {primary_path}")
-    print(f"LEGACY  (RO_0000053 bearer_of):       {legacy_path}")
-    print("Note: LEGACY is kept only to detect older data/axioms. This pipeline is RO_0000091-aligned.")
-
-    bindings = get_primary_bindings(reasoned)
-    if bindings:
-        sub("CONCRETE BINDINGS (EXAMPLE NODES)")
-        for i, (comp, disp) in enumerate(bindings, 1):
-            print(f"{i}) component = {comp}")
-            print(f"   disposition/capability = {disp}")
-
-    sub("WHY THIS ENTAILS HighRiskSystem")
-    print("Bridge axiom pattern (in ARCO_core.ttl) is effectively:")
-    print("  System AND (has_part SOME (Component AND (has_disposition SOME AnnexIIITriggeringCapability)))")
-    print("")
-    print("Data + reasoning satisfy that pattern, so:")
-    print("  Sentinel_ID_System rdf:type HighRiskSystem")
-    if not asserted_pre and entailed_post:
-        print("  (and it appears only after reasoning -> inferred, not asserted)")
-
-    if entailed_post and not (primary_path or legacy_path):
-        sub("FAIL")
-        print("Entailment is True, but no supporting path was detected.")
-        print("That usually indicates predicate mismatch or missing component facts.")
-        ok = False
-        failure_reason = "entailed_but_no_supporting_path"
-    elif entailed_post:
-        sub("SUCCESS")
-        print("HighRiskSystem classification is present AND justified by an explicit structural path.")
-        ok = True
-        failure_reason = None
-    else:
-        sub("FAIL")
-        print("HighRiskSystem was not inferred.")
-        print("Common causes:")
-        print("  - owlrl not installed (no reasoning step)")
-        print("  - bridge axiom uses a different predicate than the instances")
-        print("  - missing has_part/component facts or missing AnnexIIITriggeringCapability typing")
-        ok = False
-        failure_reason = "not_entailed"
-
-    return {
-        "asserted_pre": bool(asserted_pre),
-        "entailed_post": bool(entailed_post),
-        "primary_path_ok": bool(primary_path),
-        "legacy_path_ok": bool(legacy_path),
-        "bindings_sample": bindings,
-        "ok": bool(ok),
-        "failure_reason": failure_reason,
-    }
-
-
-# ---------------------------
-# main
-# ---------------------------
-
-def main() -> None:
-    outdir = get_outdir()
-    ensure_outdir(outdir)
-
-    hr("ARCO COMPLIANCE VERIFICATION PIPELINE (OPERATOR VIEW)")
-    print(f"[ARCO] outdir: {outdir}")
-
-    sub("LOAD")
-    print("Loading: core ontology + governance extension + instance data")
-    g_source = load_union_graph(CORE, GOV, INSTANCES)
-    print(f"Triples loaded (asserted): {len(g_source)}")
-
-    g = clone_graph(g_source)
-
-    g, _initial_count, inferred_added = run_reasoning(g)
-
-    # Export reasoned graph for inspection (default ON).
-    export_reasoned = os.environ.get("ARCO_EXPORT_REASONED_TTL", "1").strip().lower() not in {"0", "false", "no"}
-    if export_reasoned:
-        try:
-            write_text(outdir, "reasoned_graph.ttl", g.serialize(format="turtle"))
-            print(f"[ARCO] wrote: {outdir / 'reasoned_graph.ttl'}")
-        except Exception as e:
-            print(f"[ARCO] warning: failed to write reasoned_graph.ttl ({e})")
-
-    shacl_ok = run_shacl(g, outdir)
-
-    sub("AUDIT QUERIES (SPARQL ASK)")
-    print("Traceability check...")
-    traceability_ok = run_sparql_ask_from_file(g, TRACEABILITY_QUERY)
-    print(f"Traceability: {traceability_ok}")
-
-    latent_ok = None
-    latent_risk_detected = None
-    if LATENT_RISK_QUERY.exists():
-        print("\nLatent risk detection (hardware path)...")
-        latent_risk_detected = run_sparql_ask_from_file(g, LATENT_RISK_QUERY)
-        print(f"Latent risk detected: {latent_risk_detected}")
-        # Your existing semantics: PASS if query returns TRUE. Keep as-is.
-        latent_ok = bool(latent_risk_detected)
-
-    entailment = verify_high_risk_inference(g, g_source)
-    inference_ok = bool(entailment["ok"])
-
-    hr("SUMMARY")
-    print(f"SHACL:         {'PASS' if shacl_ok else 'FAIL'}")
-    print(f"Traceability:  {'PASS' if traceability_ok else 'FAIL'}")
-    if latent_ok is not None:
-        print(f"Latent risk:   {'PASS' if latent_ok else 'FAIL'}")
-    print(f"Entailment:    {'PASS' if inference_ok else 'FAIL'}")
-    print(f"Entailed triples added: +{inferred_added}")
-
-    all_pass = bool(shacl_ok and traceability_ok and inference_ok)
-    if latent_ok is not None:
-        all_pass = bool(all_pass and latent_ok)
-
-    print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
-
-    # Machine-readable summary for Actions UI + reviewers
-    results = {
-        "all_pass": all_pass,
-        "owlrl_installed": bool(HAS_OWLRL),
-        "triples_asserted": int(len(g_source)),
-        "entailed_triples_added": int(inferred_added),
-        "checks": {
-            "shacl_ok": bool(shacl_ok),
-            "traceability_ok": bool(traceability_ok),
-            "latent_ok": None if latent_ok is None else bool(latent_ok),
-            "high_risk_entailment_ok": bool(inference_ok),
-        },
-        "entailment": {
-            "high_risk_asserted_pre": bool(entailment["asserted_pre"]),
-            "high_risk_entailed_post": bool(entailment["entailed_post"]),
-            "primary_path_ok": bool(entailment["primary_path_ok"]),
-            "legacy_path_ok": bool(entailment["legacy_path_ok"]),
-            "bindings_sample": entailment["bindings_sample"],
-            "failure_reason": entailment["failure_reason"],
-        },
-        "artifacts": {
-            "results_json": str(outdir / "arco_results.json"),
-            "shacl_report": str(outdir / "shacl_report.txt"),
-            "reasoned_graph_ttl": str(outdir / "reasoned_graph.ttl") if export_reasoned else None,
-        },
-    }
-    write_json(outdir, "arco_results.json", results)
-    print(f"[ARCO] wrote: {outdir / 'arco_results.json'}")
-    print(f"[ARCO] wrote: {outdir / 'shacl_report.txt'}")
-
-
-if __name__ == "__main__":
-    main()
+r=json.load(open("runs/demo/arco_results.json","r",encoding="utf-8"))
+status="PASS" if r.get("all_pass") else "FAIL"
+checks=r.get("checks",{})
+print(f"**Overall:** {status}\n")
+print("### Checks")
+print(f"- SHACL: {'PASS' if checks.get('shacl_ok') else 'FAIL'}")
+print(f"- Traceability (ASK): {'PASS' if checks.get('traceability_ok') else 'FAIL'}")
+latent=checks.get("latent_ok")
+if latent is not None:
+    print(f"- Latent risk (ASK): {'PASS' if latent else 'FAIL'}")
+print(f"- HighRiskSystem entailment: {'PASS' if checks.get('high_risk_entailment_ok') else 'FAIL'}")
+print("\n### Reasoning")
+print(f"- owlrl installed: {r.get('owlrl_installed')}")
+print(f"- asserted triples: {r.get('triples_asserted')}")
+print(f"- entailed triples added: +{r.get('entailed_triples_added')}")
+ent=r.get("entailment",{})
+if ent.get("bindings_sample"):
+    print("\n### Evidence (sample bindings)")
+    for i,(c,d) in enumerate(ent["bindings_sample"],1):
+        print(f"- {i}) component: `{c}`")
+        print(f"     disposition: `{d}`")
+print("\n### Artifacts")
+print("- `runs/demo/demo.log`")
+print("- `runs/demo/arco_results.json`")
+print("- `runs/demo/shacl_report.txt`")
+print("- `runs/demo/reasoned_graph.ttl`")
+PY
+          else
+            echo "**Overall:** (no results file found)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Artifacts should include `runs/demo/demo.log`." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload demo artifacts (single, obvious download)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arco-demo-artifacts
+          path: runs/demo
+          if-no-files-found: error
