@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Ensure reasoning works in the demo:
+          # Keep explicit so the demo is robust even if requirements.txt changes
           pip install rdflib pyshacl owlrl
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
@@ -34,45 +34,54 @@ jobs:
           mkdir -p runs/demo
           python -u 03_TECHNICAL_CORE/scripts/run_pipeline.py | tee runs/demo/demo.log
 
-                - name: Write demo summary
+      - name: Write demo summary (quick orientation)
         if: always()
         run: |
-          echo "## ARCO Demo" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**What happened:** open the logs and search for \`SUMMARY\` or \`ALL CHECKS PASSED\`." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Pipeline stages:** Load -> OWL-RL -> SHACL -> SPARQL ASK -> Entailment + Evidence Path" >> $GITHUB_STEP_SUMMARY
+          echo "## ARCO Demo" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**How to read the run:** open the logs and search for \`SUMMARY\` or \`ALL CHECKS PASSED\`." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Pipeline stages:** Load -> OWL-RL -> SHACL -> SPARQL ASK -> Entailment + Evidence Path" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Publish Summary (no log-hunting)
+      - name: Publish result summary (no log-hunting)
         if: always()
         run: |
-          echo "## ARCO Demo Result" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ARCO Demo Result" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
 
           if [ -f runs/demo/arco_results.json ]; then
             python - << 'PY' >> "$GITHUB_STEP_SUMMARY"
 import json
-r=json.load(open("runs/demo/arco_results.json","r",encoding="utf-8"))
-status="PASS" if r.get("all_pass") else "FAIL"
-checks=r.get("checks",{})
+
+r = json.load(open("runs/demo/arco_results.json","r",encoding="utf-8"))
+status = "PASS" if r.get("all_pass") else "FAIL"
+checks = r.get("checks", {})
+
 print(f"**Overall:** {status}\n")
 print("### Checks")
 print(f"- SHACL: {'PASS' if checks.get('shacl_ok') else 'FAIL'}")
 print(f"- Traceability (ASK): {'PASS' if checks.get('traceability_ok') else 'FAIL'}")
-latent=checks.get("latent_ok")
+
+latent = checks.get("latent_ok")
 if latent is not None:
     print(f"- Latent risk (ASK): {'PASS' if latent else 'FAIL'}")
+
 print(f"- HighRiskSystem entailment: {'PASS' if checks.get('high_risk_entailment_ok') else 'FAIL'}")
+
 print("\n### Reasoning")
 print(f"- owlrl installed: {r.get('owlrl_installed')}")
 print(f"- asserted triples: {r.get('triples_asserted')}")
 print(f"- entailed triples added: +{r.get('entailed_triples_added')}")
-ent=r.get("entailment",{})
-if ent.get("bindings_sample"):
+
+ent = r.get("entailment", {})
+bindings = ent.get("bindings_sample") or []
+if bindings:
     print("\n### Evidence (sample bindings)")
-    for i,(c,d) in enumerate(ent["bindings_sample"],1):
+    for i, (c, d) in enumerate(bindings, 1):
         print(f"- {i}) component: `{c}`")
         print(f"     disposition: `{d}`")
+
 print("\n### Artifacts")
 print("- `runs/demo/demo.log`")
 print("- `runs/demo/arco_results.json`")
@@ -80,9 +89,9 @@ print("- `runs/demo/shacl_report.txt`")
 print("- `runs/demo/reasoned_graph.ttl`")
 PY
           else
-            echo "**Overall:** (no results file found)" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Artifacts should include `runs/demo/demo.log`." >> $GITHUB_STEP_SUMMARY
+            echo "**Overall:** (no results file found)" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "At minimum, download `runs/demo/demo.log` from Artifacts." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload demo artifacts (single, obvious download)
