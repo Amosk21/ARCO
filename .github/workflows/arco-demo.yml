@@ -18,83 +18,55 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install dependencies (explicit for reliability)
+        shell: bash
         run: |
+          set -euo pipefail
           python -m pip install --upgrade pip
-          # Keep explicit so the demo is robust even if requirements.txt changes
+          # owlrl enables OWL-RL reasoning (critical for entailment)
           pip install rdflib pyshacl owlrl
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
 
       - name: Run ARCO pipeline (stream logs + capture)
-        env:
-          ARCO_OUTDIR: runs/demo
-          ARCO_EXPORT_REASONED_TTL: "1"
+        shell: bash
         run: |
-          set -e
+          set -euo pipefail
           mkdir -p runs/demo
           python -u 03_TECHNICAL_CORE/scripts/run_pipeline.py | tee runs/demo/demo.log
 
-      - name: Write demo summary (quick orientation)
-        if: always()
-        run: |
-          echo "## ARCO Demo" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**How to read the run:** open the logs and search for \`SUMMARY\` or \`ALL CHECKS PASSED\`." >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Pipeline stages:** Load -> OWL-RL -> SHACL -> SPARQL ASK -> Entailment + Evidence Path" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-
       - name: Publish result summary (no log-hunting)
         if: always()
+        shell: bash
         run: |
+          set -euo pipefail
           echo "## ARCO Demo Result" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
-          if [ -f runs/demo/arco_results.json ]; then
-            python - << 'PY' >> "$GITHUB_STEP_SUMMARY"
-import json
+          if [ -f runs/demo/demo.log ]; then
+            if grep -q "ALL CHECKS PASSED" runs/demo/demo.log; then
+              echo "**Overall:** PASS" >> "$GITHUB_STEP_SUMMARY"
+            elif grep -q "SOME CHECKS FAILED" runs/demo/demo.log; then
+              echo "**Overall:** FAIL" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "**Overall:** (unknown, check log)" >> "$GITHUB_STEP_SUMMARY"
+            fi
 
-r = json.load(open("runs/demo/arco_results.json","r",encoding="utf-8"))
-status = "PASS" if r.get("all_pass") else "FAIL"
-checks = r.get("checks", {})
-
-print(f"**Overall:** {status}\n")
-print("### Checks")
-print(f"- SHACL: {'PASS' if checks.get('shacl_ok') else 'FAIL'}")
-print(f"- Traceability (ASK): {'PASS' if checks.get('traceability_ok') else 'FAIL'}")
-
-latent = checks.get("latent_ok")
-if latent is not None:
-    print(f"- Latent risk (ASK): {'PASS' if latent else 'FAIL'}")
-
-print(f"- HighRiskSystem entailment: {'PASS' if checks.get('high_risk_entailment_ok') else 'FAIL'}")
-
-print("\n### Reasoning")
-print(f"- owlrl installed: {r.get('owlrl_installed')}")
-print(f"- asserted triples: {r.get('triples_asserted')}")
-print(f"- entailed triples added: +{r.get('entailed_triples_added')}")
-
-ent = r.get("entailment", {})
-bindings = ent.get("bindings_sample") or []
-if bindings:
-    print("\n### Evidence (sample bindings)")
-    for i, (c, d) in enumerate(bindings, 1):
-        print(f"- {i}) component: `{c}`")
-        print(f"     disposition: `{d}`")
-
-print("\n### Artifacts")
-print("- `runs/demo/demo.log`")
-print("- `runs/demo/arco_results.json`")
-print("- `runs/demo/shacl_report.txt`")
-print("- `runs/demo/reasoned_graph.ttl`")
-PY
-          else
-            echo "**Overall:** (no results file found)" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "At minimum, download `runs/demo/demo.log` from Artifacts." >> "$GITHUB_STEP_SUMMARY"
+            echo "### Key lines" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            grep -E "^(SHACL:|Traceability:|Latent risk:|Entailment:|Entailed triples added:)" runs/demo/demo.log \
+              >> "$GITHUB_STEP_SUMMARY" || true
+
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Artifacts" >> "$GITHUB_STEP_SUMMARY"
+            echo "- runs/demo/demo.log" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**Overall:** (no demo.log found)" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Upload demo artifacts (single, obvious download)
+      - name: Upload demo artifacts (single obvious download)
         if: always()
         uses: actions/upload-artifact@v4
         with:
