@@ -12,6 +12,18 @@ ARCO produces regulatory classifications as logical consequences of explicitly m
 **Why:** Replace probabilistic "confidence" with audit-traceable logical determination.
 
 A concrete example of a produced determination is available here:  
+
+REGULATORY DETERMINATION CERTIFICATE
+SYSTEM:                Sentinel_ID_System
+REGIME:                EU AI Act (Article 6 / Annex III)
+CLASSIFICATION:        HighRiskSystem (INFERRED)
+TRIGGERING CAPABILITY: Sentinel_FaceID_Disposition
+EVIDENCE PATH:
+  Sentinel_ID_System -> Sentinel_FaceID_Module -> Sentinel_FaceID_Disposition
+SHACL:                PASS
+TRACEABILITY:          PASS
+LATENT RISK:           DETECTED
+
 → [01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
 
 ---
