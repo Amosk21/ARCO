@@ -58,9 +58,4 @@ owl:imports <https://arco.ai/ontology/core> .
     owl:someValuesFrom :RegulatoryContent
   ] .
 
-#################################################################
-# 3) RELATION ANCHORS (labels only)
-#################################################################
-
-ro:0000087 rdfs:label "has role" .
-ro:0000052 rdfs:label "inheres in" .
+# Relation labels (has role, inheres in) are declared in ARCO_core.ttl.
