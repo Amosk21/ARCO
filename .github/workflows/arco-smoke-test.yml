@@ -23,9 +23,17 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install rdflib pyshacl
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
 
       - name: Run ARCO reference pipeline
         run: |
-          python 03_TECHNICAL_CORE/scripts/run_pipeline.py
+          python 03_TECHNICAL_CORE/scripts/run_pipeline.py 2>&1 | tee pipeline_output.txt
+
+      - name: Assert certificate output
+        run: |
+          if grep -q "REGULATORY DETERMINATION CERTIFICATE" pipeline_output.txt; then
+            echo "Certificate block found."
+          else
+            echo "FAIL: 'REGULATORY DETERMINATION CERTIFICATE' not found in pipeline output."
+            exit 1
+          fi

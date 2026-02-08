@@ -1,16 +1,15 @@
 """
-ARCO Compliance Verification Pipeline — BFO/RO Aligned Version (RO:0000091 has_disposition)
+ARCO Compliance Verification Pipeline — BFO/RO Aligned (RO:0000091 has_disposition)
 
 Stages:
 1) Load ontology + instance data
 2) OWL-RL reasoning (materialize entailments)
 3) SHACL validation
 4) SPARQL audit checks (ASK)
-5) Verify HighRiskSystem entailment + show the evidence path that makes it hold
+5) Verify HighRiskSystem entailment + evidence path
+6) Print regulatory determination certificate
 
-Alignment:
-- Primary modeling relation: RO_0000091 has_disposition
-- Legacy diagnostic: RO_0000053 bearer_of (kept only to detect older patterns)
+Modeling relation: RO_0000091 has_disposition (per OBO Foundry / RO best practice)
 """
 
 from __future__ import annotations
@@ -40,6 +39,11 @@ SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 TRACEABILITY_QUERY = REASONING_DIR / "check_assessment_traceability.sparql"
 LATENT_RISK_QUERY = REASONING_DIR / "detect_latent_risk.sparql"
 HIGH_RISK_INFERENCE_QUERY = REASONING_DIR / "check_high_risk_inference.sparql"
+
+# --- System under evaluation (change this one line for a different system) ---
+SYSTEM_LOCAL = "Sentinel_ID_System"
+SYSTEM_IRI = f"https://arco.ai/ontology/core#{SYSTEM_LOCAL}"
+ARCO_NS = "https://arco.ai/ontology/core#"
 
 
 # ---------------------------
@@ -143,109 +147,101 @@ def run_shacl(data_graph: Graph) -> bool:
 # proof / evidence extraction
 # ---------------------------
 
-ASK_ASSERTED_HIGHRISK = """
-PREFIX : <https://arco.ai/ontology/core#>
+def _ask_highrisk(sys: str = SYSTEM_LOCAL) -> str:
+    return f"""
+PREFIX : <{ARCO_NS}>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-ASK WHERE { :Sentinel_ID_System rdf:type :HighRiskSystem . }
+ASK WHERE {{ :{sys} rdf:type :HighRiskSystem . }}
 """
 
-ASK_PRIMARY_PATH = """
-PREFIX : <https://arco.ai/ontology/core#>
+def _ask_primary_path(sys: str = SYSTEM_LOCAL) -> str:
+    return f"""
+PREFIX : <{ARCO_NS}>
 PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
-ASK WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
+ASK WHERE {{
+  :{sys} bfo:0000051 ?component .
   ?component ro:0000091 ?d .
   ?d a :AnnexIIITriggeringCapability .
-}
+}}
 """
 
-# Legacy diagnostic (FIXED): same shape, different predicate.
-ASK_LEGACY_PATH = """
-PREFIX : <https://arco.ai/ontology/core#>
+def _select_primary_bindings(sys: str = SYSTEM_LOCAL) -> str:
+    return f"""
+PREFIX : <{ARCO_NS}>
 PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
-ASK WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
-  ?component ro:0000053 ?d .
-  ?d a :AnnexIIITriggeringCapability .
-}
-"""
-
-SELECT_PRIMARY_BINDINGS = """
-PREFIX : <https://arco.ai/ontology/core#>
-PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
-PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
-SELECT ?component ?d WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
+SELECT ?component ?d WHERE {{
+  :{sys} bfo:0000051 ?component .
   ?component ro:0000091 ?d .
   ?d a :AnnexIIITriggeringCapability .
-}
+}}
 LIMIT 5
 """
+
+def _short(iri: str) -> str:
+    """Shorten an IRI to its local name for display."""
+    return iri.rsplit("#", 1)[-1] if "#" in iri else iri.rsplit("/", 1)[-1]
 
 def get_primary_bindings(g: Graph) -> list[tuple[str, str]]:
     rows = []
     try:
-        qres = g.query(SELECT_PRIMARY_BINDINGS)
+        qres = g.query(_select_primary_bindings())
         for r in qres:
             rows.append((str(r.component), str(r.d)))
     except Exception:
         return []
     return rows
 
-def verify_high_risk_inference(reasoned: Graph, source: Graph) -> bool:
+def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bool, bool, list[tuple[str, str]]]:
+    """Returns (inference_ok, asserted_pre, entailed_post, bindings)."""
     hr("ARCO RESULT (ENTAILMENT + PROOF SKETCH)")
 
     # Before/after: was HighRiskSystem asserted in raw input?
-    asserted_pre = run_sparql_ask_inline(source, ASK_ASSERTED_HIGHRISK)
+    asserted_pre = run_sparql_ask_inline(source, _ask_highrisk())
 
     # After reasoning: is HighRiskSystem present now?
     if HIGH_RISK_INFERENCE_QUERY.exists():
         entailed_post = run_sparql_ask_from_file(reasoned, HIGH_RISK_INFERENCE_QUERY)
     else:
-        entailed_post = run_sparql_ask_inline(reasoned, ASK_ASSERTED_HIGHRISK)
+        entailed_post = run_sparql_ask_inline(reasoned, _ask_highrisk())
 
     print(f"HighRiskSystem in source data (pre-reasoning):   {asserted_pre}")
     print(f"HighRiskSystem in reasoned graph (post-reason):  {entailed_post}")
 
-    # Evidence checks
-    primary_path = run_sparql_ask_inline(reasoned, ASK_PRIMARY_PATH)
-    legacy_path = run_sparql_ask_inline(reasoned, ASK_LEGACY_PATH)
+    # Evidence check (primary path only — legacy bearer_of removed)
+    primary_path = run_sparql_ask_inline(reasoned, _ask_primary_path())
 
-    sub("EVIDENCE PATH CHECKS")
-    print(f"PRIMARY (RO_0000091 has_disposition): {primary_path}")
-    print(f"LEGACY  (RO_0000053 bearer_of):       {legacy_path}")
-    print("Note: LEGACY is kept only to detect older data/axioms. This pipeline is RO_0000091-aligned.")
+    sub("EVIDENCE PATH CHECK")
+    print(f"has_disposition path (RO:0000091): {primary_path}")
 
-    # If we have the primary path, print concrete bindings so the user can see actual nodes.
+    # Concrete bindings
     bindings = get_primary_bindings(reasoned)
     if bindings:
-        sub("CONCRETE BINDINGS (EXAMPLE NODES)")
+        sub("CONCRETE BINDINGS")
         for i, (comp, disp) in enumerate(bindings, 1):
-            print(f"{i}) component = {comp}")
-            print(f"   disposition/capability = {disp}")
+            print(f"{i}) component = {_short(comp)}")
+            print(f"   disposition/capability = {_short(disp)}")
 
     sub("WHY THIS ENTAILS HighRiskSystem")
-    print("Bridge axiom pattern (in ARCO_core.ttl) is effectively:")
-    print("  System AND (has_part SOME (Component AND (has_disposition SOME AnnexIIITriggeringCapability)))")
-    print("")
-    print("Data + reasoning satisfy that pattern, so:")
-    print("  Sentinel_ID_System rdf:type HighRiskSystem")
+    print("Bridge axiom (ARCO_core.ttl):")
+    print("  HighRiskSystem = System AND (has_part SOME (has_disposition SOME AnnexIIITriggeringCapability))")
     if not asserted_pre and entailed_post:
-        print("  (and it appears only after reasoning -> inferred, not asserted)")
+        print(f"  => {SYSTEM_LOCAL} rdf:type HighRiskSystem  (INFERRED, not asserted)")
+    elif entailed_post:
+        print(f"  => {SYSTEM_LOCAL} rdf:type HighRiskSystem  (ASSERTED)")
 
     # Hard enforcement: entailment must have at least one evidence path
-    if entailed_post and not (primary_path or legacy_path):
+    if entailed_post and not primary_path:
         sub("FAIL")
-        print("Entailment is True, but no supporting path was detected.")
-        print("That usually indicates predicate mismatch or missing component facts.")
-        return False
+        print("Entailment is True, but no supporting evidence path was detected.")
+        print("Likely cause: predicate mismatch or missing component facts.")
+        return False, asserted_pre, entailed_post, bindings
 
     if entailed_post:
         sub("SUCCESS")
         print("HighRiskSystem classification is present AND justified by an explicit structural path.")
-        return True
+        return True, asserted_pre, entailed_post, bindings
 
     sub("FAIL")
     print("HighRiskSystem was not inferred.")
@@ -253,12 +249,15 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> bool:
     print("  - owlrl not installed (no reasoning step)")
     print("  - bridge axiom uses a different predicate than the instances")
     print("  - missing has_part/component facts or missing AnnexIIITriggeringCapability typing")
-    return False
+    return False, asserted_pre, entailed_post, bindings
 
 
 # ---------------------------
 # main
 # ---------------------------
+
+def _pf(ok: bool) -> str:
+    return "PASS" if ok else "FAIL"
 
 def main() -> None:
     hr("ARCO COMPLIANCE VERIFICATION PIPELINE (OPERATOR VIEW)")
@@ -286,14 +285,17 @@ def main() -> None:
         latent_ok = run_sparql_ask_from_file(g, LATENT_RISK_QUERY)
         print(f"Latent risk detected: {latent_ok}")
 
-    inference_ok = verify_high_risk_inference(g, g_source)
+    inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
+    # ---------------------------------------------------------------
+    # SUMMARY (existing)
+    # ---------------------------------------------------------------
     hr("SUMMARY")
-    print(f"SHACL:         {'PASS' if shacl_ok else 'FAIL'}")
-    print(f"Traceability:  {'PASS' if traceability_ok else 'FAIL'}")
+    print(f"SHACL:         {_pf(shacl_ok)}")
+    print(f"Traceability:  {_pf(traceability_ok)}")
     if latent_ok is not None:
-        print(f"Latent risk:   {'PASS' if latent_ok else 'FAIL'}")
-    print(f"Entailment:    {'PASS' if inference_ok else 'FAIL'}")
+        print(f"Latent risk:   {_pf(latent_ok)}")
+    print(f"Entailment:    {_pf(inference_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
     all_pass = shacl_ok and traceability_ok and inference_ok
@@ -301,6 +303,47 @@ def main() -> None:
         all_pass = all_pass and latent_ok
 
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
+
+    # ---------------------------------------------------------------
+    # REGULATORY DETERMINATION CERTIFICATE
+    # ---------------------------------------------------------------
+    if not asserted_pre and entailed_post:
+        classification_mode = "INFERRED"
+    elif asserted_pre and entailed_post:
+        classification_mode = "ASSERTED"
+    else:
+        classification_mode = "NOT PRESENT"
+
+    # Derive triggering capability class from bindings
+    trigger_display = "N/A"
+    if bindings:
+        trigger_display = _short(bindings[0][1])
+
+    # Build evidence path strings (up to 3)
+    evidence_lines = []
+    for comp, disp in bindings[:3]:
+        evidence_lines.append(f"  {SYSTEM_LOCAL} -> {_short(comp)} -> {_short(disp)}")
+
+    hr("REGULATORY DETERMINATION CERTIFICATE")
+    print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
+    print(f"  REGIME:                  EU AI Act (Article 6 / Annex III)")
+    if classification_mode in ("INFERRED", "ASSERTED"):
+        print(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
+    else:
+        print(f"  CLASSIFICATION:          {classification_mode}")
+    print(f"  TRIGGERING CAPABILITY:   {trigger_display}")
+    if evidence_lines:
+        print(f"  EVIDENCE PATH:")
+        for line in evidence_lines:
+            print(line)
+    else:
+        print(f"  EVIDENCE PATH:           (none detected)")
+    print(f"  SHACL:                   {_pf(shacl_ok)}")
+    print(f"  TRACEABILITY:            {_pf(traceability_ok)}")
+    if latent_ok is not None:
+        print(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
+    print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
+    print("=" * 72)
 
 
 if __name__ == "__main__":
