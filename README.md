@@ -80,6 +80,20 @@ This is what allows ARCO to treat capability as something that **resolves from s
 
 ---
 
+## Bigger picture: why this scales beyond a single regulation
+
+Most governance systems focus on prediction: what might happen, based on past data and observed behavior.
+
+ARCO focuses on commitment: what outcomes a system has already made possible by virtue of how it is built.
+
+Once a system's structure exists, certain futures are no longer hypothetical. They are locked in unless the structure changes. ARCO is designed to surface those commitments early, before they appear as audit findings, regulatory enforcement, forced redesigns, or reputational loss.
+
+While this repository demonstrates ARCO against a single regulatory regime (EU AI Act), the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
+
+The long-term aim is not to predict the future, but to make explicit which futures a system has already made unavoidable and which ones can still be prevented through design.
+
+---
+
 ## Overview
 
 ARCO is a framework for producing clear, defensible regulatory classifications for high-stakes AI systems.
@@ -93,7 +107,7 @@ Instead of generating scores, confidence levels, or probabilistic assessments, A
 
 This repository contains the complete reference implementation and supporting materials for that approach.
 
-ARCO is under active development. Ontological structure and determination mechanics are stable for the purposes of this reference implementation; documentation, regulatory mappings, and extensions continue to evolve.
+ARCO is an active research and engineering effort. Ontological commitments and determination mechanics are stable. Documentation, additional regulatory regimes, and integrations are evolving.
 
 ---
 
@@ -170,3 +184,8 @@ The pipeline will:
 3. Validate completeness with SHACL
 4. Run audit queries
 5. Emit a regulatory determination certificate
+6. Write artifact files to `runs/demo/` (certificate, summary JSON, evidence bindings, SHACL report)
+
+### Run in GitHub Actions
+
+This pipeline also runs automatically in CI. Go to **Actions > ARCO Demo Run > Run workflow** to trigger it manually. The workflow uploads `runs/demo/` as a downloadable artifact.
