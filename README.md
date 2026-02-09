@@ -66,6 +66,8 @@ Rather than treating regulatory classification as an interpretive or post-hoc ex
 
 ## Ontological grounding (why structure matters)
 
+ARCO does not treat ontology as an authority that defines reality, but as an epistemic formalism that constrains what the system may coherently infer about a system’s capabilities.
+
 For regulatory classification to be derived from system structure, the underlying model must distinguish clearly between:
 
 - what exists
@@ -91,7 +93,7 @@ Instead of generating scores, confidence levels, or probabilistic assessments, A
 
 This repository contains the complete reference implementation and supporting materials for that approach.
 
-ARCO is under active development. Ontological commitments and determination mechanics are stable; documentation and additional regulatory regimes, extensions, and integrations are evolving.
+ARCO is under active development. Ontological structure and determination mechanics are stable for the purposes of this reference implementation; documentation, regulatory mappings, and extensions continue to evolve.
 
 ---
 
