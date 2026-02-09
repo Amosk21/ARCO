@@ -19,6 +19,8 @@ A concrete example of a produced determination is available below and in detail 
 
 ---
 
+[![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml)
+
 ## Example output (regulatory determination)
 
 ```text
