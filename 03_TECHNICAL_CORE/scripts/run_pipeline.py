@@ -14,6 +14,7 @@ Modeling relation: RO_0000091 has_disposition (per OBO Foundry / RO best practic
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from rdflib import Graph
 from pyshacl import validate
@@ -39,6 +40,8 @@ SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 TRACEABILITY_QUERY = REASONING_DIR / "check_assessment_traceability.sparql"
 LATENT_RISK_QUERY = REASONING_DIR / "detect_latent_risk.sparql"
 HIGH_RISK_INFERENCE_QUERY = REASONING_DIR / "check_high_risk_inference.sparql"
+
+OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
 # --- System under evaluation (change this one line for a different system) ---
 SYSTEM_LOCAL = "Sentinel_ID_System"
@@ -116,7 +119,7 @@ def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
     print(f"Triples: {initial} -> {final}   (+{added} entailed)")
     return data_graph, initial, added
 
-def run_shacl(data_graph: Graph) -> bool:
+def run_shacl(data_graph: Graph) -> tuple[bool, str]:
     sub("SHACL")
     if not SHAPES.exists():
         raise FileNotFoundError(f"Missing SHACL shapes file: {SHAPES}")
@@ -140,7 +143,7 @@ def run_shacl(data_graph: Graph) -> bool:
         print("\nSHACL report:\n")
         print(report_text)
 
-    return conforms
+    return conforms, str(report_text) if report_text else ""
 
 
 # ---------------------------
@@ -272,7 +275,7 @@ def main() -> None:
 
     g, initial_count, inferred_added = run_reasoning(g)
 
-    shacl_ok = run_shacl(g)
+    shacl_ok, shacl_report_text = run_shacl(g)
 
     sub("AUDIT QUERIES (SPARQL ASK)")
     print("Traceability check...")
@@ -344,6 +347,68 @@ def main() -> None:
         print(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     print("=" * 72)
+
+    # ---------------------------------------------------------------
+    # WRITE OUTPUT FILES (runs/demo/)
+    # ---------------------------------------------------------------
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    # certificate.txt
+    cert_lines = []
+    cert_lines.append("=" * 72)
+    cert_lines.append("REGULATORY DETERMINATION CERTIFICATE")
+    cert_lines.append("=" * 72)
+    cert_lines.append(f"  SYSTEM:                  {SYSTEM_LOCAL}")
+    cert_lines.append(f"  REGIME:                  EU AI Act (Article 6 / Annex III)")
+    if classification_mode in ("INFERRED", "ASSERTED"):
+        cert_lines.append(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
+    else:
+        cert_lines.append(f"  CLASSIFICATION:          {classification_mode}")
+    cert_lines.append(f"  TRIGGERING CAPABILITY:   {trigger_display}")
+    if evidence_lines:
+        cert_lines.append(f"  EVIDENCE PATH:")
+        for line in evidence_lines:
+            cert_lines.append(line)
+    else:
+        cert_lines.append(f"  EVIDENCE PATH:           (none detected)")
+    cert_lines.append(f"  SHACL:                   {_pf(shacl_ok)}")
+    cert_lines.append(f"  TRACEABILITY:            {_pf(traceability_ok)}")
+    if latent_ok is not None:
+        cert_lines.append(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
+    cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
+    cert_lines.append("=" * 72)
+    (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
+
+    # summary.json
+    summary = {
+        "system": SYSTEM_LOCAL,
+        "regime": "EU AI Act (Article 6 / Annex III)",
+        "classification": f"HighRiskSystem ({classification_mode})" if classification_mode in ("INFERRED", "ASSERTED") else classification_mode,
+        "shacl": _pf(shacl_ok),
+        "traceability": _pf(traceability_ok),
+        "latent_risk": (_pf(latent_ok) if latent_ok is not None else "N/A"),
+        "entailment": _pf(inference_ok),
+        "entailed_triples_added": inferred_added,
+        "all_checks_passed": all_pass,
+    }
+    (OUTPUT_DIR / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+
+    # evidence.json
+    evidence = [
+        {"component": _short(comp), "disposition": _short(disp), "component_iri": comp, "disposition_iri": disp}
+        for comp, disp in bindings
+    ]
+    (OUTPUT_DIR / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+
+    # shacl_report.txt
+    shacl_out = f"conforms: {shacl_ok}\n"
+    if shacl_report_text:
+        shacl_out += "\n" + shacl_report_text
+    (OUTPUT_DIR / "shacl_report.txt").write_text(shacl_out, encoding="utf-8")
+
+    sub("OUTPUT FILES")
+    for f in sorted(OUTPUT_DIR.iterdir()):
+        print(f"  {f.relative_to(REPO_ROOT)}")
 
 
 if __name__ == "__main__":
