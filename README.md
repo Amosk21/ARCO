@@ -3,6 +3,7 @@
 **Assurance & Regulatory Classification Ontology**
 
 ARCO produces regulatory classifications as logical consequences of explicitly modeled system capabilities, rather than probabilistic assessments.
+This means regulatory exposure is surfaced from system structure itself, before deployment, intent, or behavior enter the picture.
 
 ---
 
@@ -12,10 +13,12 @@ ARCO produces regulatory classifications as logical consequences of explicitly m
 - **Output:** A deterministic regulatory determination plus traceability artifacts (validation report + query evidence)
 - **Mechanism:** BFO-aligned OWL ontology (axioms) + SHACL completeness validation + SPARQL ASK audit queries
 
-**Why:** Replace probabilistic "confidence" with audit-traceable logical determination.
+**Why:** Replace probabilistic "confidence" with audit-traceable logical determination, so regulatory outcomes are decided by structure rather than negotiated after the fact.
 
 A concrete example of a produced determination is available below and in detail here:
 → [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
+
+Most teams discover regulatory exposure late. Not because they ignored the rules, but because the system's structure quietly made certain outcomes possible long before anyone asked the question. By the time an auditor asks "why does this system qualify as high risk," the answer is already embedded in architecture, hardware, and integration choices that are expensive or impossible to unwind.
 
 ---
 
@@ -41,6 +44,7 @@ LATENT RISK:           DETECTED
 
 This determination is **derived**, not asserted.
 If the structural prerequisites for the regulated capability were not present, the classification would not be inferred.
+There is no fallback to interpretation.
 
 ---
 
@@ -82,7 +86,7 @@ This is what allows ARCO to treat capability as something that **resolves from s
 
 ## Bigger picture: why this scales beyond a single regulation
 
-Most governance systems focus on prediction: what might happen, based on past data and observed behavior.
+Most governance and analytics systems focus on prediction: what might happen, based on past data and observed behavior.
 
 ARCO focuses on commitment: what outcomes a system has already made possible by virtue of how it is built.
 
