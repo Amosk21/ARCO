@@ -1,0 +1,23 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#################################################################
+# check_annex_iii_1a_entailment.sparql
+#
+# PURPOSE: Audit-only check that the OWL reasoner inferred
+#   Annex III 1(a) applicability for the Sentinel-ID system.
+#
+# This is NOT the classification mechanism — the classification
+# is an OWL entailment via AnnexIII1aApplicableSystem's
+# equivalentClass axiom (three-gate: capability + intended use
+# + use scenario). This query merely confirms the entailment
+# materialized correctly.
+#
+# EXPECTED:
+#   - BEFORE reasoning: FALSE
+#   - AFTER reasoning:  TRUE
+#################################################################
+
+ASK WHERE {
+  :Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem .
+}

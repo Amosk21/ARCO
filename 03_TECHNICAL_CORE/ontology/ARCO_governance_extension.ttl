@@ -128,4 +128,59 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment "Legal designation under EU law. Not a biological kind — modeled as a BFO Role." ;
   rdfs:subClassOf bfo:0000023 . # Role
 
+#################################################################
+# 5) ANNEX III 1(a) ENTAILMENT CLASS
+#
+# OWL entailment-first classification: AnnexIII1aApplicableSystem
+# membership is INFERRED by the reasoner when all three gates hold.
+#
+# Gate 1 (reality-side): System has_part some (SystemComponent
+#         AND has_disposition some BiometricIdentificationCapability)
+# Gate 2 (representation-side): An IntendedUseSpecification
+#         is_about this system (via inverse of iao:0000136)
+# Gate 3 (representation-side): A UseScenarioSpecification
+#         is_about this system (via inverse of iao:0000136)
+#
+# SPARQL checks are AUDIT ONLY — the classification is an
+# OWL entailment, not a pattern match.
+#################################################################
+
+:AnnexIII1aApplicableSystem rdf:type owl:Class ;
+  rdfs:label "Annex III 1(a) Applicable System" ;
+  rdfs:comment "System that meets Annex III 1(a) conditions via capability + intended use + affected category, as OWL entailment." ;
+  rdfs:subClassOf :System ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :System
+
+      # Gate 1 (reality-side): biometric capability via component
+      [ rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000051 ;                 # has_part
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :SystemComponent
+            [ rdf:type owl:Restriction ;
+              owl:onProperty ro:0000091 ;            # has_disposition
+              owl:someValuesFrom :BiometricIdentificationCapability
+            ]
+          )
+        ]
+      ]
+
+      # Gate 2 (representation-side): intended use spec exists about this system
+      [ rdf:type owl:Restriction ;
+        owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
+        owl:someValuesFrom :IntendedUseSpecification
+      ]
+
+      # Gate 3 (representation-side): scenario spec exists about this system
+      [ rdf:type owl:Restriction ;
+        owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
+        owl:someValuesFrom :UseScenarioSpecification
+      ]
+    )
+  ] .
+
 # Relation labels (has role, inheres in) are declared in ARCO_core.ttl.
