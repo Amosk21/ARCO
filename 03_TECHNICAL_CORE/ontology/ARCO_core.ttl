@@ -127,6 +127,7 @@ bfo:0000016 rdfs:label "Disposition" .
 bfo:0000023 rdfs:label "Role" .
 bfo:0000027 rdfs:label "Object Aggregate" .
 bfo:0000030 rdfs:label "Object" .
+bfo:0000040 rdfs:label "Material Entity" .
 
 # BFO relations
 bfo:0000050 rdfs:label "part of" .

@@ -22,7 +22,9 @@
 
 :AnnexIII_Condition_Q1 rdf:type :RegulatoryContent ;
   rdfs:label "Annex III Q1 (Biometric Rule)" ;
-  iao:0000136 :BiometricIdentificationCapability . # is_about the Universal (class)
+  iao:0000136 :BiometricIdentificationCapability ;            # is_about the capability universal
+  iao:0000136 :RemoteBiometricIdentificationProcessType ;     # is_about the regulated process type
+  iao:0000136 :NaturalPersonRole .                            # is_about the affected role
 
 #################################################################
 # 2) SYSTEM LAYER (reality-side particulars) - UPDATED
@@ -39,6 +41,28 @@
 
 :Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability ;
   rdfs:label "Sentinel Facial Recognition Disposition" .
+
+#################################################################
+# 2b) INTENDED USE + USE SCENARIO (representation-side directives)
+#
+# Three-gate Annex III classification:
+#   Gate 1: Capability — system bears BiometricIdentificationCapability
+#   Gate 2: Intended use — directive ICE prescribes the regulated process type
+#   Gate 3: Use scenario — affected entities (natural persons)
+#################################################################
+
+:Sentinel_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "Sentinel Intended Use: Remote Biometric Identification" ;
+  cco:prescribes :RemoteBiometricIdentificationProcessType ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :RemoteBiometricIdentificationProcessType .
+
+:Sentinel_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "Sentinel Use Scenario: Biometric ID of Natural Persons" ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :RemoteBiometricIdentificationProcessType ;
+  iao:0000136 cco:Person ;
+  iao:0000136 :NaturalPersonRole .
 
 #################################################################
 # 3) OPERATIONAL LAYER (realization + outputs)

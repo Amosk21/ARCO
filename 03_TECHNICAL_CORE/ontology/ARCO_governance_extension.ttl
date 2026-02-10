@@ -58,4 +58,54 @@ owl:imports <https://arco.ai/ontology/core> .
     owl:someValuesFrom :RegulatoryContent
   ] .
 
+#################################################################
+# 3) CCO DECLARATIONS (local stubs — no full import)
+#################################################################
+
+cco:DirectiveInformationContentEntity rdf:type owl:Class ;
+  rdfs:label "Directive Information Content Entity" ;
+  rdfs:subClassOf iao:0000030 . # Information Content Entity
+
+cco:prescribes rdf:type owl:ObjectProperty ;
+  rdfs:label "prescribes" ;
+  rdfs:comment "A directive ICE prescribes an entity (process type or continuant) as rule or guide." .
+
+cco:Person rdf:type owl:Class ;
+  rdfs:label "Person" ;
+  rdfs:subClassOf bfo:0000040 . # Material Entity
+
+cco:Organization rdf:type owl:Class ;
+  rdfs:label "Organization" ;
+  rdfs:subClassOf bfo:0000027 . # Object Aggregate
+
+#################################################################
+# 4) INTENDED USE MODELING (CCO Directive ICE Pattern)
+#
+# Annex III: "AI systems intended to be used for [process] of
+# [affected entities]". Three-gate classification:
+#   Gate 1: Capability (reality-side disposition)
+#   Gate 2: Intended use (directive ICE prescribes process type)
+#   Gate 3: Use scenario (affected entities)
+#################################################################
+
+:IntendedUseSpecification rdf:type owl:Class ;
+  rdfs:label "Intended Use Specification" ;
+  rdfs:comment "A directive ICE that prescribes the process type an AI system is intended to realize." ;
+  rdfs:subClassOf cco:DirectiveInformationContentEntity .
+
+:UseScenarioSpecification rdf:type owl:Class ;
+  rdfs:label "Use Scenario Specification" ;
+  rdfs:comment "A directive ICE that constrains the realization context: who/what is affected." ;
+  rdfs:subClassOf cco:DirectiveInformationContentEntity .
+
+:RemoteBiometricIdentificationProcessType rdf:type owl:Class ;
+  rdfs:label "Remote Biometric Identification Process Type" ;
+  rdfs:comment "The process type regulated under Annex III 1(a): remote biometric identification of natural persons." ;
+  rdfs:subClassOf bfo:0000015 . # Process (as a universal/type)
+
+:NaturalPersonRole rdf:type owl:Class ;
+  rdfs:label "Natural Person Role" ;
+  rdfs:comment "Legal designation under EU law. Not a biological kind — modeled as a BFO Role." ;
+  rdfs:subClassOf bfo:0000023 . # Role
+
 # Relation labels (has role, inheres in) are declared in ARCO_core.ttl.

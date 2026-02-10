@@ -40,6 +40,7 @@ SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 TRACEABILITY_QUERY = REASONING_DIR / "check_assessment_traceability.sparql"
 LATENT_RISK_QUERY = REASONING_DIR / "detect_latent_risk.sparql"
 HIGH_RISK_INFERENCE_QUERY = REASONING_DIR / "check_high_risk_inference.sparql"
+INTENDED_USE_QUERY = REASONING_DIR / "check_intended_use.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -288,6 +289,12 @@ def main() -> None:
         latent_ok = run_sparql_ask_from_file(g, LATENT_RISK_QUERY)
         print(f"Latent risk detected: {latent_ok}")
 
+    intended_use_ok = None
+    if INTENDED_USE_QUERY.exists():
+        print("\nIntended use + use scenario (three-gate check)...")
+        intended_use_ok = run_sparql_ask_from_file(g, INTENDED_USE_QUERY)
+        print(f"Intended use modeled: {intended_use_ok}")
+
     inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
     # ---------------------------------------------------------------
@@ -298,12 +305,16 @@ def main() -> None:
     print(f"Traceability:  {_pf(traceability_ok)}")
     if latent_ok is not None:
         print(f"Latent risk:   {_pf(latent_ok)}")
+    if intended_use_ok is not None:
+        print(f"Intended use:  {_pf(intended_use_ok)}")
     print(f"Entailment:    {_pf(inference_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
     all_pass = shacl_ok and traceability_ok and inference_ok
     if latent_ok is not None:
         all_pass = all_pass and latent_ok
+    if intended_use_ok is not None:
+        all_pass = all_pass and intended_use_ok
 
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
 
@@ -345,6 +356,8 @@ def main() -> None:
     print(f"  TRACEABILITY:            {_pf(traceability_ok)}")
     if latent_ok is not None:
         print(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
+    if intended_use_ok is not None:
+        print(f"  INTENDED USE:            {_pf(intended_use_ok)}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     print("=" * 72)
 
@@ -375,6 +388,8 @@ def main() -> None:
     cert_lines.append(f"  TRACEABILITY:            {_pf(traceability_ok)}")
     if latent_ok is not None:
         cert_lines.append(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
+    if intended_use_ok is not None:
+        cert_lines.append(f"  INTENDED USE:            {_pf(intended_use_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     cert_lines.append("=" * 72)
     (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
@@ -387,6 +402,7 @@ def main() -> None:
         "shacl": _pf(shacl_ok),
         "traceability": _pf(traceability_ok),
         "latent_risk": (_pf(latent_ok) if latent_ok is not None else "N/A"),
+        "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "N/A"),
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,
         "all_checks_passed": all_pass,

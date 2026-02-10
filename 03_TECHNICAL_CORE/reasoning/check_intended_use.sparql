@@ -1,0 +1,30 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+
+#################################################################
+# check_intended_use.sparql
+#
+# PURPOSE: Verify the three-gate Annex III classification pattern:
+#   Gate 1: System has a component bearing a triggering capability
+#   Gate 2: An IntendedUseSpecification prescribes a regulated process type
+#           and is about the system
+#   Gate 3: A UseScenarioSpecification is about the system, the process
+#           type, and an affected role (NaturalPersonRole)
+#
+# All three gates must be satisfied for full Annex III compliance.
+#################################################################
+
+ASK WHERE {
+  # Gate 2: Intended use directive exists, prescribes process type, is about the system
+  ?ius a :IntendedUseSpecification ;
+    cco:prescribes ?processType ;
+    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?processType .
+
+  # Gate 3: Use scenario constrains affected entities
+  ?uss a :UseScenarioSpecification ;
+    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?processType ;
+    iao:0000136 :NaturalPersonRole .
+}
