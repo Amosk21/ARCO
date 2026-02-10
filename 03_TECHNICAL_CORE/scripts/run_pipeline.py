@@ -42,6 +42,7 @@ LATENT_RISK_QUERY = REASONING_DIR / "detect_latent_risk.sparql"
 HIGH_RISK_INFERENCE_QUERY = REASONING_DIR / "check_high_risk_inference.sparql"
 INTENDED_USE_QUERY = REASONING_DIR / "check_intended_use.sparql"
 ANNEX_III_1A_QUERY = REASONING_DIR / "check_annex_iii_1a_entailment.sparql"
+OBLIGATION_QUERY = REASONING_DIR / "check_obligation_link.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -302,6 +303,12 @@ def main() -> None:
         annex_iii_1a_ok = run_sparql_ask_from_file(g, ANNEX_III_1A_QUERY)
         print(f"Annex III 1(a) applicable: {annex_iii_1a_ok}")
 
+    obligation_ok = None
+    if OBLIGATION_QUERY.exists():
+        print("\nObligation link (provider/deployer responsibility)...")
+        obligation_ok = run_sparql_ask_from_file(g, OBLIGATION_QUERY)
+        print(f"Obligation linked: {obligation_ok}")
+
     inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
     # ---------------------------------------------------------------
@@ -316,6 +323,8 @@ def main() -> None:
         print(f"Intended use:  {_pf(intended_use_ok)}")
     if annex_iii_1a_ok is not None:
         print(f"Annex III 1a:  {_pf(annex_iii_1a_ok)}")
+    if obligation_ok is not None:
+        print(f"Obligation:    {_pf(obligation_ok)}")
     print(f"Entailment:    {_pf(inference_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
@@ -326,6 +335,8 @@ def main() -> None:
         all_pass = all_pass and intended_use_ok
     if annex_iii_1a_ok is not None:
         all_pass = all_pass and annex_iii_1a_ok
+    if obligation_ok is not None:
+        all_pass = all_pass and obligation_ok
 
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
 
@@ -371,6 +382,8 @@ def main() -> None:
         print(f"  INTENDED USE:            {_pf(intended_use_ok)}")
     if annex_iii_1a_ok is not None:
         print(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT VERIFIED'}")
+    if obligation_ok is not None:
+        print(f"  OBLIGATION:              {_pf(obligation_ok)}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     print("=" * 72)
 
@@ -405,6 +418,8 @@ def main() -> None:
         cert_lines.append(f"  INTENDED USE:            {_pf(intended_use_ok)}")
     if annex_iii_1a_ok is not None:
         cert_lines.append(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT VERIFIED'}")
+    if obligation_ok is not None:
+        cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     cert_lines.append("=" * 72)
     (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
@@ -419,6 +434,7 @@ def main() -> None:
         "latent_risk": (_pf(latent_ok) if latent_ok is not None else "N/A"),
         "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "N/A"),
         "annex_iii_1a": (_pf(annex_iii_1a_ok) if annex_iii_1a_ok is not None else "N/A"),
+        "obligation": (_pf(obligation_ok) if obligation_ok is not None else "N/A"),
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,
         "all_checks_passed": all_pass,

@@ -31,6 +31,11 @@ owl:imports <https://arco.ai/ontology/core> .
   rdfs:label "Provider Role" ;
   rdfs:subClassOf bfo:0000023 .   # Role
 
+:DeployerRole rdf:type owl:Class ;
+  rdfs:label "Deployer Role" ;
+  rdfs:comment "Role borne by an entity that deploys an AI system. Distinct from provider (who develops/places on market)." ;
+  rdfs:subClassOf bfo:0000023 .   # Role
+
 #################################################################
 # 2) DOCUMENTATION WORKFLOW
 #################################################################
@@ -127,6 +132,33 @@ cco:Organization rdf:type owl:Class ;
   rdfs:label "Natural Person Role" ;
   rdfs:comment "Legal designation under EU law. Not a biological kind — modeled as a BFO Role." ;
   rdfs:subClassOf bfo:0000023 . # Role
+
+#################################################################
+# 4b) COMPLIANCE OBLIGATION MODELING
+#
+# Who bears what: a ComplianceObligationSpecification is a
+# directive ICE that links a system to the role responsible
+# for fulfilling a regulatory requirement. This is the
+# foundation for "provider must do X for system Y."
+#
+# No enforcement realization modeled yet — this captures
+# the obligation artifact only.
+#################################################################
+
+:ComplianceObligationSpecification rdf:type owl:Class ;
+  rdfs:label "Compliance Obligation Specification" ;
+  rdfs:comment "A directive ICE specifying that a particular role-bearer has compliance obligations for a system. Aboutness links to the system and the responsible role." ;
+  rdfs:subClassOf cco:DirectiveInformationContentEntity ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;   # is about
+    owl:someValuesFrom :System
+  ] ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;   # is about
+    owl:someValuesFrom bfo:0000023  # Role (covers ProviderRole, DeployerRole)
+  ] .
 
 #################################################################
 # 5) ANNEX III 1(a) ENTAILMENT CLASS

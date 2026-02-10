@@ -148,3 +148,18 @@
     sh:minCount 2 ;
     sh:message "UseScenarioSpecification must be about at least the system and the affected role." ;
   ] .
+
+#################################################################
+# Shape 9: ComplianceObligationSpecification must be about
+#           a system and a responsible role
+#################################################################
+
+:ComplianceObligationSpecificationShape
+  a sh:NodeShape ;
+  sh:targetClass :ComplianceObligationSpecification ;
+
+  sh:property [
+    sh:path iao:0000136 ;
+    sh:minCount 2 ;
+    sh:message "ComplianceObligationSpecification must be about at least a system and a responsible role." ;
+  ] .

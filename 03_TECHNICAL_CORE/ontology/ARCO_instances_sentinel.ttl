@@ -117,3 +117,14 @@
   rdfs:label "Assessment Documentation 001" ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :AnnexIII_Condition_Q1 .
+
+#################################################################
+# 6) COMPLIANCE OBLIGATION (who bears responsibility)
+#################################################################
+
+:ProviderObligation_001 rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Provider Compliance Obligation for Sentinel-ID" ;
+  rdfs:comment "Specifies that the provider role-bearer has compliance obligations for the Sentinel-ID system under Annex III 1(a)." ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :ProviderRole_001 ;
+  iao:0000136 :AnnexIII_Condition_Q1 .
