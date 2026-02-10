@@ -10,8 +10,27 @@
 <https://arco.ai/ontology/governance>
 a owl:Ontology ;
 rdfs:label "ARCO Governance Extension — Entailment-First Regulatory Classification" ;
-rdfs:comment "Governance, intended use, regulatory classification, and obligation layer. AnnexIII1aApplicableSystem classification is OWL-entailed from three gates: capability disposition (reality-side), intended use directive ICE, and use scenario directive ICE (both representation-side, via inverse aboutness). Demonstrated in the current pipeline under owlrl OWL-RL semantics. Anonymous inverse property expressions in the equivalentClass axiom are OWL 2 DL expressible; SHACL + SPARQL provide fallback validation if a lightweight reasoner does not materialize inverse restrictions. ComplianceObligationSpecification links systems to responsible roles (provider/deployer). SPARQL checks are audit-only." ;
+rdfs:comment "Governance, intended use, and regulatory classification layer. AnnexIII1aApplicableSystem is OWL-entailed from three gates: capability + intended use + use scenario. Demonstrated under owlrl." ;
 owl:imports <https://arco.ai/ontology/core> .
+
+# Design Decisions (frozen — do not change without explicit justification):
+#
+#   Inverse aboutness: AnnexIII1aApplicableSystem uses anonymous inverse
+#   property expressions [owl:inverseOf iao:0000136] in its equivalentClass
+#   axiom. This is OWL 2 DL expressible. owlrl materializes it correctly.
+#   SHACL qualified shapes + SPARQL ASK queries provide fallback validation
+#   if a different reasoner does not materialize inverse restrictions.
+#
+#   OWL 2 punning: iao:0000136 (is_about) targets class IRIs as individuals
+#   in traceability assertions (e.g., condition is_about BiometricCapability).
+#   This is permitted in OWL 2 but the IRI is interpreted separately as class
+#   and individual. No classification entailment depends on punning — it is
+#   used for audit/traceability only.
+#
+#   Class-level restrictions are general: IntendedUseSpecification prescribes
+#   some Process (not a specific process); UseScenarioSpecification is_about
+#   some Role (not a specific role). Annex III category specifics belong on
+#   instances, keeping the schema extensible to 1(b), 1(c), etc.
 
 
 #################################################################

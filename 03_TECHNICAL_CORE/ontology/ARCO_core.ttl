@@ -10,6 +10,20 @@
   rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned" ;
   rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Uses ro:0000091 (has_disposition) per RO best practices." .
 
+# Design Decisions (frozen — do not change without explicit justification):
+#
+#   System ⊑ ObjectAggregate: models the system as a structured aggregate
+#   of material components. Defensible for component-level disposition
+#   tracing. If a future system has stronger functional unity, revisit.
+#
+#   CapabilityDisposition ⊑ Disposition (not Function): Function would
+#   require design-intent evidence we do not model yet. Disposition is
+#   correct; Function is a future precision upgrade.
+#
+#   HighRiskSystem axiom: capability-only (latent risk detection).
+#   AnnexIII1aApplicableSystem: full three-gate (capability + intent +
+#   scenario). The asymmetry is intentional — they serve different roles.
+
 #################################################################
 # 1) REALITY-SIDE UNIVERSALS (BFO)
 #
@@ -66,7 +80,7 @@
 
 :SoftwareArtifact rdf:type owl:Class ;
   rdfs:label "Software Artifact" ;
-  rdfs:comment "Software as an information entity (ICE), not a material object. Software does not bear dispositions directly — it participates in processes or is concretized in material bearers. Do not model software as a SystemComponent." ;
+  rdfs:comment "Software as a generically dependent continuant (ICE). Dispositions inhere in the material bearer that concretizes the software, not in the software artifact itself. Software relates to systems via concretization in material components, not via parthood. Do not type software as SystemComponent." ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :InformationOutput rdf:type owl:Class ;
