@@ -110,3 +110,39 @@
     sh:minCount 1 ;
     sh:message "ComplianceDetermination must be about at least one thing." ;
   ] .
+
+#################################################################
+# Shape 7: IntendedUseSpecification must prescribe a process
+#           and be about a system
+#################################################################
+
+:IntendedUseSpecificationShape
+  a sh:NodeShape ;
+  sh:targetClass :IntendedUseSpecification ;
+
+  sh:property [
+    sh:path cco:prescribes ;
+    sh:minCount 1 ;
+    sh:message "IntendedUseSpecification must prescribe at least one process." ;
+  ] ;
+
+  sh:property [
+    sh:path iao:0000136 ;
+    sh:minCount 1 ;
+    sh:message "IntendedUseSpecification must be about at least one entity (system)." ;
+  ] .
+
+#################################################################
+# Shape 8: UseScenarioSpecification must be about a system
+#           and reference an affected role
+#################################################################
+
+:UseScenarioSpecificationShape
+  a sh:NodeShape ;
+  sh:targetClass :UseScenarioSpecification ;
+
+  sh:property [
+    sh:path iao:0000136 ;
+    sh:minCount 2 ;
+    sh:message "UseScenarioSpecification must be about at least the system and the affected role." ;
+  ] .
