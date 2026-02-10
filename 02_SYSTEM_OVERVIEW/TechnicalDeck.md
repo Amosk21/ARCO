@@ -58,7 +58,7 @@ Sentinel-ID is not a guess about a real system. It is a controlled reference sys
 
 ### Realist Core
 
-BFO/CCO grounding for representing reality level entities. The Sentinel-ID System possesses a Biometric Identification Capability modeled as a Disposition that inheres in the system. When this disposition is realized in operational processes (e.g., Surveillance Run 001), those processes produce concrete outputs such as FaceData Log 001, establishing a formal link between latent capabilities and their manifestation in real-world operations.
+BFO/CCO grounding for representing reality-level entities. The Sentinel-ID System has a hardware component (Sentinel FaceID Module) that bears a Biometric Identification Capability modeled as a Disposition. Dispositions inhere in the material component, not the system aggregate. When this disposition is realized in operational processes (e.g., Surveillance Run 001), those processes produce concrete outputs such as FaceData Log 001, establishing a formal link between latent capabilities and their manifestation in real-world operations.
 
 ### Regulatory Layer
 
@@ -66,7 +66,7 @@ IAO usage for modeling legal texts as Information Content Entities, not procedur
 
 ### Governance Extension
 
-v3 governance graph for provider traceability and documentation. The Provider Organization bears a Provider Role that participates in the Assessment Documentation Process 001. This process produces Assessment Documentation 001 that is formally linked to the system, its determinations, and the regulatory provisions, ensuring full traceability of classification artifacts back to responsible organizational entities.
+Governance graph for provider traceability, documentation, and obligation. The Provider Organization bears a Provider Role and participates in the Assessment Documentation Process 001. This process produces Assessment Documentation 001 that is formally linked to the system and the regulatory provisions. A separate Compliance Obligation Specification links the system to the responsible role-bearer and the triggering regulatory condition, making the "who is responsible for what" relationship a first-class artifact.
 
 ---
 
@@ -177,7 +177,7 @@ LLM extracts capabilities from unstructured text
 BFO grounding represents extracted claims as axioms
 
 **Stage 3: Classification (Logic)**
-SPARQL queries test classification conditions against modeled capabilities
+OWL-RL reasoning infers classifications from bridge axioms; SPARQL queries provide audit confirmation
 
 > Uses LLM for recall, Ontology for precision, Logic for determination
 
@@ -200,7 +200,7 @@ SPARQL queries test classification conditions against modeled capabilities
 |--------|-------------|
 | **Typed** | Candidates are mapped to explicit BFO classes and relations |
 | **Validated** | Only assertions consistent with BFO constraints are retained |
-| **Constrained** | If LLM hallucinates a relationship that doesn't fit 'bearer_of' constraint, system rejects it |
+| **Constrained** | If LLM hallucinates a relationship that violates BFO constraints, system rejects it |
 | **Asserted** | Resulting Turtle is machine-readable and reasoner-ready |
 
 > LLMs interpret text. Ontologies define structure and constraints.
@@ -211,11 +211,11 @@ SPARQL queries test classification conditions against modeled capabilities
 
 ### Capability
 
-**BFO** – Inherent disposition of a system, existing even when latent or inactive
+**BFO** – Disposition inhering in a material component, existing even when latent or inactive
 
 ### System
 
-**BFO** – Physical bearer of the disposition; hardware carries capability independent of software state
+**BFO** – Object Aggregate whose material components bear capability dispositions, independent of software state
 
 ### Regulation
 
@@ -231,62 +231,63 @@ The Logic Layer: No AI involved—formal logic only
 
 ### Semantic Framework
 
-OWL axioms define class relationships (System bears CapabilityDisposition via `ro:0000053`)
+OWL axioms define class relationships. Systems have material components that bear dispositions via `ro:has_disposition`. Classification is inferred by OWL-RL reasoning from bridge axioms — `HighRiskSystem` fires on capability alone (latent risk detection), while `AnnexIII1aApplicableSystem` requires all three gates: capability + intended use + use scenario.
 
 ```turtle
-:System rdf:type owl:Class ;
-  rdfs:subClassOf bfo:0000027 ;
-  rdfs:subClassOf [
-    a owl:Restriction ;
-    owl:onProperty ro:0000053 ;
-    owl:someValuesFrom :CapabilityDisposition
-  ] .
+:HighRiskSystem owl:equivalentClass [
+  owl:intersectionOf (
+    :System
+    [ owl:onProperty bfo:0000051 ;   # has part
+      owl:someValuesFrom [
+        owl:onProperty ro:0000091 ;  # has disposition
+        owl:someValuesFrom :AnnexIIITriggeringCapability
+      ]
+    ]
+  )
+] .
 ```
 
 ### Classification Evaluation
 
-SPARQL ASK queries test whether modeled systems satisfy classification conditions:
+SPARQL ASK queries serve as audit confirmations that entailments materialized correctly. The classification itself is an OWL entailment, not a pattern match:
 
 ```sparql
 ASK WHERE {
-  :AssessmentDoc_001 iao:0000136 :Sentinel_ID_System .
-  :AssessmentDoc_001 iao:0000136 :AnnexIII_Condition_Q1 .
+  :Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem .
 }
 ```
 
 ### Logical Consequence
 
-If classification conditions are satisfied, the determination follows
+If the structural prerequisites exist, classification follows as an OWL entailment — not asserted, derived.
 
 ### Auditability
 
-This is deterministic evaluation, not approximation
-
-> **Note**: The reference implementation demonstrates the classification structure. Production deployments may integrate OWL reasoning (e.g., HermiT) to derive classifications automatically from the defined semantic framework.
+This is deterministic evaluation, not approximation. Every classification traces back to specific component dispositions, intended use directives, and use scenario specifications.
 
 ---
 
 ## Operational Validation & Governance
 
-### SHACL: Structure Validation
+### OWL-RL: Entailment-First Classification
 
-Ensures the knowledge graph satisfies required structural constraints before classification.
+Classifications like `HighRiskSystem` and `AnnexIII1aApplicableSystem` are inferred by the OWL-RL reasoner from bridge axioms — not asserted in the data. This means classification is a logical consequence of system structure, not a label someone attached.
 
-Invalid or incomplete classification graphs are rejected upstream, preventing false classifications.
+### SHACL: Documentary Completeness
 
-### SPARQL: Deterministic Traceability
+SHACL validates the reasoned graph for structural completeness: assessment documentation links to system and regulatory content, intended use specifications prescribe process types, use scenario specifications reference affected entities. Invalid or incomplete graphs are rejected before audit.
 
-Enables exact, machine-checkable queries over the classification graph, supporting audit, explanation, and liability tracing without statistical uncertainty.
+### SPARQL: Audit Confirmation
+
+SPARQL ASK queries confirm that expected entailments materialized. They serve as audit instruments — the classification itself is an OWL entailment, and the queries verify it.
 
 ### Governance Extension
 
-The governance extension links classification determinations to real world responsibility.
+The governance extension links classification determinations to real-world responsibility.
 
-Each High-Risk classification is traceable from the system, through the provider role, to the responsible organization.
+Each classification is traceable from the system, through the provider role, to the responsible organization. Compliance Obligation Specifications make the "who bears responsibility for what" relationship explicit and queryable.
 
-This produces a justification structure suitable for audit, regulatory review, and liability analysis.
-
-> Machine-checkable validation ensures classification integrity; governance network provides full accountability chain.
+> OWL handles classification. SHACL enforces documentary completeness. SPARQL provides audit traceability. Governance links everything to accountable entities.
 
 ---
 

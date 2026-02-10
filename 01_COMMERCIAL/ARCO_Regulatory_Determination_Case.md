@@ -52,13 +52,17 @@ Regulatory classification under the EU AI Act depends on capability, not intent 
 
 ## 3. Regulatory Criterion
 
-Under Article 6 and Annex III, AI systems that bear the disposition to perform biometric identification of natural persons in regulated contexts are classified as High-Risk.
+Under Article 6 and Annex III, AI systems intended to be used for remote biometric identification of natural persons are classified as High-Risk. Full Annex III 1(a) classification requires three conditions:
 
-This criterion applies regardless of whether the capability is currently enabled.
+1. The system bears a biometric identification capability (reality-side disposition)
+2. An intended use specification prescribes the regulated process type (directive ICE)
+3. A use scenario specification constrains the affected entities (directive ICE)
+
+Capability alone triggers latent risk detection. All three gates together trigger full Annex III applicability.
 
 **The regulatory question evaluated is:**
 
-> Does Sentinel-ID bear a biometric identification disposition as defined under Annex III?
+> Does Sentinel-ID satisfy all three Annex III 1(a) classification conditions?
 
 ---
 
@@ -80,15 +84,13 @@ SHACL constraints enforce:
 
 Only structurally admissible system representations proceed to evaluation.
 
-### 4.3 Deterministic Evaluation (SPARQL ASK)
+### 4.3 OWL-RL Reasoning
 
-Boolean ASK queries test whether the encoded system satisfies the necessary and sufficient conditions for Annex III classification.
+OWL bridge axioms define class-level equivalences that the reasoner uses to infer classifications. `HighRiskSystem` is inferred from capability alone. `AnnexIII1aApplicableSystem` is inferred when all three gates are satisfied. Classifications are derived, not asserted.
 
-### 4.4 Semantic Framework (OWL)
+### 4.4 Audit Queries (SPARQL ASK)
 
-OWL axioms define the class-level semantics (e.g., System bears CapabilityDisposition) that underpin classification logic. The semantic structure ensures that classification criteria are formally defined and consistently interpreted.
-
-> **Note**: In the reference implementation, the determination artifact is explicitly modeled to demonstrate the output structure. Production deployments may invoke OWL reasoning to derive classifications automatically from capability assertions.
+Boolean ASK queries confirm that the expected entailments materialized. They serve as audit instruments over the reasoned graph — verifying traceability, intended use modeling, Annex III applicability, and obligation linkage.
 
 ---
 
@@ -103,27 +105,27 @@ This confirms:
 - No required regulatory attributes are missing
 - No classification is derived from assumed documentation gaps
 
-### 5.2 Deterministic Query Result
+### 5.2 Entailment Result
 
-**SPARQL ASK Query**: Does the assessment documentation link the system to the relevant Annex III regulatory condition?
+After OWL-RL reasoning, the following classifications are inferred (not asserted):
 
-**Result**: `TRUE`
+- `Sentinel_ID_System rdf:type HighRiskSystem` — from capability alone (latent risk)
+- `Sentinel_ID_System rdf:type AnnexIII1aApplicableSystem` — from all three gates
 
-This result confirms the documentation links the system to the relevant regulatory condition. The underlying capability (BiometricIdentificationCapability) is modeled as a disposition borne by the system.
+SPARQL audit queries confirm both entailments materialized: `TRUE`.
 
 ### 5.3 Ontological Consequence
 
 **Given**:
-- A system that bears a biometric identification disposition
-- A regulatory framework that classifies such dispositions as High-Risk
+- A system whose hardware component bears a biometric identification disposition (Gate 1)
+- An intended use specification prescribing remote biometric identification (Gate 2)
+- A use scenario specification constraining affected entities to natural persons (Gate 3)
 
 **It follows by logical necessity that**:
 
-> **Sentinel-ID is classified as a High-Risk AI System under Article 6 and Annex III of the EU AI Act.**
+> **Sentinel-ID is classified as a High-Risk AI System under Article 6 and as Annex III 1(a) applicable under the EU AI Act.**
 
-This conclusion is invariant under deployment configuration or stated intent.
-
-> **Note**: In this reference case, the determination is explicitly modeled to demonstrate the artifact format. The logical necessity derives from the ontological structure: any system bearing BiometricIdentificationCapability satisfies Annex III classification conditions.
+This conclusion is invariant under deployment configuration. Each gate is independently necessary — removing any one prevents the Annex III 1(a) classification from being inferred.
 
 ---
 
@@ -142,9 +144,10 @@ This determination is:
 ### 6.2 Triggering Conditions
 
 The classification is triggered by:
-- Latent biometric identification capability
-- Structural sufficiency to perform regulated biometric tasks
-- Ontological alignment with Annex III criteria
+- Latent biometric identification capability (hardware component bears BiometricIdentificationCapability)
+- Intended use prescribing the regulated process type (remote biometric identification)
+- Use scenario constraining affected entities (natural persons)
+- Compliance obligation linking the system to the responsible provider role
 
 ---
 
@@ -153,9 +156,10 @@ The classification is triggered by:
 ### 7.1 Audit Trace
 
 The determination is supported by:
-- SHACL validation logs confirming structural admissibility
-- SPARQL ASK query outputs demonstrating satisfaction of risk criteria
-- Ontological mappings linking system capabilities to regulatory concepts
+- OWL-RL entailment producing inferred classifications from bridge axioms
+- SHACL validation confirming documentary completeness over the reasoned graph
+- SPARQL ASK audit queries confirming traceability, intended use, Annex III applicability, and obligation linkage
+- Gate-removal regression tests proving each gate is independently necessary
 
 ### 7.2 Independent Reproduction
 
