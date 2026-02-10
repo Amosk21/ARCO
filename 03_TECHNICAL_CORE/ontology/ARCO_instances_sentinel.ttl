@@ -110,7 +110,7 @@
 :AssessmentDocProcess_001 rdf:type :AssessmentDocumentationProcess ;
   rdfs:label "Assessment Documentation Process 001" ;
   ro:0000057 :Sentinel_ID_System ;
-  ro:0000057 :ProviderRole_001 ;
+  ro:0000057 :ProviderOrg_001 ;
   cco:has_output :AssessmentDoc_001 .
 
 :AssessmentDoc_001 rdf:type :AssessmentDocumentation ;

@@ -45,7 +45,7 @@ owl:imports <https://arco.ai/ontology/core> .
   rdfs:subClassOf bfo:0000015 ; # Process
   rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,
-    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :ProviderRole ] ,
+    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :ProviderOrganization ] ,
     [ a owl:Restriction ; owl:onProperty cco:has_output ; owl:someValuesFrom :AssessmentDocumentation ] .
 
 :AssessmentDocumentation rdf:type owl:Class ;
