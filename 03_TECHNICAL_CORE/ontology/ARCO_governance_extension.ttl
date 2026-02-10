@@ -75,6 +75,9 @@ cco:prescribes rdf:type owl:ObjectProperty ;
   rdfs:label "prescribes" ;
   rdfs:comment "A directive ICE prescribes an entity (process type or continuant) as rule or guide." .
 
+cco:has_output rdf:type owl:ObjectProperty ;
+  rdfs:label "has output" .
+
 cco:Person rdf:type owl:Class ;
   rdfs:label "Person" ;
   rdfs:subClassOf bfo:0000040 . # Material Entity
@@ -95,12 +98,12 @@ cco:Organization rdf:type owl:Class ;
 
 :IntendedUseSpecification rdf:type owl:Class ;
   rdfs:label "Intended Use Specification" ;
-  rdfs:comment "A directive ICE that prescribes the process type an AI system is intended to realize. OWL restrictions enforce that it prescribes a Process subclass and is about a System. cco:prescribes targets a class IRI (OWL 2 punning); this is used for modeling intent about universals, not for classification entailment." ;
+  rdfs:comment "A directive ICE that prescribes the process type an AI system is intended to realize. Class-level restrictions enforce that it prescribes some Process and is about some System. The specific process type (e.g., biometric identification) is on the instance, not the class." ;
   rdfs:subClassOf cco:DirectiveInformationContentEntity ;
   rdfs:subClassOf [
     a owl:Restriction ;
     owl:onProperty cco:prescribes ;
-    owl:someValuesFrom :RemoteBiometricIdentificationProcess
+    owl:someValuesFrom bfo:0000015   # Process (general — instance carries specifics)
   ] ;
   rdfs:subClassOf [
     a owl:Restriction ;
@@ -110,7 +113,7 @@ cco:Organization rdf:type owl:Class ;
 
 :UseScenarioSpecification rdf:type owl:Class ;
   rdfs:label "Use Scenario Specification" ;
-  rdfs:comment "A directive ICE that constrains the realization context: who/what is affected. OWL restrictions enforce aboutness to system and affected role." ;
+  rdfs:comment "A directive ICE that constrains the realization context: who/what is affected. Class-level restrictions enforce aboutness to some System and some Role. The specific affected role (e.g., NaturalPersonRole) is on the instance, not the class." ;
   rdfs:subClassOf cco:DirectiveInformationContentEntity ;
   rdfs:subClassOf [
     a owl:Restriction ;
@@ -120,7 +123,7 @@ cco:Organization rdf:type owl:Class ;
   rdfs:subClassOf [
     a owl:Restriction ;
     owl:onProperty iao:0000136 ;   # is about
-    owl:someValuesFrom :NaturalPersonRole
+    owl:someValuesFrom bfo:0000023  # Role (general — instance carries specifics)
   ] .
 
 :RemoteBiometricIdentificationProcess rdf:type owl:Class ;
