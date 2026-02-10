@@ -9,8 +9,8 @@
 
 <https://arco.ai/ontology/governance>
 a owl:Ontology ;
-rdfs:label "ARCO Governance Extension — Minimal Commitments (Mermaid-Aligned)" ;
-rdfs:comment "Minimal governance/role/documentation commitments that appear in the Mermaid diagram, formalized as ICE and role/process commitments." ;
+rdfs:label "ARCO Governance Extension — Entailment-First Regulatory Classification" ;
+rdfs:comment "Governance, intended use, and regulatory classification layer. AnnexIII1aApplicableSystem is OWL-entailed (not SPARQL pattern-matched) from three gates: capability disposition (reality-side), intended use directive ICE (representation-side, via inverse aboutness), and use scenario directive ICE (representation-side, via inverse aboutness). SPARQL checks are audit-only confirmations." ;
 owl:imports <https://arco.ai/ontology/core> .
 
 

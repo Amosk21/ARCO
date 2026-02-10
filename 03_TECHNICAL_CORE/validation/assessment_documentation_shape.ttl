@@ -9,10 +9,12 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 #################################################################
-# ARCO SHACL Validation Shapes - UPDATED
-# 
-# Purpose: Validate structural completeness of assessment artifacts
-# Note: These shapes validate AFTER OWL reasoning has run
+# ARCO SHACL Validation Shapes
+#
+# Purpose: Validate structural completeness of assessment and
+# directive ICE artifacts. Shapes run AFTER OWL reasoning.
+# SHACL enforces documentary requirements; OWL entailment
+# handles classification (AnnexIII1aApplicableSystem).
 #################################################################
 
 #################################################################
