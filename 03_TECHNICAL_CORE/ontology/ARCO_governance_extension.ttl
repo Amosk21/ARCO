@@ -10,7 +10,7 @@
 <https://arco.ai/ontology/governance>
 a owl:Ontology ;
 rdfs:label "ARCO Governance Extension — Entailment-First Regulatory Classification" ;
-rdfs:comment "Governance, intended use, regulatory classification, and obligation layer. AnnexIII1aApplicableSystem is OWL-entailed from three gates: capability disposition (reality-side), intended use directive ICE, and use scenario directive ICE (both representation-side, via inverse aboutness). ComplianceObligationSpecification links systems to responsible roles (provider/deployer). SPARQL checks are audit-only." ;
+rdfs:comment "Governance, intended use, regulatory classification, and obligation layer. AnnexIII1aApplicableSystem classification is OWL-entailed from three gates: capability disposition (reality-side), intended use directive ICE, and use scenario directive ICE (both representation-side, via inverse aboutness). Demonstrated in the current pipeline under owlrl OWL-RL semantics. Anonymous inverse property expressions in the equivalentClass axiom are OWL 2 DL expressible; SHACL + SPARQL provide fallback validation if a lightweight reasoner does not materialize inverse restrictions. ComplianceObligationSpecification links systems to responsible roles (provider/deployer). SPARQL checks are audit-only." ;
 owl:imports <https://arco.ai/ontology/core> .
 
 
@@ -95,7 +95,7 @@ cco:Organization rdf:type owl:Class ;
 
 :IntendedUseSpecification rdf:type owl:Class ;
   rdfs:label "Intended Use Specification" ;
-  rdfs:comment "A directive ICE that prescribes the process type an AI system is intended to realize. OWL restrictions enforce that it prescribes a process and is about a system." ;
+  rdfs:comment "A directive ICE that prescribes the process type an AI system is intended to realize. OWL restrictions enforce that it prescribes a Process subclass and is about a System. cco:prescribes targets a class IRI (OWL 2 punning); this is used for modeling intent about universals, not for classification entailment." ;
   rdfs:subClassOf cco:DirectiveInformationContentEntity ;
   rdfs:subClassOf [
     a owl:Restriction ;
@@ -165,6 +165,8 @@ cco:Organization rdf:type owl:Class ;
 #
 # OWL entailment-first classification: AnnexIII1aApplicableSystem
 # membership is INFERRED by the reasoner when all three gates hold.
+# Demonstrated under owlrl OWL-RL semantics; each gate is
+# independently necessary (verified by test_gate_removal.py).
 #
 # Gate 1 (reality-side): System has_part some (SystemComponent
 #         AND has_disposition some BiometricIdentificationCapability)
@@ -173,13 +175,24 @@ cco:Organization rdf:type owl:Class ;
 # Gate 3 (representation-side): A UseScenarioSpecification
 #         is_about this system (via inverse of iao:0000136)
 #
+# Inverse aboutness uses anonymous inverse property expressions
+# (OWL 2 DL expressible). Reasoner portability: owlrl materializes
+# these; other reasoners may vary. SHACL qualified shapes and
+# SPARQL ASK queries provide a fallback validation layer.
+#
+# Aboutness targets include class IRIs used as individuals (OWL 2
+# punning). This is permitted in OWL 2 but means the IRI is
+# interpreted separately as a class and as an individual. We do
+# not rely on punning for core classification entailments — it is
+# used for traceability and audit only.
+#
 # SPARQL checks are AUDIT ONLY — the classification is an
 # OWL entailment, not a pattern match.
 #################################################################
 
 :AnnexIII1aApplicableSystem rdf:type owl:Class ;
   rdfs:label "Annex III 1(a) Applicable System" ;
-  rdfs:comment "System that meets Annex III 1(a) conditions via capability + intended use + affected category, as OWL entailment." ;
+  rdfs:comment "System that meets Annex III 1(a) conditions via capability + intended use + affected category. Classification is OWL-entailed under owlrl; gate independence verified by regression test." ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
     rdf:type owl:Class ;
