@@ -70,7 +70,7 @@
   ] .
 
 #################################################################
-# Shape 4: System must have at least one hardware component - UPDATED
+# Shape 4: System must have at least one component (SystemComponent)
 #################################################################
 
 :SystemShape
@@ -80,7 +80,7 @@
   sh:property [
     sh:path bfo:0000051 ;
     sh:minCount 1 ;
-    sh:message "System must have at least one hardware component." ;
+    sh:message "System must have at least one component (SystemComponent)." ;
   ] .
 
 #################################################################

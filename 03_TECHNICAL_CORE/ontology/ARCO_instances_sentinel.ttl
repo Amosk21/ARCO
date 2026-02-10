@@ -57,14 +57,15 @@
 #################################################################
 # 4) COMPLIANCE DETERMINATION (representation-side output)
 #
-#    CRITICAL: The determination artifact is typed as
-#    :ComplianceDetermination (not :HighRiskDetermination).
+#    The determination artifact is typed as :HighRiskDetermination
+#    (subClassOf :ComplianceDetermination). This documents the
+#    compliance assessment result.
 #
 #    The SYSTEM's classification as :HighRiskSystem is INFERRED
 #    by the reasoner via the bridge axiom in ARCO_core.ttl.
 #################################################################
 
-:HighRisk_Determination_001 rdf:type :ComplianceDetermination ;
+:HighRisk_Determination_001 rdf:type :HighRiskDetermination ;
   rdfs:label "High-Risk Determination 001" ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :AnnexIII_Condition_Q1 ;
