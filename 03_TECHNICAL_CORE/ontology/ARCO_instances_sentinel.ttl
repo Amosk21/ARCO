@@ -23,7 +23,7 @@
 :AnnexIII_Condition_Q1 rdf:type :RegulatoryContent ;
   rdfs:label "Annex III Q1 (Biometric Rule)" ;
   iao:0000136 :BiometricIdentificationCapability ;            # is_about the capability universal
-  iao:0000136 :RemoteBiometricIdentificationProcessType ;     # is_about the regulated process type
+  iao:0000136 :RemoteBiometricIdentificationProcess ;     # is_about the regulated process type
   iao:0000136 :NaturalPersonRole .                            # is_about the affected role
 
 #################################################################
@@ -53,14 +53,14 @@
 
 :Sentinel_IntendedUse_001 rdf:type :IntendedUseSpecification ;
   rdfs:label "Sentinel Intended Use: Remote Biometric Identification" ;
-  cco:prescribes :RemoteBiometricIdentificationProcessType ;
+  cco:prescribes :RemoteBiometricIdentificationProcess ;
   iao:0000136 :Sentinel_ID_System ;
-  iao:0000136 :RemoteBiometricIdentificationProcessType .
+  iao:0000136 :RemoteBiometricIdentificationProcess .
 
 :Sentinel_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Sentinel Use Scenario: Biometric ID of Natural Persons" ;
   iao:0000136 :Sentinel_ID_System ;
-  iao:0000136 :RemoteBiometricIdentificationProcessType ;
+  iao:0000136 :RemoteBiometricIdentificationProcess ;
   iao:0000136 cco:Person ;
   iao:0000136 :NaturalPersonRole .
 
