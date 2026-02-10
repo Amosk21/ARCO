@@ -1,17 +1,8 @@
 PREFIX : <https://arco.ai/ontology/core#>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 
-#################################################################
-# check_obligation_link.sparql
-#
-# PURPOSE: Audit-only check that a compliance obligation
-#   specification exists linking the system to a responsible
-#   role (provider or deployer).
-#
-# This verifies the "who bears responsibility" foundation:
-#   - An obligation artifact is about the system
-#   - The same artifact is about a ProviderRole (or DeployerRole)
-#################################################################
+# Checks that a compliance obligation links the system to a provider role.
+# This is the "who bears responsibility" foundation.
 
 ASK WHERE {
   ?obligation a :ComplianceObligationSpecification ;

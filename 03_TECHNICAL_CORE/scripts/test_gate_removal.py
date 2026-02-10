@@ -1,20 +1,9 @@
 """
-ARCO Gate-Removal Regression Test
+Gate-removal regression test for the three-gate Annex III 1(a) classification.
 
-Verifies that AnnexIII1aApplicableSystem entailment requires ALL three gates.
-For each gate, removes the key triple and confirms classification disappears.
-
-Gates:
-  1 (capability):    System has_part Component has_disposition BiometricCapability
-  2 (intended use):  IntendedUseSpecification is_about System
-  3 (use scenario):  UseScenarioSpecification is_about System
-
-Also checks HighRiskSystem behavior:
-  - Gate 1 removal should break HighRiskSystem (capability-only axiom)
-  - Gates 2-3 removal should NOT break HighRiskSystem (it only requires capability)
-
-Usage:
-    python 03_TECHNICAL_CORE/scripts/test_gate_removal.py
+Removes each gate's key triple independently, re-reasons, and confirms
+AnnexIII1aApplicableSystem disappears. Also verifies that HighRiskSystem
+(capability-only axiom) is unaffected by gates 2 and 3.
 """
 
 from __future__ import annotations
