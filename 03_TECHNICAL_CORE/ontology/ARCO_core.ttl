@@ -27,12 +27,17 @@
   rdfs:subClassOf [
     a owl:Restriction ;
     owl:onProperty bfo:0000051 ; # has part
-    owl:someValuesFrom :HardwareComponent
+    owl:someValuesFrom :SystemComponent
   ] .
+
+:SystemComponent rdf:type owl:Class ;
+  rdfs:label "System Component" ;
+  rdfs:comment "A component of an AI system. Superclass of hardware, software, and other component types." ;
+  rdfs:subClassOf bfo:0000030 . # Object
 
 :HardwareComponent rdf:type owl:Class ;
   rdfs:label "Hardware Component" ;
-  rdfs:subClassOf bfo:0000030 ; # Object
+  rdfs:subClassOf :SystemComponent ; # Was bfo:0000030; now subclass of SystemComponent
   rdfs:subClassOf [
     a owl:Restriction ;
     owl:onProperty ro:0000091 ; # has disposition (RO-specific)
