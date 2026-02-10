@@ -1,0 +1,42 @@
+flowchart LR
+  classDef gate fill:#23395B,stroke:#fff,color:#fff
+  classDef owl fill:#C62828,stroke:#fff,color:#fff,stroke-width:3px
+  classDef detail fill:#455A64,stroke:#ccc,color:#fff
+  classDef cap fill:#2E7D32,stroke:#fff,color:#fff
+
+  subgraph G1["GATE 1 — Capability (Reality-Side)"]
+    direction TB
+    Sys["System<br>⊑ ObjectAggregate"]:::gate
+    Comp["SystemComponent<br>⊑ Object"]:::gate
+    Cap["BiometricIdentificationCapability<br>⊑ Disposition"]:::cap
+    Sys -->|"bfo:has_part"| Comp
+    Comp -->|"ro:has_disposition"| Cap
+  end
+
+  subgraph G2["GATE 2 — Intended Use (Representation-Side)"]
+    direction TB
+    IUS["IntendedUseSpecification<br>⊑ DirectiveICE"]:::gate
+    Proc[["Regulated Process Type<br>(class)"]]:::detail
+    IUS -->|"cco:prescribes"| Proc
+    IUS -->|"iao:is_about"| Sys2["System"]:::gate
+  end
+
+  subgraph G3["GATE 3 — Use Scenario (Representation-Side)"]
+    direction TB
+    USS["UseScenarioSpecification<br>⊑ DirectiveICE"]:::gate
+    Role[["Affected Role<br>(e.g. NaturalPersonRole)"]]:::detail
+    USS -->|"iao:is_about"| Sys3["System"]:::gate
+    USS -->|"iao:is_about"| Role
+  end
+
+  G1 ==>|"required"| HRS
+  G1 ==>|"required"| A3
+
+  G2 ==>|"required"| A3
+  G3 ==>|"required"| A3
+
+  HRS[":HighRiskSystem<br>(OWL entailment)<br>Capability only — latent risk"]:::owl
+  A3[":AnnexIII1aApplicableSystem<br>(OWL entailment)<br>All three gates required"]:::owl
+
+  HRS -.->|"⊑"| SysClass["System"]:::detail
+  A3 -.->|"⊑"| SysClass
