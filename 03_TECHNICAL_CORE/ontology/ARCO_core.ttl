@@ -32,12 +32,12 @@
 
 :SystemComponent rdf:type owl:Class ;
   rdfs:label "System Component" ;
-  rdfs:comment "A component of an AI system. Superclass of hardware, software, and other component types." ;
+  rdfs:comment "Material component of an AI system (bfo:Object). Software is NOT a SystemComponent — it is an ICE (see SoftwareArtifact). has_part between an ObjectAggregate and an ICE would be a BFO category error." ;
   rdfs:subClassOf bfo:0000030 . # Object
 
 :HardwareComponent rdf:type owl:Class ;
   rdfs:label "Hardware Component" ;
-  rdfs:subClassOf :SystemComponent ; # Was bfo:0000030; now subclass of SystemComponent
+  rdfs:subClassOf :SystemComponent ;
   rdfs:subClassOf [
     a owl:Restriction ;
     owl:onProperty ro:0000091 ; # has disposition (RO-specific)
@@ -63,6 +63,11 @@
 #################################################################
 # 2) REPRESENTATION-SIDE UNIVERSALS (IAO)
 #################################################################
+
+:SoftwareArtifact rdf:type owl:Class ;
+  rdfs:label "Software Artifact" ;
+  rdfs:comment "Software as an information entity (ICE), not a material object. Software does not bear dispositions directly — it participates in processes or is concretized in material bearers. Do not model software as a SystemComponent." ;
+  rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :InformationOutput rdf:type owl:Class ;
   rdfs:label "Information Output" ;
