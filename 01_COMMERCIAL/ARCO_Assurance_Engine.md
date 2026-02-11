@@ -46,10 +46,11 @@ Structured candidates produced in Phase A.
 
 Candidates are mapped into the NCOR/ARCO ontology stack, grounded in Basic Formal Ontology (BFO).
 
-Two deterministic mechanisms are applied:
+Three deterministic mechanisms are applied in sequence:
 
-- **SHACL validation** enforces structural completeness and coherence, blocking hallucinated or underspecified claims.
-- **SPARQL queries** test whether the modeled system satisfies classification conditions defined in the ontology.
+- **OWL-RL reasoning** infers classifications from bridge axioms. If a system's structure satisfies the conditions defined in an equivalentClass axiom, the reasoner derives class membership automatically. Classifications like `HighRiskSystem` and `AnnexIII1aApplicableSystem` are entailed, not asserted.
+- **SHACL validation** enforces structural completeness and coherence over the reasoned graph, blocking hallucinated or underspecified claims.
+- **SPARQL ASK queries** confirm that the expected entailments materialized. They serve as audit instruments — the classification itself is an OWL entailment, and the queries verify it.
 
 **Design Principle**
 
@@ -65,7 +66,7 @@ The ARCO Classification Determination Report.
 
 - **Classification:** Regulatory classification outcome (High-Risk path demonstrated; additional risk tiers are architecturally supported)
 - **Formal Justification:** Human-readable explanations grounded in explicit regulatory clauses
-- **Audit Trail:** A complete log of SHACL validation results and SPARQL query outputs
+- **Audit Trail:** A complete log of OWL-RL entailments, SHACL validation results, and SPARQL audit query outputs
 
 This artifact is suitable for internal governance, external audits, regulators, and procurement reviews.
 

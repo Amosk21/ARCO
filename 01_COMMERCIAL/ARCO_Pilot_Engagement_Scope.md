@@ -41,9 +41,9 @@ The certificate explicitly identifies the dispositions that trigger the classifi
 
 A reproducible audit artifact generated directly from:
 
+- OWL-RL entailment results
 - SHACL validation results
-- SPARQL ASK query outputs
-- Explicit ontological mappings
+- SPARQL ASK audit query outputs
 
 This log demonstrates that the classification is a function of formal constraints, not discretionary judgment.
 
@@ -71,11 +71,11 @@ The system boundary is fixed. No implicit assumptions are introduced.
 
 SHACL constraints enforce documentation completeness and prohibit inferred or assumed capabilities.
 
-### Week 3 — Deterministic Classification (SPARQL + OWL Semantics)
+### Week 3 — Deterministic Classification (OWL-RL Reasoning + SPARQL Audit)
 
-Boolean ASK queries test Annex III conditions against the modeled system.
+OWL-RL reasoning infers regulatory classifications from bridge axioms defined in the ontology. Classifications like `HighRiskSystem` and `AnnexIII1aApplicableSystem` are entailed from system structure, not asserted.
 
-OWL axioms define the semantic framework that ensures consistent interpretation of classification criteria.
+SPARQL ASK queries then confirm that the expected entailments materialized, providing audit traceability.
 
 ### Week 4 — Determination and Handover
 
@@ -138,9 +138,13 @@ No assumption is made that these capabilities are currently realized.
 
 ## 3. Regulatory Criterion
 
-Under Article 6 and Annex III, systems that bear the disposition to perform biometric identification in regulated contexts are classified as High-Risk.
+Under Article 6 and Annex III, AI systems intended to be used for remote biometric identification of natural persons are classified as High-Risk. Full Annex III 1(a) classification requires three conditions:
 
-Classification depends on capability, not deployment intent.
+1. The system bears a biometric identification capability (reality-side disposition)
+2. An intended use specification prescribes the regulated process type (directive ICE)
+3. A use scenario specification constrains the affected entities (directive ICE)
+
+Capability alone triggers latent risk detection. All three gates together trigger full Annex III applicability.
 
 ---
 
@@ -164,27 +168,30 @@ SHACL constraints enforce:
 
 Only structurally admissible systems proceed.
 
-### 4.3 Deterministic Evaluation (SPARQL ASK)
+### 4.3 OWL-RL Reasoning
 
-Boolean ASK queries test whether the system satisfies the classification conditions for Annex III.
+OWL bridge axioms define class-level equivalences that the reasoner uses to infer classifications. `HighRiskSystem` is inferred from capability alone. `AnnexIII1aApplicableSystem` is inferred when all three gates are satisfied. Classifications are derived, not asserted.
 
-### 4.4 Semantic Framework (OWL Axioms)
+### 4.4 Audit Queries (SPARQL ASK)
 
-OWL axioms define the semantic relationships between system capabilities and regulatory concepts.
-
-When a system instance bears a disposition that is explicitly typed as a regulated capability, the classification conditions are satisfied.
+Boolean ASK queries confirm that the expected entailments materialized. They serve as audit instruments over the reasoned graph — verifying traceability, intended use modeling, Annex III applicability, and obligation linkage.
 
 ---
 
 ## 5. Classification Result
 
-**SPARQL ASK Result:** TRUE
+After OWL-RL reasoning, the following classifications are inferred:
 
-From this result, it follows that:
+- `Sentinel_ID_System rdf:type HighRiskSystem` — from capability alone (latent risk)
+- `Sentinel_ID_System rdf:type AnnexIII1aApplicableSystem` — from all three gates
 
-> Sentinel-ID is classified as a High-Risk AI System under Article 6 and Annex III.
+SPARQL audit queries confirm both entailments materialized: `TRUE`.
 
-This conclusion is invariant under configuration, deployment, or intent.
+From this, it follows that:
+
+> Sentinel-ID is classified as a High-Risk AI System under Article 6 and as Annex III 1(a) applicable under the EU AI Act.
+
+This conclusion is invariant under configuration, deployment, or intent. Each gate is independently necessary.
 
 ---
 
