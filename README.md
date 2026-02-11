@@ -186,7 +186,7 @@ The pipeline will:
 1. Load ontology (core + governance extension) and instance data
 2. Run OWL-RL reasoning to materialize entailments (~300 asserted → ~1000 post-reasoning)
 3. Validate documentary completeness with SHACL
-4. Run seven audit queries (traceability, latent risk, intended use, Annex III 1(a) entailment, obligation linkage, HighRiskSystem entailment)
+4. Run seven deterministic checks: SHACL conformance + six SPARQL audit queries (traceability, latent risk, intended use, Annex III 1(a) entailment, obligation linkage, HighRiskSystem entailment)
 5. Emit a regulatory determination certificate with evidence path
 6. Write artifact files to `runs/demo/` (certificate, summary JSON, evidence bindings, SHACL report)
 

@@ -13,6 +13,9 @@
 # These run AFTER OWL-RL reasoning. Classification is handled by
 # OWL entailment; these shapes enforce that the supporting artifacts
 # (assessments, directive ICEs, obligations) are structurally complete.
+# SHACL is non-classificatory: it checks completeness of declared
+# components and dispositions. Risk classification is handled by
+# OWL entailment + SPARQL audit queries.
 
 # --- Assessment layer ---
 
