@@ -197,6 +197,12 @@ cco:Organization rdf:type owl:Class ;
 # Gate 3 (representation-side): A UseScenarioSpecification
 #         is_about this system (via inverse of iao:0000136)
 #
+# This class represents statutory applicability (an institutional
+# determination), not a change in the system's ontological kind.
+# Directive ICEs participate because Annex III conditions on
+# documented intended use ("intended to be used for..."); capability
+# remains reality-side (disposition in components).
+#
 # Inverse aboutness uses anonymous inverse property expressions
 # (OWL 2 DL expressible). Reasoner portability: owlrl materializes
 # these; other reasoners may vary. SHACL qualified shapes and
