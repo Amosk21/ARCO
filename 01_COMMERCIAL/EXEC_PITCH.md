@@ -37,7 +37,7 @@ ARCO operationalizes a defensible interpretation of Article 6 and Annex III by m
 
 ### Structural Validation and Classification
 
-The proposed AI system is mapped into that structure. Using SHACL for structural validation and SPARQL for deterministic classification queries, ARCO produces an auditable regulatory classification.
+The proposed AI system is mapped into that structure. OWL-RL reasoning infers classifications from bridge axioms, SHACL enforces structural completeness, and SPARQL audit queries confirm the results. Together, they produce an auditable regulatory classification.
 
 ### The Output
 

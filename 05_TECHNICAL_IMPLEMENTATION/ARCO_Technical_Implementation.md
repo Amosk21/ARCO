@@ -10,33 +10,29 @@
 
 **The Problem:** Traditional classification tags (e.g., "High Risk: True") fail to capture conditional capabilities. A system may have hardware for biometric identification (High Risk) that is currently disabled via software.
 
-**The Solution:** We utilize BFO 2.0 Dispositions to model capability as a "Realizable Entity" that inheres in the hardware (Object Aggregate), independent of its current Process realization.
+**The Solution:** Dispositions are modeled as BFO Realizable Entities that inhere in material components, not in the system aggregate directly. The system relates to its components via `bfo:has_part`, and each component carries its dispositions via `ro:has_disposition`. This traces regulatory exposure to the specific component responsible.
 
-**Impact:** This allows the system to flag "Latent Liability" even when the software is configured to "Off."
+**Impact:** Latent capability is detected even when software is configured to "Off," and the evidence path traces through the specific component that bears the disposition.
 
 ### Implementation Artifact (ARCO_core.ttl)
 
 ```turtle
-#################################################################
-# REALITY-SIDE UNIVERSALS (BFO)
-# Decision: Model System as Object Aggregate bearing Dispositions
-#################################################################
-
 :System rdf:type owl:Class ;
   rdfs:label "AI System" ;
   rdfs:subClassOf bfo:0000027 ; # Object Aggregate
   rdfs:subClassOf [
     a owl:Restriction ;
-    owl:onProperty ro:0000053 ; # bearer of
-    owl:someValuesFrom :CapabilityDisposition
+    owl:onProperty bfo:0000051 ; # has part
+    owl:someValuesFrom :SystemComponent
   ] .
 
-:BiometricIdentificationCapability rdf:type owl:Class ;
-  rdfs:label "Biometric Identification Capability" ;
-  rdfs:comment "A capability-disposition whose realizations include identifying or verifying individuals via biometric characteristics." ;
-  rdfs:subClassOf :CapabilityDisposition .
-
-# Note: This exists whether realized in a process or not.
+:HardwareComponent rdf:type owl:Class ;
+  rdfs:subClassOf :SystemComponent ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty ro:0000091 ; # has disposition
+    owl:someValuesFrom :CapabilityDisposition
+  ] .
 ```
 
 ---
@@ -100,23 +96,22 @@ ASK WHERE {
 
 ---
 
-## 4. Execution Pipeline (Neuro-Symbolic Bridge)
+## 4. Execution Pipeline
 
-**Orchestration:** The Python runtime (rdflib + pyshacl) manages the transition from probabilistic extraction (LLM-generated instances) to deterministic validation.
+**Orchestration:** The Python runtime (rdflib + pyshacl + owlrl) manages load, reasoning, validation, and audit in sequence.
 
-### Pipeline Code (run_pipeline.py)
+### Pipeline Sequence (run_pipeline.py)
 
-```python
-def main() -> None:
-    g = load_union_graph(CORE, GOV, INSTANCES)
-    print("Loaded triples:", len(g))
-
-    # Step 1: Classification Evaluation (SPARQL)
-    run_sparql_ask(g)
-    
-    # Step 2: Structural Validation (SHACL)
-    # Only valid structures produce reliable classifications
-    run_shacl(g)
+```
+1. LOAD      — Parse core ontology + governance extension + instance data
+2. REASON    — OWL-RL closure (owlrl) materializes entailments
+3. SHACL     — Structural validation against the reasoned graph
+4. AUDIT     — SPARQL ASK queries verify entailment results
+5. CERTIFY   — Emit regulatory determination certificate + artifacts
 ```
 
-**Design Principle:** SHACL validation ensures structural completeness. SPARQL ASK queries test whether classification conditions are satisfied. Together they produce deterministic, auditable regulatory determinations.
+The pipeline runs seven checks: SHACL conformance, traceability, latent risk detection, intended use modeling, Annex III 1(a) entailment, obligation linkage, and HighRiskSystem entailment.
+
+OWL-RL reasoning runs first because classifications like `HighRiskSystem` and `AnnexIII1aApplicableSystem` are inferred from bridge axioms, not asserted. SHACL validates the reasoned graph. SPARQL queries serve as audit confirmations that the expected entailments materialized.
+
+**Design Principle:** OWL handles classification. SHACL enforces documentary completeness. SPARQL provides audit traceability. Together they produce deterministic, auditable regulatory determinations.

@@ -10,7 +10,7 @@ ARCO produces regulatory classifications as logical consequences of explicitly m
 
 - **Input:** A system description modeled as instances (components, roles, capabilities, intended context)
 - **Output:** A deterministic regulatory determination plus traceability artifacts (validation report + query evidence)
-- **Mechanism:** BFO-aligned OWL ontology (axioms) + SHACL completeness validation + SPARQL ASK audit queries
+- **Mechanism:** BFO-aligned OWL ontology + OWL-RL entailment + SHACL completeness validation + SPARQL ASK audit queries
 
 **Why:** Replace probabilistic "confidence" with audit-traceable logical determination.
 
@@ -27,15 +27,19 @@ A concrete example of a produced determination is available below and in detail 
 ========================================================================
 REGULATORY DETERMINATION CERTIFICATE
 ========================================================================
-SYSTEM:                Sentinel_ID_System
-REGIME:                EU AI Act (Article 6 / Annex III)
-CLASSIFICATION:        HighRiskSystem (INFERRED)
-TRIGGERING CAPABILITY: Sentinel_FaceID_Disposition
-EVIDENCE PATH:
+  SYSTEM:                  Sentinel_ID_System
+  REGIME:                  EU AI Act (Article 6 / Annex III)
+  CLASSIFICATION:          HighRiskSystem (INFERRED)
+  TRIGGERING CAPABILITY:   Sentinel_FaceID_Disposition
+  EVIDENCE PATH:
   Sentinel_ID_System -> Sentinel_FaceID_Module -> Sentinel_FaceID_Disposition
-SHACL:                PASS
-TRACEABILITY:          PASS
-LATENT RISK:           DETECTED
+  SHACL:                   PASS
+  TRACEABILITY:            PASS
+  LATENT RISK:             DETECTED
+  INTENDED USE:            PASS
+  ANNEX III 1(a):          VERIFIED (ENTAILED)
+  OBLIGATION:              PASS
+  ENTAILED TRIPLES ADDED:  +692
 ========================================================================
 ```
 
@@ -179,11 +183,11 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 
 The pipeline will:
 
-1. Load ontology and instance data
-2. Materialize inferences
-3. Validate completeness with SHACL
-4. Run audit queries
-5. Emit a regulatory determination certificate
+1. Load ontology (core + governance extension) and instance data
+2. Run OWL-RL reasoning to materialize entailments (~300 asserted → ~1000 post-reasoning)
+3. Validate documentary completeness with SHACL
+4. Run seven audit queries (traceability, latent risk, intended use, Annex III 1(a) entailment, obligation linkage, HighRiskSystem entailment)
+5. Emit a regulatory determination certificate with evidence path
 6. Write artifact files to `runs/demo/` (certificate, summary JSON, evidence bindings, SHACL report)
 
 ### Run in GitHub Actions

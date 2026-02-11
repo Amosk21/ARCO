@@ -10,6 +10,20 @@
   rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned" ;
   rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Uses ro:0000091 (has_disposition) per RO best practices." .
 
+# Design Decisions (frozen — do not change without explicit justification):
+#
+#   System ⊑ ObjectAggregate: models the system as a structured aggregate
+#   of material components. Defensible for component-level disposition
+#   tracing. If a future system has stronger functional unity, revisit.
+#
+#   CapabilityDisposition ⊑ Disposition (not Function): Function would
+#   require design-intent evidence we do not model yet. Disposition is
+#   correct; Function is a future precision upgrade.
+#
+#   HighRiskSystem axiom: capability-only (latent risk detection).
+#   AnnexIII1aApplicableSystem: full three-gate (capability + intent +
+#   scenario). The asymmetry is intentional — they serve different roles.
+
 #################################################################
 # 1) REALITY-SIDE UNIVERSALS (BFO)
 #
@@ -27,12 +41,17 @@
   rdfs:subClassOf [
     a owl:Restriction ;
     owl:onProperty bfo:0000051 ; # has part
-    owl:someValuesFrom :HardwareComponent
+    owl:someValuesFrom :SystemComponent
   ] .
+
+:SystemComponent rdf:type owl:Class ;
+  rdfs:label "System Component" ;
+  rdfs:comment "Material component of an AI system (bfo:Object). Software is NOT a SystemComponent — it is an ICE (see SoftwareArtifact). has_part between an ObjectAggregate and an ICE would be a BFO category error." ;
+  rdfs:subClassOf bfo:0000030 . # Object
 
 :HardwareComponent rdf:type owl:Class ;
   rdfs:label "Hardware Component" ;
-  rdfs:subClassOf bfo:0000030 ; # Object
+  rdfs:subClassOf :SystemComponent ;
   rdfs:subClassOf [
     a owl:Restriction ;
     owl:onProperty ro:0000091 ; # has disposition (RO-specific)
@@ -58,6 +77,11 @@
 #################################################################
 # 2) REPRESENTATION-SIDE UNIVERSALS (IAO)
 #################################################################
+
+:SoftwareArtifact rdf:type owl:Class ;
+  rdfs:label "Software Artifact" ;
+  rdfs:comment "Software as a generically dependent continuant (ICE). Dispositions inhere in the material bearer that concretizes the software, not in the software artifact itself. Software relates to systems via concretization in material components, not via parthood. Do not type software as SystemComponent." ;
+  rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :InformationOutput rdf:type owl:Class ;
   rdfs:label "Information Output" ;
@@ -122,6 +146,7 @@ bfo:0000016 rdfs:label "Disposition" .
 bfo:0000023 rdfs:label "Role" .
 bfo:0000027 rdfs:label "Object Aggregate" .
 bfo:0000030 rdfs:label "Object" .
+bfo:0000040 rdfs:label "Material Entity" .
 
 # BFO relations
 bfo:0000050 rdfs:label "part of" .

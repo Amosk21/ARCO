@@ -42,14 +42,15 @@ By modeling capabilities as dispositions rather than behaviors, the ontology cap
 
 ## Evaluation and Classification
 
-Classification is evaluated using OWL-defined class semantics and deterministic SPARQL queries. The evaluation layer does not decide policy outcomes; it verifies whether a classification is supported by the asserted premises.
+Classification is derived through OWL-RL reasoning over bridge axioms. The reasoner infers class membership — classifications like `HighRiskSystem` and `AnnexIII1aApplicableSystem` are not asserted in the data, they are entailed from it. SPARQL queries then serve as audit confirmations that the expected entailments materialized.
 
-For example, if:
+For example, Annex III 1(a) applicability requires three conditions to hold simultaneously:
 
-- a system bears a biometric identification capability, and
-- Annex III provisions are about that capability,
+- a system's hardware component bears a biometric identification capability (reality-side),
+- an intended use specification prescribes the regulated process type (representation-side), and
+- a use scenario specification constrains the affected entities (representation-side).
 
-then a high-risk determination follows as a logical consequence of the model.
+When all three gates are present, the classification follows as a logical consequence. Removing any one gate prevents the classification from being inferred — a property verified by regression testing.
 
 Because the evaluation is logical rather than statistical, it is reproducible and inspectable. If the outcome is disputed, the disagreement can be traced to specific premises rather than hidden model behavior.
 
@@ -57,9 +58,11 @@ Because the evaluation is logical rather than statistical, it is reproducible an
 
 The primary output of the system is not a label, but a justification structure. The model makes explicit:
 
-- which system capability mattered,
-- which regulatory content applied,
-- and how the classification was determined.
+- which system component bears the triggering capability,
+- which intended use and scenario specifications apply,
+- which regulatory content was triggered,
+- who bears compliance obligations, and
+- how the classification was determined.
 
 This enables auditability and supports human review. Stakeholders can challenge assumptions, refine definitions, or revise mappings without obscuring the evaluation process itself.
 

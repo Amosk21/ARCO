@@ -1,0 +1,41 @@
+flowchart TD
+  classDef load fill:#37474F,stroke:#fff,color:#fff
+  classDef reason fill:#1565C0,stroke:#fff,color:#fff
+  classDef validate fill:#2E7D32,stroke:#fff,color:#fff
+  classDef audit fill:#6A1B9A,stroke:#fff,color:#fff
+  classDef output fill:#C62828,stroke:#fff,color:#fff
+  classDef artifact fill:#455A64,stroke:#ccc,color:#fff
+
+  Load["LOAD<br>Core ontology + Governance extension + Instance data<br><i>~300 asserted triples</i>"]:::load
+
+  Reason["OWL-RL REASONING<br>owlrl materializes entailments<br><i>~300 → ~1000 triples (+700 entailed)</i>"]:::reason
+
+  SHACL["SHACL VALIDATION<br>Documentary completeness over reasoned graph<br><i>Assessment docs, intended use, use scenario shapes</i>"]:::validate
+
+  subgraph Audit["SPARQL ASK AUDIT QUERIES (7 checks)"]
+    direction LR
+    Q1["Traceability"]:::audit
+    Q2["Latent Risk"]:::audit
+    Q3["Intended Use"]:::audit
+    Q4["Annex III 1a"]:::audit
+    Q5["Obligation"]:::audit
+    Q6["HighRiskSystem"]:::audit
+  end
+
+  Cert["REGULATORY DETERMINATION CERTIFICATE<br><i>System + Classification + Evidence Path + Check Results</i>"]:::output
+
+  subgraph Artifacts["OUTPUT ARTIFACTS (runs/demo/)"]
+    direction LR
+    A1["certificate.txt"]:::artifact
+    A2["summary.json"]:::artifact
+    A3["evidence.json"]:::artifact
+    A4["shacl_report.txt"]:::artifact
+  end
+
+  Load --> Reason
+  Reason --> SHACL
+  SHACL -->|"Conforms: True"| Audit
+  Audit -->|"All TRUE"| Cert
+  Cert --> Artifacts
+
+  Reason -.->|"HighRiskSystem INFERRED<br>AnnexIII1aApplicableSystem INFERRED"| SHACL

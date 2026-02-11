@@ -70,24 +70,34 @@ I use SHACL here to impose local closure without breaking global ontological reu
 
 OWL preserves openness; SHACL provides validation.
 
-### B. SPARQL — The Auditor
+### B. OWL-RL — The Classifier
 
 **Role**
 
-SPARQL ASK queries are used as audit instruments rather than generative mechanisms.
+OWL-RL reasoning infers class membership from bridge axioms. Classifications like `HighRiskSystem` and `AnnexIII1aApplicableSystem` are entailed from system structure — not asserted in the data and not produced by queries.
+
+**Reasoning**
+
+If a system's structure satisfies the conditions defined in an equivalentClass axiom, the reasoner derives class membership automatically. This is deterministic entailment, not pattern matching.
+
+### C. SPARQL — The Auditor
+
+**Role**
+
+SPARQL ASK queries confirm that the expected OWL-RL entailments materialized. They are audit instruments, not classification mechanisms.
 
 **Reasoning**
 
 ASK queries return a boolean True or False, producing a non-constructive result suitable for audit and regulatory traceability.
 
-If a query returns TRUE, the classification condition is logically established based on:
-- The system artifact
-- The regulatory universal
-- Their formal intersection
+If a query returns TRUE, it confirms that the OWL-RL reasoner successfully inferred the expected classification from:
+- The system structure
+- The regulatory criteria encoded in bridge axioms
+- The documentary artifacts (intended use, use scenario, obligations)
 
 **Auditability**
 
-Every determination can be traced back to the specific query pattern and instance data that produced it.
+Every determination can be traced back to the specific OWL axiom that produced it and the specific SPARQL query that confirmed it.
 
 ---
 

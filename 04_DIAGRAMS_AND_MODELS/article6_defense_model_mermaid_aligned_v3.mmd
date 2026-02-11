@@ -1,51 +1,79 @@
 flowchart TD
-  classDef universal fill:#406E8E,stroke:#fff,color:#fff
+  classDef reality fill:#23395B,stroke:#fff,color:#fff
   classDef ice fill:#B85C38,stroke:#fff,color:#fff
-  classDef system fill:#23395B,stroke:#fff,color:#fff
+  classDef directive fill:#8E6C3A,stroke:#fff,color:#fff
   classDef process fill:#2E7D32,stroke:#fff,color:#fff
   classDef org fill:#6A1B9A,stroke:#fff,color:#fff
   classDef doc fill:#455A64,stroke:#fff,color:#fff
+  classDef inferred fill:#C62828,stroke:#fff,color:#fff,stroke-width:3px
 
-  subgraph Reality["REALITY (BFO)"]
-    Sys["Sentinel-ID System<br>(:System)"]:::system
-    Disp(("Sentinel FaceID Disposition<br>(instance)")):::universal
-    BioCap[["Biometric Identification Capability<br>(Universal/Class)"]]:::universal
-    Sys -->|ro:0000053 bearer_of| Disp
-    Disp -.->|rdf:type| BioCap
+  subgraph Reality["REALITY (BFO — Material Entities + Dispositions)"]
+    Sys["Sentinel-ID System<br><i>:System ⊑ ObjectAggregate</i>"]:::reality
+    Module["Sentinel FaceID Module<br><i>:HardwareComponent ⊑ SystemComponent ⊑ Object</i>"]:::reality
+    Disp["Sentinel FaceID Disposition<br><i>:BiometricIdentificationCapability ⊑ Disposition</i>"]:::reality
+    Sys -->|"bfo:has_part"| Module
+    Module -->|"ro:has_disposition"| Disp
   end
 
-  subgraph Regulation["REGULATORY ICE (CCO/IAO)"]
-    Annex["Annex III Condition Q1<br>(:RegulatoryContent)"]:::ice
-    Annex -->|iao:0000136 is_about| BioCap
+  subgraph IntendedUse["INTENDED USE + SCENARIO (Directive ICEs — Gates 2 & 3)"]
+    IUS["Sentinel IntendedUse 001<br><i>:IntendedUseSpecification</i>"]:::directive
+    USS["Sentinel UseScenario 001<br><i>:UseScenarioSpecification</i>"]:::directive
+    ProcType[["RemoteBiometricIdentificationProcess<br><i>⊑ Process (class, not instance)</i>"]]:::directive
+    NatRole[["NaturalPersonRole<br><i>⊑ Role (legal designation)</i>"]]:::directive
+    IUS -->|"cco:prescribes"| ProcType
+    IUS -->|"iao:is_about"| Sys
+    USS -->|"iao:is_about"| Sys
+    USS -->|"iao:is_about"| ProcType
+    USS -->|"iao:is_about"| NatRole
   end
 
-  subgraph Operation["OPERATION (BFO Process)"]
-    Op["Surveillance Run 001<br>(:OperationalProcess)"]:::process
-    Op -->|ro:0000057 has_participant| Sys
-    Op -->|bfo:0000055 realizes| Disp
-    Out["FaceData Log 001<br>(:InformationOutput)"]:::doc
-    Op -->|cco:has_output| Out
-    Out -->|iao:0000136 is_about| Sys
+  subgraph Regulation["REGULATORY CONTENT (IAO ICE)"]
+    Annex["Annex III Condition Q1<br><i>:RegulatoryContent</i>"]:::ice
+    Annex -->|"iao:is_about"| Disp
+    Annex -->|"iao:is_about"| ProcType
+    Annex -->|"iao:is_about"| NatRole
+  end
+
+  subgraph Operation["OPERATION (BFO Process — Realization)"]
+    Op["Surveillance Run 001<br><i>:OperationalProcess</i>"]:::process
+    Out["FaceData Log 001<br><i>:InformationOutput</i>"]:::doc
+    Op -->|"ro:has_participant"| Sys
+    Op -->|"bfo:realizes"| Disp
+    Op -->|"cco:has_output"| Out
   end
 
   subgraph Compliance["COMPLIANCE OUTPUT (Representation)"]
-    Det["High-Risk Determination 001<br>(:HighRiskDetermination)"]:::doc
-    Det -->|iao:0000136 is_about| Sys
-    Det -->|iao:0000136 is_about| Annex
+    Det["High-Risk Determination 001<br><i>:HighRiskDetermination ⊑ ComplianceDetermination</i>"]:::doc
+    Det -->|"iao:is_about"| Sys
+    Det -->|"iao:is_about"| Annex
   end
 
-  subgraph Provider["PROVIDER + DOCUMENTATION (Mermaid commitments)"]
-    Org["Provider Organization<br>(:ProviderOrganization)"]:::org
-    Role["Provider Role<br>(:ProviderRole)"]:::universal
-    Org -->|ro:0000087 has_role| Role
-    Role -->|ro:0000052 inheres_in| Org
+  subgraph Provider["GOVERNANCE (Provider + Obligation)"]
+    Org["Provider Organization 001<br><i>:ProviderOrganization ⊑ Organization</i>"]:::org
+    Role["Provider Role 001<br><i>:ProviderRole ⊑ Role</i>"]:::org
+    Org -->|"ro:has_role"| Role
+    Role -->|"ro:inheres_in"| Org
 
-    DocProc["Assessment Documentation Process 001<br>(:AssessmentDocumentationProcess)"]:::process
-    DocProc -->|ro:0000057 has_participant| Sys
-    DocProc -->|ro:0000057 has_participant| Role
+    DocProc["Assessment Doc Process 001"]:::process
+    DocProc -->|"ro:has_participant"| Sys
+    DocProc -->|"ro:has_participant"| Org
+    DocA["Assessment Documentation 001<br><i>:AssessmentDocumentation</i>"]:::doc
+    DocProc -->|"cco:has_output"| DocA
+    DocA -->|"iao:is_about"| Sys
+    DocA -->|"iao:is_about"| Annex
 
-    Doc["Assessment Documentation 001<br>(:AssessmentDocumentation)"]:::doc
-    DocProc -->|cco:has_output| Doc
-    Doc -->|iao:0000136 is_about| Sys
-    Doc -->|iao:0000136 is_about| Annex
+    Obl["Provider Obligation 001<br><i>:ComplianceObligationSpecification</i>"]:::directive
+    Obl -->|"iao:is_about"| Sys
+    Obl -->|"iao:is_about"| Role
+    Obl -->|"iao:is_about"| Annex
   end
+
+  subgraph Inferred["INFERRED BY OWL-RL REASONER (not asserted in data)"]
+    HRS[":HighRiskSystem<br>from capability alone"]:::inferred
+    A3S[":AnnexIII1aApplicableSystem<br>from all three gates"]:::inferred
+  end
+
+  Disp -.->|"Gate 1"| HRS
+  Disp -.->|"Gate 1"| A3S
+  IUS -.->|"Gate 2"| A3S
+  USS -.->|"Gate 3"| A3S

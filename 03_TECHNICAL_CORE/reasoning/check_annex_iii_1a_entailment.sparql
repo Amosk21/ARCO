@@ -1,0 +1,10 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# Audit check: confirms the reasoner inferred Annex III 1(a) applicability.
+# Classification itself is an OWL entailment — this just verifies it materialized.
+# Should be FALSE before reasoning, TRUE after.
+
+ASK WHERE {
+  :Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem .
+}
