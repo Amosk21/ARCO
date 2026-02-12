@@ -1,0 +1,32 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#################################################################
+# claude3_check_high_risk_inference.sparql
+#
+# PURPOSE: Verify that the reasoner inferred HighRiskSystem
+#          classification for Claude 3.
+#
+# EXPECTED: FALSE before reasoning, TRUE after reasoning.
+#
+# INFERENCE CHAIN (path 1 — vision/biometric):
+#   1. Claude3_System rdf:type :System
+#   2. Claude3_System bfo:0000051 Claude3_Opus_Model
+#   3. Claude3_Opus_Model ro:0000091 Claude3_Opus_Vision_Disp
+#   4. Claude3_Opus_Vision_Disp rdf:type :VisionCapability
+#   5. :VisionCapability rdfs:subClassOf :BiometricIdentificationCapability
+#   6. :BiometricIdentificationCapability in :AnnexIIITriggeringCapability
+#   => Claude3_System rdf:type :HighRiskSystem (INFERRED)
+#
+# INFERENCE CHAIN (path 2 — computer use/autonomous agent):
+#   1. Claude3_System bfo:0000051 Claude35_Sonnet_Model
+#   2. Claude35_Sonnet_Model ro:0000091 Claude35_Sonnet_ComputerUse_Disp
+#   3. Claude35_Sonnet_ComputerUse_Disp rdf:type :ComputerUseCapability
+#   4. :ComputerUseCapability rdfs:subClassOf :AutonomousAgentCapability
+#   5. :AutonomousAgentCapability in :AnnexIIITriggeringCapability
+#   => Claude3_System rdf:type :HighRiskSystem (INFERRED, second path)
+#################################################################
+
+ASK WHERE {
+    :Claude3_System rdf:type :HighRiskSystem .
+}

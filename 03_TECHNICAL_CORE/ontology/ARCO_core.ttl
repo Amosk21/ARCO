@@ -39,6 +39,16 @@
     owl:someValuesFrom :CapabilityDisposition
   ] .
 
+:ModelComponent rdf:type owl:Class ;
+  rdfs:label "Model Component" ;
+  rdfs:comment "A trained AI model (weights + architecture) deployed as a functional component of a system. Treated as a BFO Object: a bounded, identifiable artifact that bears capability-dispositions independent of realization." ;
+  rdfs:subClassOf bfo:0000030 ; # Object
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty ro:0000091 ; # has disposition (RO-specific)
+    owl:someValuesFrom :CapabilityDisposition
+  ] .
+
 :CapabilityDisposition rdf:type owl:Class ;
   rdfs:label "AI Capability Disposition" ;
   rdfs:subClassOf bfo:0000016 . # Disposition
@@ -47,6 +57,60 @@
   rdfs:label "Biometric Identification Capability" ;
   rdfs:comment "A capability-disposition whose realizations include identifying or verifying individuals via biometric characteristics." ;
   rdfs:subClassOf :CapabilityDisposition .
+
+#################################################################
+# 1b) FRONTIER AI CAPABILITY DISPOSITIONS
+#
+# Model the capabilities of general-purpose AI systems (e.g.
+# Claude 3, GPT-4) that trigger regulatory obligations under
+# EU AI Act Annex III, Article 50, and GPAI provisions (Ch. V).
+#################################################################
+
+:GeneralPurposeAICapability rdf:type owl:Class ;
+  rdfs:label "General-Purpose AI Capability" ;
+  rdfs:comment "Capability-disposition of a foundation/frontier model adaptable to tasks not fully specified at training time. Triggers GPAI obligations under EU AI Act Chapter V." ;
+  rdfs:subClassOf :CapabilityDisposition .
+
+:MultimodalCapability rdf:type owl:Class ;
+  rdfs:label "Multimodal Capability" ;
+  rdfs:comment "Capability-disposition for processing and generating content across multiple modalities (text, vision, audio). When vision is included, the system bears latent biometric identification capability." ;
+  rdfs:subClassOf :GeneralPurposeAICapability .
+
+:VisionCapability rdf:type owl:Class ;
+  rdfs:label "Vision Capability" ;
+  rdfs:comment "Capability-disposition for processing and interpreting visual inputs (images, documents, video). Subsumes potential biometric identification use via facial/body recognition." ;
+  rdfs:subClassOf :MultimodalCapability ;
+  rdfs:subClassOf :BiometricIdentificationCapability .
+
+:AutonomousAgentCapability rdf:type owl:Class ;
+  rdfs:label "Autonomous Agent Capability" ;
+  rdfs:comment "Capability-disposition for autonomous tool use, computer interaction, and multi-step task execution without continuous human oversight. Risk trigger for critical infrastructure and safety-critical applications." ;
+  rdfs:subClassOf :GeneralPurposeAICapability .
+
+:ComputerUseCapability rdf:type owl:Class ;
+  rdfs:label "Computer Use Capability" ;
+  rdfs:comment "Capability-disposition for directly operating computer interfaces (mouse, keyboard, screen reading). Realization of autonomous agent capability with direct system access." ;
+  rdfs:subClassOf :AutonomousAgentCapability .
+
+:ContentGenerationCapability rdf:type owl:Class ;
+  rdfs:label "Content Generation Capability" ;
+  rdfs:comment "Capability-disposition for generating text, code, or synthetic media. Triggers transparency obligations under EU AI Act Article 50." ;
+  rdfs:subClassOf :GeneralPurposeAICapability .
+
+:CodeGenerationCapability rdf:type owl:Class ;
+  rdfs:label "Code Generation Capability" ;
+  rdfs:comment "Capability-disposition for generating, analyzing, and modifying software code. Implications for software supply chain and critical infrastructure." ;
+  rdfs:subClassOf :ContentGenerationCapability .
+
+:ReasoningCapability rdf:type owl:Class ;
+  rdfs:label "Reasoning Capability" ;
+  rdfs:comment "Capability-disposition for multi-step logical reasoning, analysis, and problem-solving. Enabler for autonomous agent behavior and high-risk domain application." ;
+  rdfs:subClassOf :GeneralPurposeAICapability .
+
+:MultilingualCapability rdf:type owl:Class ;
+  rdfs:label "Multilingual Capability" ;
+  rdfs:comment "Capability-disposition for processing and generating content across multiple natural languages. Expands jurisdictional scope of deployment." ;
+  rdfs:subClassOf :GeneralPurposeAICapability .
 
 :OperationalProcess rdf:type owl:Class ;
   rdfs:label "Operational Process" ;
@@ -88,11 +152,38 @@
 
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
   rdfs:label "Annex III Triggering Capability" ;
-  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Extend the union to add new triggering capabilities." ;
+  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Union of all capability types that map to Annex III categories." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
-    owl:unionOf ( :BiometricIdentificationCapability )
+    owl:unionOf (
+      :BiometricIdentificationCapability   # Annex III 1(a) — remote biometric identification
+      :AutonomousAgentCapability            # Annex III 2    — critical infrastructure management
+    )
   ] .
+
+:GPAISystemicRiskCapability rdf:type owl:Class ;
+  rdfs:label "GPAI Systemic Risk Capability" ;
+  rdfs:comment "A general-purpose AI capability meeting the systemic risk threshold under EU AI Act Article 51. Triggered by high-impact capabilities (10^25 FLOP threshold or equivalent)." ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :GeneralPurposeAICapability
+      [ rdf:type owl:Restriction ;
+        owl:onProperty :hasSystemicRiskIndicator ;
+        owl:someValuesFrom :SystemicRiskIndicator
+      ]
+    )
+  ] .
+
+:SystemicRiskIndicator rdf:type owl:Class ;
+  rdfs:label "Systemic Risk Indicator" ;
+  rdfs:comment "An information entity documenting evidence of systemic risk (e.g. compute threshold, capability evaluation results, red-team findings)." ;
+  rdfs:subClassOf iao:0000030 .
+
+:hasSystemicRiskIndicator rdf:type owl:ObjectProperty ;
+  rdfs:label "has systemic risk indicator" ;
+  rdfs:domain :GeneralPurposeAICapability ;
+  rdfs:range :SystemicRiskIndicator .
 
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "High-Risk AI System" ;

@@ -1,0 +1,318 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances/claude3> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Claude 3 Instances — Real Frontier AI System" ;
+  rdfs:comment """Instance data for Anthropic's Claude 3 model family (Opus, Sonnet, Haiku),
+grounded in the Claude 3 Model Card and Claude 3.5 Addendum. Demonstrates
+ARCO's ability to classify a real deployed frontier AI system against
+EU AI Act obligations. Source: Claude 3 Model Card (March 2024).""" ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# 1) REGULATORY LAYER (real regulatory content)
+#################################################################
+
+:EUAIAct_AnnexIII rdf:type :RegulatoryContent ;
+  rdfs:label "EU AI Act Annex III — High-Risk AI Systems" ;
+  bfo:0000051 :AnnexIII_1a_Biometric ,
+              :AnnexIII_2_CriticalInfra .
+
+:AnnexIII_1a_Biometric rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III 1(a) — Remote Biometric Identification" ;
+  iao:0000136 :BiometricIdentificationCapability .
+
+:AnnexIII_2_CriticalInfra rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III 2 — Critical Infrastructure Management" ;
+  iao:0000136 :AutonomousAgentCapability .
+
+:EUAIAct_Article50 rdf:type :RegulatoryContent ;
+  rdfs:label "EU AI Act Article 50 — Transparency for AI-Generated Content" ;
+  iao:0000136 :ContentGenerationCapability .
+
+:EUAIAct_ChapterV rdf:type :RegulatoryContent ;
+  rdfs:label "EU AI Act Chapter V — GPAI Obligations" ;
+  iao:0000136 :GeneralPurposeAICapability .
+
+:Anthropic_RSP rdf:type :SafetyPolicy ;
+  rdfs:label "Anthropic Responsible Scaling Policy (RSP)" ;
+  rdfs:comment "Anthropic's framework for evaluating AI safety levels. Defines ASL-1 through ASL-4 safety levels based on capability evaluations." ;
+  iao:0000136 :GeneralPurposeAICapability .
+
+:Anthropic_UsagePolicy rdf:type :UsagePolicy ;
+  rdfs:label "Anthropic Usage Policy" ;
+  rdfs:comment "Defines permitted and prohibited uses of Claude models. Constrains deployment risk surface." ;
+  iao:0000136 :Claude3_System .
+
+#################################################################
+# 2) SYSTEM LAYER — Claude 3 Model Family
+#
+# Architecture: Claude 3 is an Object Aggregate (System) with
+# three model components (Opus, Sonnet, Haiku), each bearing
+# capability-dispositions. The system also runs on inference
+# infrastructure (hardware).
+#
+# Source: Claude 3 Model Card, Section "Model Details"
+#################################################################
+
+:Claude3_System rdf:type :System ;
+  rdfs:label "Claude 3 Model Family" ;
+  rdfs:comment "Anthropic's Claude 3 frontier AI system comprising Opus, Sonnet, and Haiku models. Deployed via API and consumer products." ;
+  bfo:0000051 :Claude3_Opus_Model ,
+              :Claude3_Sonnet_Model ,
+              :Claude3_Haiku_Model ,
+              :Claude3_InferenceInfra .
+
+# --- Model Components (trained model artifacts) ---
+
+:Claude3_Opus_Model rdf:type :ModelComponent ;
+  rdfs:label "Claude 3 Opus" ;
+  rdfs:comment "Largest and most capable model in the Claude 3 family. State-of-the-art on MMLU (86.8%), GPQA (50.4%), HumanEval (84.9%). Source: Model Card Table 1." ;
+  ro:0000091 :Claude3_Opus_GPAI_Disp ,
+             :Claude3_Opus_Vision_Disp ,
+             :Claude3_Opus_Reasoning_Disp ,
+             :Claude3_Opus_CodeGen_Disp ,
+             :Claude3_Opus_ContentGen_Disp ,
+             :Claude3_Opus_Multilingual_Disp .
+
+:Claude3_Sonnet_Model rdf:type :ModelComponent ;
+  rdfs:label "Claude 3 Sonnet" ;
+  rdfs:comment "Mid-range model balancing capability and cost. Strong on reasoning and coding tasks. Source: Model Card Table 1." ;
+  ro:0000091 :Claude3_Sonnet_GPAI_Disp ,
+             :Claude3_Sonnet_Vision_Disp ,
+             :Claude3_Sonnet_ContentGen_Disp .
+
+:Claude3_Haiku_Model rdf:type :ModelComponent ;
+  rdfs:label "Claude 3 Haiku" ;
+  rdfs:comment "Smallest and fastest model for near-instant responses. Optimized for latency-sensitive deployments. Source: Model Card Table 1." ;
+  ro:0000091 :Claude3_Haiku_GPAI_Disp ,
+             :Claude3_Haiku_Vision_Disp ,
+             :Claude3_Haiku_ContentGen_Disp .
+
+# --- Hardware Component (inference infrastructure) ---
+
+:Claude3_InferenceInfra rdf:type :HardwareComponent ;
+  rdfs:label "Claude 3 Inference Infrastructure" ;
+  rdfs:comment "Cloud infrastructure running Claude 3 inference. Includes GPU clusters and API serving layer." ;
+  ro:0000091 :Claude3_InfraCompute_Disp .
+
+:Claude3_InfraCompute_Disp rdf:type :CapabilityDisposition ;
+  rdfs:label "Claude 3 Compute Disposition" .
+
+#################################################################
+# 3) CAPABILITY DISPOSITIONS — Opus (most capable variant)
+#
+# These are the LATENT capabilities. They exist as dispositions
+# regardless of whether currently realized in any deployment.
+# This is the core ARCO insight: risk classification is driven
+# by what the system CAN do, not what it IS doing.
+#
+# Source: Claude 3 Model Card benchmark tables + capability sections
+#################################################################
+
+# --- Opus Dispositions ---
+
+:Claude3_Opus_GPAI_Disp rdf:type :GeneralPurposeAICapability ;
+  rdfs:label "Claude 3 Opus — General-Purpose AI Capability" ;
+  rdfs:comment "Opus achieves near-human expert performance across a wide range of tasks (MMLU 86.8%). This is the primary GPAI disposition." .
+
+:Claude3_Opus_Vision_Disp rdf:type :VisionCapability ;
+  rdfs:label "Claude 3 Opus — Vision Capability" ;
+  rdfs:comment "Opus processes images, documents, charts, and photographs. Can identify objects and people in images. This disposition subsumes BiometricIdentificationCapability. Source: Model Card vision evaluation." .
+
+:Claude3_Opus_Reasoning_Disp rdf:type :ReasoningCapability ;
+  rdfs:label "Claude 3 Opus — Reasoning Capability" ;
+  rdfs:comment "Opus demonstrates advanced multi-step reasoning (GPQA 50.4%, GSM8K 95.0%). Enables complex analytical and decision-making applications. Source: Model Card Table 1." .
+
+:Claude3_Opus_CodeGen_Disp rdf:type :CodeGenerationCapability ;
+  rdfs:label "Claude 3 Opus — Code Generation Capability" ;
+  rdfs:comment "Opus generates and analyzes code (HumanEval 84.9%). Implications for software supply chain and autonomous code execution. Source: Model Card Table 1." .
+
+:Claude3_Opus_ContentGen_Disp rdf:type :ContentGenerationCapability ;
+  rdfs:label "Claude 3 Opus — Content Generation Capability" ;
+  rdfs:comment "Opus generates fluent text, analysis, and creative content. Triggers Article 50 transparency obligations." .
+
+:Claude3_Opus_Multilingual_Disp rdf:type :MultilingualCapability ;
+  rdfs:label "Claude 3 Opus — Multilingual Capability" ;
+  rdfs:comment "Opus demonstrates strong performance across multiple languages (MGSM 90.7%). Expands jurisdictional deployment scope. Source: Model Card Table 1." .
+
+# --- Sonnet Dispositions ---
+
+:Claude3_Sonnet_GPAI_Disp rdf:type :GeneralPurposeAICapability ;
+  rdfs:label "Claude 3 Sonnet — General-Purpose AI Capability" .
+
+:Claude3_Sonnet_Vision_Disp rdf:type :VisionCapability ;
+  rdfs:label "Claude 3 Sonnet — Vision Capability" .
+
+:Claude3_Sonnet_ContentGen_Disp rdf:type :ContentGenerationCapability ;
+  rdfs:label "Claude 3 Sonnet — Content Generation Capability" .
+
+# --- Haiku Dispositions ---
+
+:Claude3_Haiku_GPAI_Disp rdf:type :GeneralPurposeAICapability ;
+  rdfs:label "Claude 3 Haiku — General-Purpose AI Capability" .
+
+:Claude3_Haiku_Vision_Disp rdf:type :VisionCapability ;
+  rdfs:label "Claude 3 Haiku — Vision Capability" .
+
+:Claude3_Haiku_ContentGen_Disp rdf:type :ContentGenerationCapability ;
+  rdfs:label "Claude 3 Haiku — Content Generation Capability" .
+
+#################################################################
+# 3b) CLAUDE 3.5 ADDENDUM — Computer Use Capability
+#
+# The Claude 3.5 Sonnet update added computer use (agentic tool
+# use). This is modeled as a separate disposition on the updated
+# model component.
+#
+# Source: Claude 3.5 Computer Use Addendum
+#################################################################
+
+:Claude35_Sonnet_Model rdf:type :ModelComponent ;
+  rdfs:label "Claude 3.5 Sonnet (Updated)" ;
+  rdfs:comment "Updated Sonnet with computer use capability. Can operate computer interfaces autonomously. Source: Claude 3.5 Addendum." ;
+  ro:0000091 :Claude35_Sonnet_ComputerUse_Disp ,
+             :Claude35_Sonnet_GPAI_Disp ,
+             :Claude35_Sonnet_Vision_Disp .
+
+:Claude35_Sonnet_ComputerUse_Disp rdf:type :ComputerUseCapability ;
+  rdfs:label "Claude 3.5 Sonnet — Computer Use Capability" ;
+  rdfs:comment "Capability to operate computer interfaces (mouse, keyboard, screen reading). Triggers autonomous agent risk classification. Source: Addendum Section 'Computer Use'." .
+
+:Claude35_Sonnet_GPAI_Disp rdf:type :GeneralPurposeAICapability ;
+  rdfs:label "Claude 3.5 Sonnet — General-Purpose AI Capability" .
+
+:Claude35_Sonnet_Vision_Disp rdf:type :VisionCapability ;
+  rdfs:label "Claude 3.5 Sonnet — Vision Capability" .
+
+# Claude 3.5 extends the Claude 3 system
+:Claude3_System bfo:0000051 :Claude35_Sonnet_Model .
+
+#################################################################
+# 4) SAFETY EVALUATION LAYER
+#
+# Models the actual safety processes Anthropic performed,
+# as documented in the model card.
+#
+# Source: Claude 3 Model Card sections on safety evaluations,
+# red-teaming, RSP, ASL classification.
+#################################################################
+
+:Claude3_RSP_Evaluation rdf:type :SafetyEvaluationProcess ;
+  rdfs:label "Claude 3 RSP Capability Evaluation" ;
+  rdfs:comment "Anthropic evaluated Claude 3 models against RSP capability thresholds for biological, cyber, and nuclear risks. Result: models did not exceed ASL-2 thresholds. Source: Model Card 'Responsible Scaling Policy Evaluations'." ;
+  ro:0000057 :Claude3_System ;
+  cco:has_output :Claude3_RSP_Report .
+
+:Claude3_RSP_Report rdf:type :SafetyEvaluationReport ;
+  rdfs:label "Claude 3 RSP Evaluation Report" ;
+  rdfs:comment "Documents that Claude 3 models do not exceed ASL-2 thresholds for CBRN and cyber capabilities." ;
+  iao:0000136 :Claude3_System .
+
+:Claude3_ASL2_Classification rdf:type :SafetyLevelClassification ;
+  rdfs:label "Claude 3 ASL-2 Safety Classification" ;
+  rdfs:comment "Claude 3 models classified as ASL-2 (current deployment safe) under Anthropic's Responsible Scaling Policy. ASL-2 indicates models do not pose catastrophic risk but require standard safety measures." ;
+  iao:0000136 :Claude3_System ;
+  iao:0000136 :Anthropic_RSP .
+
+:Claude3_RedTeam_Process rdf:type :RedTeamingProcess ;
+  rdfs:label "Claude 3 Red-Teaming Process" ;
+  rdfs:comment "Adversarial testing by Anthropic's Trust & Safety team and external red-teamers. Tested for harmful content generation, jailbreaks, and dangerous capability elicitation. Source: Model Card 'Red-Teaming' section." ;
+  ro:0000057 :Claude3_System ;
+  cco:has_output :Claude3_RedTeam_Report .
+
+:Claude3_RedTeam_Report rdf:type :SafetyEvaluationReport ;
+  rdfs:label "Claude 3 Red-Team Report" ;
+  iao:0000136 :Claude3_System .
+
+:Claude3_CapEval_Process rdf:type :CapabilityEvaluationProcess ;
+  rdfs:label "Claude 3 Benchmark Evaluation Process" ;
+  rdfs:comment "Systematic benchmark evaluation across MMLU, GPQA, GSM8K, HumanEval, MATH, MGSM, and domain-specific tests. Source: Model Card Tables 1-3." ;
+  ro:0000057 :Claude3_System ;
+  cco:has_output :Claude3_BenchmarkReport .
+
+:Claude3_BenchmarkReport rdf:type :SafetyEvaluationReport ;
+  rdfs:label "Claude 3 Benchmark Results Report" ;
+  rdfs:comment "Comprehensive benchmark results documenting capability levels for all three model variants." ;
+  iao:0000136 :Claude3_System .
+
+# --- Systemic Risk Indicators (from RSP evaluations) ---
+
+:Claude3_CBRN_Indicator rdf:type :SystemicRiskIndicator ;
+  rdfs:label "Claude 3 CBRN Risk Indicator" ;
+  rdfs:comment "RSP evaluation found Claude 3 does NOT uplift novices in biological, chemical, radiological, or nuclear weapon creation beyond what is freely available. Below ASL-3 threshold. Source: Model Card RSP section." .
+
+:Claude3_Cyber_Indicator rdf:type :SystemicRiskIndicator ;
+  rdfs:label "Claude 3 Cyber Risk Indicator" ;
+  rdfs:comment "RSP evaluation found Claude 3 does NOT provide meaningful uplift for autonomous cyber attacks beyond existing tools. Below ASL-3 threshold. Source: Model Card RSP section." .
+
+#################################################################
+# 5) COMPLIANCE DETERMINATION
+#
+# The determination artifact records the ARCO assessment result.
+# The system's HighRiskSystem classification is INFERRED by the
+# reasoner from the bridge axiom — NOT asserted here.
+#
+# The inference chain for Claude 3:
+#   1. Claude3_System rdf:type System
+#   2. Claude3_System has_part Claude3_Opus_Model
+#   3. Claude3_Opus_Model has_disposition Claude3_Opus_Vision_Disp
+#   4. Claude3_Opus_Vision_Disp rdf:type VisionCapability
+#   5. VisionCapability rdfs:subClassOf BiometricIdentificationCapability
+#   6. BiometricIdentificationCapability in AnnexIIITriggeringCapability (union)
+#   7. HighRiskSystem = System AND (has_part some (has_disposition some AnnexIIITriggeringCapability))
+#   => Claude3_System rdf:type HighRiskSystem (INFERRED)
+#
+# SECOND inference path (via computer use):
+#   1. Claude3_System has_part Claude35_Sonnet_Model
+#   2. Claude35_Sonnet_Model has_disposition Claude35_Sonnet_ComputerUse_Disp
+#   3. ComputerUseCapability rdfs:subClassOf AutonomousAgentCapability
+#   4. AutonomousAgentCapability in AnnexIIITriggeringCapability (union)
+#   => Claude3_System rdf:type HighRiskSystem (INFERRED, second path)
+#################################################################
+
+:Claude3_HighRisk_Determination rdf:type :ComplianceDetermination ;
+  rdfs:label "Claude 3 High-Risk Determination" ;
+  iao:0000136 :Claude3_System ;
+  iao:0000136 :AnnexIII_1a_Biometric ;
+  iao:0000136 :AnnexIII_2_CriticalInfra ;
+  rdfs:comment "ARCO determination: Claude 3 classified as HighRiskSystem via TWO independent inference paths: (1) VisionCapability -> BiometricIdentificationCapability (Annex III 1a), (2) ComputerUseCapability -> AutonomousAgentCapability (Annex III 2). Neither capability needs to be actively deployed — latent disposition is sufficient." .
+
+#################################################################
+# 6) PROVIDER + DOCUMENTATION WORKFLOW
+#
+# Source: Claude 3 Model Card published by Anthropic
+#################################################################
+
+:Anthropic rdf:type :ProviderOrganization ;
+  rdfs:label "Anthropic" ;
+  rdfs:comment "AI safety company developing the Claude model family. Provider under EU AI Act definitions." ;
+  ro:0000087 :Anthropic_ProviderRole .
+
+:Anthropic_ProviderRole rdf:type :ProviderRole ;
+  rdfs:label "Anthropic Provider Role" ;
+  ro:0000052 :Anthropic .
+
+:Claude3_ModelCard rdf:type :ModelCard ;
+  rdfs:label "Claude 3 Model Card (March 2024)" ;
+  rdfs:comment "Published model card documenting Claude 3 capabilities, safety evaluations, and limitations. Primary evidence source for ARCO classification." ;
+  iao:0000136 :Claude3_System ;
+  iao:0000136 :EUAIAct_AnnexIII .
+
+:Claude3_AssessmentProcess rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Claude 3 ARCO Assessment Process" ;
+  ro:0000057 :Claude3_System ;
+  ro:0000057 :Anthropic_ProviderRole ;
+  cco:has_output :Claude3_AssessmentDoc .
+
+:Claude3_AssessmentDoc rdf:type :AssessmentDocumentation ;
+  rdfs:label "Claude 3 ARCO Assessment Documentation" ;
+  rdfs:comment "ARCO-generated assessment linking Claude 3 system to regulatory determinations." ;
+  iao:0000136 :Claude3_System ;
+  iao:0000136 :AnnexIII_1a_Biometric .

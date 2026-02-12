@@ -98,7 +98,41 @@
   ] .
 
 #################################################################
-# Shape 6: ComplianceDetermination must be about something
+# Shape 6: ModelComponent must have at least one disposition
+#################################################################
+
+:ModelComponentShape
+  a sh:NodeShape ;
+  sh:targetClass :ModelComponent ;
+
+  sh:property [
+    sh:path ro:0000091 ;
+    sh:minCount 1 ;
+    sh:message "ModelComponent must have at least one disposition (capability)." ;
+  ] .
+
+#################################################################
+# Shape 7: SafetyEvaluationProcess must have participant + output
+#################################################################
+
+:SafetyEvaluationProcessShape
+  a sh:NodeShape ;
+  sh:targetClass :SafetyEvaluationProcess ;
+
+  sh:property [
+    sh:path ro:0000057 ;
+    sh:minCount 1 ;
+    sh:message "SafetyEvaluationProcess must have at least one participant (system)." ;
+  ] ;
+
+  sh:property [
+    sh:path cco:has_output ;
+    sh:minCount 1 ;
+    sh:message "SafetyEvaluationProcess must produce at least one output (report)." ;
+  ] .
+
+#################################################################
+# Shape 8: ComplianceDetermination must be about something
 #################################################################
 
 :ComplianceDeterminationShape

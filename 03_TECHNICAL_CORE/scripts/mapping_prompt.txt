@@ -1,0 +1,101 @@
+You are mapping extracted candidate entities into an ontology-backed ARCO instance model.
+
+Output JSON only. No prose.
+
+Hard constraints:
+- Every mapping assertion MUST cite at least one evidence.text_unit_id from the provided packets.
+- You may ONLY use class IRIs listed in ALLOWED_CLASS_IRIS.
+- If insufficient evidence exists, return "unmapped" with reason.
+
+PREFIXES:
+  @prefix :    <https://arco.ai/ontology/core#> .
+  @prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+  @prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+  @prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+  @prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+
+ALLOWED_CLASS_IRIS:
+  # Reality-side (system structure)
+  :System                              # AI system (Object Aggregate)
+  :HardwareComponent                   # Physical component (Object)
+  :ModelComponent                      # Trained model artifact (Object)
+  :CapabilityDisposition               # Generic capability (Disposition)
+  :BiometricIdentificationCapability   # Biometric ID capability
+  :GeneralPurposeAICapability          # GPAI capability
+  :MultimodalCapability                # Multi-modality capability
+  :VisionCapability                    # Image/video processing (subsumes biometric)
+  :AutonomousAgentCapability           # Autonomous tool use / agentic
+  :ComputerUseCapability               # Direct computer operation
+  :ContentGenerationCapability         # Text/code/media generation
+  :CodeGenerationCapability            # Code generation specifically
+  :ReasoningCapability                 # Multi-step reasoning
+  :MultilingualCapability              # Multi-language processing
+  :OperationalProcess                  # Process realizing a capability
+
+  # Representation-side (information artifacts)
+  :InformationOutput                   # Generic information output
+  :RegulatoryContent                   # Regulatory text/rule
+  :ComplianceDetermination             # Compliance assessment result
+  :HighRiskDetermination               # High-risk classification result
+  :SystemicRiskIndicator               # Evidence of systemic risk
+
+  # Governance
+  :ProviderOrganization                # Org that develops the system
+  :DeployerOrganization                # Org that deploys the system
+  :ProviderRole                        # Provider role
+  :DeployerRole                        # Deployer role
+  :AssessmentDocumentationProcess      # Documentation workflow
+  :AssessmentDocumentation             # Documentation artifact
+  :ModelCard                           # Model card document
+
+  # Safety governance
+  :SafetyPolicy                        # Safety framework document (e.g. RSP)
+  :SafetyLevelClassification           # Safety level result (e.g. ASL-2)
+  :SafetyEvaluationProcess             # Safety eval process
+  :SafetyEvaluationReport              # Safety eval output
+  :RedTeamingProcess                   # Red-teaming process
+  :CapabilityEvaluationProcess         # Benchmark evaluation
+  :UsagePolicy                         # Usage policy document
+
+ALLOWED_OBJECT_PROPERTIES:
+  bfo:0000051                          # has_part (System -> Component)
+  bfo:0000055                          # realizes (Process -> Disposition)
+  ro:0000052                           # inheres_in (Role -> Organization)
+  ro:0000057                           # has_participant (Process -> System)
+  ro:0000087                           # has_role (Organization -> Role)
+  ro:0000091                           # has_disposition (Component -> Capability)
+  iao:0000136                          # is_about (ICE -> thing it describes)
+  cco:has_output                       # has_output (Process -> Output)
+  :hasSystemicRiskIndicator            # links capability to systemic risk evidence
+
+For each packet, produce:
+{
+  "entity_title": "...",
+  "entity_type": "...",
+  "status": "mapped" | "unmapped",
+  "reason": "only if unmapped",
+  "mappings": [
+    {
+      "proposed_individual": "localNameOrIRI",
+      "rdf_type": "ClassIRI",
+      "supporting_evidence_text_unit_ids": ["..."],
+      "notes": "short, factual"
+    }
+  ],
+  "proposed_relations": [
+    {
+      "subject": "localNameOrIRI",
+      "predicate": "ObjectPropertyIRI",
+      "object": "localNameOrIRI",
+      "supporting_evidence_text_unit_ids": ["..."]
+    }
+  ],
+  "gate_implications": {
+    "gate1_capability": ["ClassIRI if this entity implies a capability disposition"],
+    "gate2_intended_use": ["ClassIRI if this entity constrains intended use scope"],
+    "gate3_affected_entities": ["ClassIRI if this entity identifies affected parties"]
+  }
+}
+
+Packets:
+<<<PASTE arco_candidate_packets.json CONTENT HERE>>>

@@ -1,0 +1,25 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+
+#################################################################
+# claude3_detect_latent_risk.sparql
+#
+# PURPOSE: Detect ALL latent high-risk capabilities across ALL
+#          Claude 3 model components via structural traversal.
+#
+# Returns TRUE if any component bears any AnnexIII-triggering
+# disposition — even when that capability is not currently
+# active or deployed.
+#
+# KEY INSIGHT: Claude 3's vision capability is a LATENT biometric
+# identification disposition. It doesn't matter that Anthropic
+# doesn't market it for facial recognition. The capability EXISTS
+# in the model weights. ARCO detects this.
+#################################################################
+
+ASK WHERE {
+  :Claude3_System bfo:0000051 ?component .
+  ?component ro:0000091 ?disposition .
+  ?disposition a :AnnexIIITriggeringCapability .
+}

@@ -58,4 +58,78 @@ owl:imports <https://arco.ai/ontology/core> .
     owl:someValuesFrom :RegulatoryContent
   ] .
 
+#################################################################
+# 3) SAFETY GOVERNANCE FRAMEWORK
+#
+# Models safety policies, evaluation processes, and safety
+# levels as used by frontier AI providers (e.g. Anthropic RSP).
+# Maps to EU AI Act obligations for risk management systems.
+#################################################################
+
+:SafetyPolicy rdf:type owl:Class ;
+  rdfs:label "Safety Policy" ;
+  rdfs:comment "A governing policy document specifying safety commitments, evaluation criteria, and escalation procedures. Examples: Anthropic RSP, OpenAI Safety Framework." ;
+  rdfs:subClassOf :RegulatoryContent .
+
+:SafetyLevelClassification rdf:type owl:Class ;
+  rdfs:label "Safety Level Classification" ;
+  rdfs:comment "A structured determination of the safety level assigned to a system or model (e.g. ASL-1, ASL-2, ASL-3). Analogous to ComplianceDetermination but for provider-internal safety frameworks." ;
+  rdfs:subClassOf :ComplianceDetermination .
+
+:SafetyEvaluationProcess rdf:type owl:Class ;
+  rdfs:label "Safety Evaluation Process" ;
+  rdfs:comment "A process of evaluating a system for safety-relevant capabilities and risks. Includes red-teaming, capability elicitation, and benchmark evaluation." ;
+  rdfs:subClassOf bfo:0000015 ; # Process
+  rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,
+    [ a owl:Restriction ; owl:onProperty cco:has_output ; owl:someValuesFrom :SafetyEvaluationReport ] .
+
+:SafetyEvaluationReport rdf:type owl:Class ;
+  rdfs:label "Safety Evaluation Report" ;
+  rdfs:comment "An information artifact documenting the results of a safety evaluation. Includes red-team findings, capability test results, and risk assessments." ;
+  rdfs:subClassOf :InformationOutput ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;  # is about
+    owl:someValuesFrom :System
+  ] .
+
+:RedTeamingProcess rdf:type owl:Class ;
+  rdfs:label "Red-Teaming Process" ;
+  rdfs:comment "A specific type of safety evaluation where adversarial testers attempt to elicit harmful or dangerous capabilities from the system." ;
+  rdfs:subClassOf :SafetyEvaluationProcess .
+
+:CapabilityEvaluationProcess rdf:type owl:Class ;
+  rdfs:label "Capability Evaluation Process" ;
+  rdfs:comment "A process of systematically measuring a system's capabilities via benchmarks (e.g. MMLU, HumanEval, GSM8K). Outputs feed into safety level determination." ;
+  rdfs:subClassOf :SafetyEvaluationProcess .
+
+:ModelCard rdf:type owl:Class ;
+  rdfs:label "Model Card" ;
+  rdfs:comment "A structured documentation artifact describing a model's capabilities, limitations, training data, evaluation results, and intended use. Primary input for ARCO's neuro-symbolic extraction." ;
+  rdfs:subClassOf :AssessmentDocumentation .
+
+:UsagePolicy rdf:type owl:Class ;
+  rdfs:label "Usage Policy" ;
+  rdfs:comment "A policy document specifying permitted and prohibited uses of a system. Constrains the deployment scope and risk surface." ;
+  rdfs:subClassOf :RegulatoryContent .
+
+#################################################################
+# 4) DEPLOYER ROLE (distinct from Provider)
+#################################################################
+
+:DeployerOrganization rdf:type owl:Class ;
+  rdfs:label "Deployer Organization" ;
+  rdfs:comment "An organization that deploys, integrates, or operates an AI system in a specific context. Distinct from the Provider who develops the model." ;
+  rdfs:subClassOf cco:Organization ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty ro:0000087 ;
+    owl:someValuesFrom :DeployerRole
+  ] .
+
+:DeployerRole rdf:type owl:Class ;
+  rdfs:label "Deployer Role" ;
+  rdfs:subClassOf bfo:0000023 .
+
 # Relation labels (has role, inheres in) are declared in ARCO_core.ttl.
