@@ -88,7 +88,7 @@
 
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
   rdfs:label "Annex III Triggering Capability" ;
-  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Extend the union to add new triggering capabilities." ;
+  rdfs:comment "REGULATORY DEFINED CLASS. This is not a natural universal — it is a union class defined by the EU AI Act Annex III enumeration. Its members are those CapabilityDisposition subclasses that the regulation designates as high-risk triggers. Extend the union to add new triggering capabilities as Annex III evolves." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:unionOf ( :BiometricIdentificationCapability )
@@ -96,7 +96,7 @@
 
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "High-Risk AI System" ;
-  rdfs:comment "A system classified as high-risk by virtue of having a component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
+  rdfs:comment "COMPUTATIONAL DEFINED CLASS (inference artifact). This class is NOT a natural universal — it is a regulatory-defined equivalence axiom that enables the OWL-RL reasoner to INFER high-risk status from structural evidence. A system satisfies this definition iff it has a part that bears an Annex III triggering capability disposition. Membership is never asserted directly; it is always derived by the reasoner from the bridge axiom below." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:intersectionOf (
@@ -113,7 +113,26 @@
   ] .
 
 #################################################################
-# 4) RELATION ANCHORS (labels for UI/debugging)
+# 4) DISPOSITION-SCOPED INVERSE
+#
+# Design Decision: We do NOT declare ro:0000091 owl:inverseOf ro:0000052
+# because ro:0000052 (inheres_in) is also used for Role inherence
+# (e.g., ProviderRole ro:0000052 ProviderOrg). A global inverse would
+# cause the reasoner to infer "ProviderOrg ro:0000091 ProviderRole",
+# pulling roles into the disposition channel — a semantic drift error.
+#
+# Instead we introduce a local ARCO property :disposition_of that is
+# the owl:inverseOf ro:0000091 only. This gives reverse traversal
+# (Disposition -> Bearer) without contaminating role inherence.
+#################################################################
+
+:disposition_of rdf:type owl:ObjectProperty ;
+  rdfs:label "disposition of" ;
+  rdfs:comment "Inverse of ro:0000091 (has_disposition), scoped to disposition-bearer pairs only. Exists for query ergonomics — allows traversal from a disposition back to its independent continuant bearer without conflating with role inherence (ro:0000052)." ;
+  owl:inverseOf ro:0000091 .
+
+#################################################################
+# 5) RELATION ANCHORS (labels for UI/debugging)
 #################################################################
 
 # BFO classes

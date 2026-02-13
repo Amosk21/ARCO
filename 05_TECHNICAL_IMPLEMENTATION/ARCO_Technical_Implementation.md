@@ -120,3 +120,41 @@ def main() -> None:
 ```
 
 **Design Principle:** SHACL validation ensures structural completeness. SPARQL ASK queries test whether classification conditions are satisfied. Together they produce deterministic, auditable regulatory determinations.
+
+---
+
+## 5. Deferred: Temporal Scope Modeling
+
+**Status:** Explicitly deferred. Not modeled in current prototype.
+
+**The Problem:** The EU AI Act undergoes amendment cycles. Annex III conditions may be added, removed, or modified by delegated acts over time. A system classified as high-risk under the current Annex III enumeration might not be high-risk under a future version — and vice versa. The current ARCO model evaluates system dispositions against a single, static snapshot of Annex III.
+
+**What is missing:**
+
+- **Temporal indexing of regulatory content.** `:AnnexIII_Condition_Q1` has no effective date or version stamp. The ontology cannot distinguish "Q1 as enacted 2024-08-01" from "Q1 as amended 2026-03-15."
+- **Temporal qualification of determinations.** `:HighRisk_Determination_001` does not record *when* the determination was made or *which version* of the regulatory content it was evaluated against.
+- **Temporal qualification of system state.** The system's component-disposition structure is asserted as atemporal fact. In reality, hardware components are added, removed, or upgraded — the disposition profile of a system changes over time.
+
+**Why it is deferred (not omitted):**
+
+BFO 2020 provides a temporal extension (temporalized relations via `at-some-time` / `at-all-times` qualifiers). OWL-RL does not natively support these — implementing them would require either SWRL rules, a custom reasoner extension, or a named-graph-per-snapshot approach. All three add significant complexity for a prototype whose current goal is proving the classification reasoning pattern works at all.
+
+**Recommended future approach:**
+
+1. Version-stamp regulatory ICEs with `dcterms:issued` and `dcterms:valid` date ranges.
+2. Qualify determination instances with `dcterms:created` and a `prov:used` link to the specific regulatory version.
+3. Adopt a named-graph-per-snapshot strategy for system state, enabling "as-of" queries without breaking the single-graph reasoning pipeline.
+
+**Risk if left permanently unmodeled:** A determination certificate produced today could be invalidated by a regulatory amendment without any mechanism to detect or flag the change. This is an audit gap, not a reasoning gap — the entailment logic is correct for the snapshot it operates on.
+
+---
+
+## 6. Ontological Status of Defined Classes
+
+**HighRiskSystem** and **AnnexIIITriggeringCapability** are *computational defined classes*, not natural universals.
+
+- **HighRiskSystem** is an OWL equivalence axiom (`owl:equivalentClass`) that encodes a regulatory classification rule. No individual is ever *asserted* as a HighRiskSystem — membership is always *inferred* by the OWL-RL reasoner from the bridge axiom. It exists as a computational artifact to enable deterministic entailment, not as a claim about a natural kind.
+
+- **AnnexIIITriggeringCapability** is a union class defined by regulatory enumeration. Its members are whichever CapabilityDisposition subclasses the EU AI Act Annex III designates as triggering conditions. It is extensible: adding a new triggering capability means adding it to the `owl:unionOf` list.
+
+**Why this matters:** A BFO-realist audit might challenge whether these classes "carve nature at its joints." They do not — and are not intended to. They carve *regulation* at its joints, translating legal enumeration into machine-checkable equivalence. This is documented explicitly in `ARCO_core.ttl` via rdfs:comment annotations on both classes.
