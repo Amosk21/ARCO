@@ -8,7 +8,7 @@ PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
 # PURPOSE: Detect latent high-risk capability via component traversal
 #
 # QUERY PATTERN:
-#   System → has_part → HardwareComponent → has_disposition → 
+#   System → has_part → HardwareComponent → has_disposition →
 #   BiometricIdentificationCapability
 #
 # This query detects regulatory risk at the hardware level,
@@ -16,7 +16,9 @@ PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
 #################################################################
 
 ASK WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
+  ?system a :System .
+  ?system bfo:0000051 ?component .
+  ?component a :HardwareComponent .
   ?component ro:0000091 ?disposition .
   ?disposition a :BiometricIdentificationCapability .
 }

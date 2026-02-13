@@ -320,12 +320,13 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bo
         print("HighRiskSystem classification is present AND justified by an explicit structural path.")
         return True, asserted_pre, entailed_post, bindings
 
-    sub("FAIL")
-    print("HighRiskSystem was not inferred.")
-    print("Common causes:")
-    print("  - owlrl not installed (no reasoning step)")
-    print("  - bridge axiom uses a different predicate than the instances")
-    print("  - missing has_part/component facts or missing AnnexIIITriggeringCapability typing")
+    sub("NOT ENTAILED")
+    print("HighRiskSystem was not inferred for the current asserted commitments.")
+    if not HAS_OWLRL:
+        print("Reasoning engine unavailable: install owlrl to enable OWL-RL materialization.")
+    else:
+        print("This can be a valid outcome when AnnexIII-triggering capability commitments are absent.")
+        print("If unexpected, verify has_part/component facts and AnnexIIITriggeringCapability typing.")
     return False, asserted_pre, entailed_post, bindings
 
 

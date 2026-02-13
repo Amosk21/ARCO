@@ -1,8 +1,8 @@
 {
   "schema_version": "arco.pipeline.result.v1",
   "run": {
-    "timestamp_utc": "2026-02-13T00:42:55+00:00",
-    "git_commit_hash": "9d514b7"
+    "timestamp_utc": "2026-02-13T01:01:24+00:00",
+    "git_commit_hash": "6bef956"
   },
   "profile": "claude",
   "system": {
@@ -41,7 +41,7 @@
   "checks": {
     "shacl": true,
     "shacl_violation_count": 0,
-    "traceability": false,
+    "traceability": true,
     "entailment": false,
     "latent_risk": false
   },
