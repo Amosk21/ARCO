@@ -1,0 +1,64 @@
+{
+  "schema_version": "arco.pipeline.result.v1",
+  "run": {
+    "timestamp_utc": "2026-02-13T00:42:55+00:00",
+    "git_commit_hash": "9d514b7"
+  },
+  "profile": "claude",
+  "system": {
+    "local_name": "Claude3_System",
+    "iri": "https://arco.ai/ontology/core#Claude3_System",
+    "instances_file": "C:\\Github Repos\\ARCO\\03_TECHNICAL_CORE\\ontology\\ARCO_instances_claude3.ttl"
+  },
+  "regime": "EU AI Act (Article 6 / Annex III)",
+  "counts": {
+    "asserted_triples": 324,
+    "reasoned_triples": 1041,
+    "entailed_triples_added": 717
+  },
+  "classification": {
+    "label": "NOT PRESENT",
+    "class_iri": null,
+    "mode": "NOT PRESENT",
+    "state": "UNDERDETERMINED"
+  },
+  "gates": {
+    "gate1_biometric_capability": false,
+    "gate2_intended_use": false,
+    "gate3_use_scenario": false,
+    "missing_commitments": [
+      "Gate 1 missing: biometric identification capability commitment",
+      "Gate 2 missing: intended-use specification for the system",
+      "Gate 3 missing: use-scenario specification for affected role"
+    ]
+  },
+  "signals": {
+    "high_risk_entailed": false,
+    "annex_iii_1a_entailed": false,
+    "has_assessment_documentation": true,
+    "has_any_capability_signal": true
+  },
+  "checks": {
+    "shacl": true,
+    "shacl_violation_count": 0,
+    "traceability": false,
+    "entailment": false,
+    "latent_risk": false
+  },
+  "all_checks_passed": false,
+  "evidence_paths": [],
+  "evidence_path_predicates": {
+    "has_part": "http://purl.obolibrary.org/obo/BFO_0000051",
+    "has_disposition": "http://purl.obolibrary.org/obo/RO_0000091"
+  },
+  "human_explanation": {
+    "overview": "This artifact records a deterministic ARCO determination over the provided ontology and instance graph.",
+    "determination": "Regulatory applicability is not derivable because required commitments are missing or incomplete. Current missing commitments: Gate 1 missing: biometric identification capability commitment; Gate 2 missing: intended-use specification for the system; Gate 3 missing: use-scenario specification for affected role.",
+    "gates": [
+      "Gate 1 (biometric capability commitment): not satisfied.",
+      "Gate 2 (intended-use specification): not satisfied.",
+      "Gate 3 (use-scenario specification): not satisfied."
+    ],
+    "checks": "SHACL validates structural documentation constraints; traceability verifies required audit links; entailment verifies whether HighRiskSystem is derivable from asserted structure."
+  }
+}

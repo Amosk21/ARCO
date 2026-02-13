@@ -16,13 +16,13 @@ In manufacturing contexts, perimeter security drones may bear biometric identifi
 
 Legal criteria are expressed in natural language universals ("biometric", "remote", "public space"), while system specifications exist as technical artifacts. Manual review and static documentation cannot reliably track this mismatch.
 
-### Our Approach
+### Approach
 
 ARCO operationalizes Article 6 by representing legal conditions as ontological constraints and evaluating system dispositions against classification criteria, enabling deterministic high-risk classification based on what a system is, not merely what it is configured to do.
 
 ---
 
-## Why We Created a Synthetic AI System (Sentinel-ID)
+## Why a Synthetic AI System Was Created (Sentinel-ID)
 
 ### The Challenge
 
@@ -32,9 +32,9 @@ Real AI systems have proprietary hardware and closed documentation, making them 
 
 Real compliance data is not publicly available, preventing transparent testing of regulatory logic.
 
-### Our Focus
+### Focus
 
-This project tests reasoning correctness, not vendor claims. We need to prove the classification logic works.
+This project tests reasoning correctness, not vendor claims. The goal is to prove the classification logic works.
 
 ### Why Sentinel-ID?
 
@@ -42,13 +42,13 @@ It contains explicit latent biometric capability and its components are fully ob
 
 ### The Advantage
 
-Sentinel-ID allows us to evaluate Annex III classification criteria deterministically with complete transparency.
+Sentinel-ID allows deterministic evaluation of Annex III classification criteria with complete transparency.
 
 ### Important Clarification
 
 Sentinel-ID is not a guess about a real system. It is a controlled reference system designed to validate the classification reasoning pipeline.
 
-> A synthetic system gives us the control and observability needed to rigorously test classification logic.
+> A synthetic system provides the control and observability needed to rigorously test classification logic.
 
 ---
 
@@ -72,7 +72,7 @@ v3 governance graph for provider traceability and documentation. The Provider Or
 
 ## Why the EU AI Act Must Be Modeled, Not Coded
 
-The EU AI Act is written in natural language for human interpretation, not as executable software instructions. To enable computational reasoning about classification, we must first represent the law correctly.
+The EU AI Act is written in natural language for human interpretation, not as executable software instructions. To enable computational reasoning about classification, the law must first be represented correctly.
 
 ### Understanding the nature of legal text:
 
@@ -162,7 +162,7 @@ Law describes risk conditions; systems describe what they are built to do.
 - Hardware may support restricted functions even when disabled
 - Risk is not explicitly labeled anywhere in system data
 
-Traditional ETL pipelines operate at the schema level, not the semantic level. Purely generative AI is dangerous—LLMs might hallucinate classification outcomes. Latent capability creates latent liability. We need a system that converts probabilistic signal (text) into deterministic fact (logic).
+Traditional ETL pipelines operate at the schema level, not the semantic level. Purely generative AI is dangerous—LLMs might hallucinate classification outcomes. Latent capability creates latent liability. The requirement is a system that converts probabilistic signal (text) into deterministic fact (logic).
 
 ---
 

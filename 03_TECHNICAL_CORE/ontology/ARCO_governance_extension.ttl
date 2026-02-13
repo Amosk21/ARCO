@@ -9,9 +9,28 @@
 
 <https://arco.ai/ontology/governance>
 a owl:Ontology ;
-rdfs:label "ARCO Governance Extension — Minimal Commitments (Mermaid-Aligned)" ;
-rdfs:comment "Minimal governance/role/documentation commitments that appear in the Mermaid diagram, formalized as ICE and role/process commitments." ;
+rdfs:label "ARCO Governance Extension — Entailment-First Regulatory Classification" ;
+rdfs:comment "Governance, intended use, and regulatory classification layer. AnnexIII1aApplicableSystem is OWL-entailed from three gates: capability + intended use + use scenario. Demonstrated under owlrl." ;
 owl:imports <https://arco.ai/ontology/core> .
+
+# Design Decisions (frozen — do not change without explicit justification):
+#
+#   Inverse aboutness: AnnexIII1aApplicableSystem uses anonymous inverse
+#   property expressions [owl:inverseOf iao:0000136] in its equivalentClass
+#   axiom. This is OWL 2 DL expressible. owlrl materializes it correctly.
+#   SHACL qualified shapes + SPARQL ASK queries provide fallback validation
+#   if a different reasoner does not materialize inverse restrictions.
+#
+#   OWL 2 punning: iao:0000136 (is_about) targets class IRIs as individuals
+#   in traceability assertions (e.g., condition is_about BiometricCapability).
+#   This is permitted in OWL 2 but the IRI is interpreted separately as class
+#   and individual. No classification entailment depends on punning — it is
+#   used for audit/traceability only.
+#
+#   Class-level restrictions are general: IntendedUseSpecification prescribes
+#   some Process (not a specific process); UseScenarioSpecification is_about
+#   some Role (not a specific role). Annex III category specifics belong on
+#   instances, keeping the schema extensible to 1(b), 1(c), etc.
 
 
 #################################################################
@@ -31,6 +50,11 @@ owl:imports <https://arco.ai/ontology/core> .
   rdfs:label "Provider Role" ;
   rdfs:subClassOf bfo:0000023 .   # Role
 
+:DeployerRole rdf:type owl:Class ;
+  rdfs:label "Deployer Role" ;
+  rdfs:comment "Role borne by an entity that deploys an AI system. Distinct from provider (who develops/places on market)." ;
+  rdfs:subClassOf bfo:0000023 .   # Role
+
 #################################################################
 # 2) DOCUMENTATION WORKFLOW
 #################################################################
@@ -40,7 +64,7 @@ owl:imports <https://arco.ai/ontology/core> .
   rdfs:subClassOf bfo:0000015 ; # Process
   rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,
-    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :ProviderRole ] ,
+    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :ProviderOrganization ] ,
     [ a owl:Restriction ; owl:onProperty cco:has_output ; owl:someValuesFrom :AssessmentDocumentation ] .
 
 :AssessmentDocumentation rdf:type owl:Class ;
@@ -59,77 +83,177 @@ owl:imports <https://arco.ai/ontology/core> .
   ] .
 
 #################################################################
-# 3) SAFETY GOVERNANCE FRAMEWORK
-#
-# Models safety policies, evaluation processes, and safety
-# levels as used by frontier AI providers (e.g. Anthropic RSP).
-# Maps to EU AI Act obligations for risk management systems.
+# 3) CCO DECLARATIONS (local stubs — no full import)
 #################################################################
 
-:SafetyPolicy rdf:type owl:Class ;
-  rdfs:label "Safety Policy" ;
-  rdfs:comment "A governing policy document specifying safety commitments, evaluation criteria, and escalation procedures. Examples: Anthropic RSP, OpenAI Safety Framework." ;
-  rdfs:subClassOf :RegulatoryContent .
+cco:DirectiveInformationContentEntity rdf:type owl:Class ;
+  rdfs:label "Directive Information Content Entity" ;
+  rdfs:subClassOf iao:0000030 . # Information Content Entity
 
-:SafetyLevelClassification rdf:type owl:Class ;
-  rdfs:label "Safety Level Classification" ;
-  rdfs:comment "A structured determination of the safety level assigned to a system or model (e.g. ASL-1, ASL-2, ASL-3). Analogous to ComplianceDetermination but for provider-internal safety frameworks." ;
-  rdfs:subClassOf :ComplianceDetermination .
+cco:prescribes rdf:type owl:ObjectProperty ;
+  rdfs:label "prescribes" ;
+  rdfs:comment "A directive ICE prescribes an entity (process type or continuant) as rule or guide." .
 
-:SafetyEvaluationProcess rdf:type owl:Class ;
-  rdfs:label "Safety Evaluation Process" ;
-  rdfs:comment "A process of evaluating a system for safety-relevant capabilities and risks. Includes red-teaming, capability elicitation, and benchmark evaluation." ;
-  rdfs:subClassOf bfo:0000015 ; # Process
-  rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,
-    [ a owl:Restriction ; owl:onProperty cco:has_output ; owl:someValuesFrom :SafetyEvaluationReport ] .
+cco:has_output rdf:type owl:ObjectProperty ;
+  rdfs:label "has output" .
 
-:SafetyEvaluationReport rdf:type owl:Class ;
-  rdfs:label "Safety Evaluation Report" ;
-  rdfs:comment "An information artifact documenting the results of a safety evaluation. Includes red-team findings, capability test results, and risk assessments." ;
-  rdfs:subClassOf :InformationOutput ;
+cco:Person rdf:type owl:Class ;
+  rdfs:label "Person" ;
+  rdfs:subClassOf bfo:0000040 . # Material Entity
+
+cco:Organization rdf:type owl:Class ;
+  rdfs:label "Organization" ;
+  rdfs:subClassOf bfo:0000027 . # Object Aggregate
+
+#################################################################
+# 4) INTENDED USE MODELING (CCO Directive ICE Pattern)
+#
+# Annex III: "AI systems intended to be used for [process] of
+# [affected entities]". Three-gate classification:
+#   Gate 1: Capability (reality-side disposition)
+#   Gate 2: Intended use (directive ICE prescribes process type)
+#   Gate 3: Use scenario (affected entities)
+#################################################################
+
+:IntendedUseSpecification rdf:type owl:Class ;
+  rdfs:label "Intended Use Specification" ;
+  rdfs:comment "A directive ICE that prescribes the process type an AI system is intended to realize. Class-level restrictions enforce that it prescribes some Process and is about some System. The specific process type (e.g., biometric identification) is on the instance, not the class." ;
+  rdfs:subClassOf cco:DirectiveInformationContentEntity ;
   rdfs:subClassOf [
     a owl:Restriction ;
-    owl:onProperty iao:0000136 ;  # is about
+    owl:onProperty cco:prescribes ;
+    owl:someValuesFrom bfo:0000015   # Process (general — instance carries specifics)
+  ] ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;   # is about
     owl:someValuesFrom :System
   ] .
 
-:RedTeamingProcess rdf:type owl:Class ;
-  rdfs:label "Red-Teaming Process" ;
-  rdfs:comment "A specific type of safety evaluation where adversarial testers attempt to elicit harmful or dangerous capabilities from the system." ;
-  rdfs:subClassOf :SafetyEvaluationProcess .
-
-:CapabilityEvaluationProcess rdf:type owl:Class ;
-  rdfs:label "Capability Evaluation Process" ;
-  rdfs:comment "A process of systematically measuring a system's capabilities via benchmarks (e.g. MMLU, HumanEval, GSM8K). Outputs feed into safety level determination." ;
-  rdfs:subClassOf :SafetyEvaluationProcess .
-
-:ModelCard rdf:type owl:Class ;
-  rdfs:label "Model Card" ;
-  rdfs:comment "A structured documentation artifact describing a model's capabilities, limitations, training data, evaluation results, and intended use. Primary input for ARCO's neuro-symbolic extraction." ;
-  rdfs:subClassOf :AssessmentDocumentation .
-
-:UsagePolicy rdf:type owl:Class ;
-  rdfs:label "Usage Policy" ;
-  rdfs:comment "A policy document specifying permitted and prohibited uses of a system. Constrains the deployment scope and risk surface." ;
-  rdfs:subClassOf :RegulatoryContent .
-
-#################################################################
-# 4) DEPLOYER ROLE (distinct from Provider)
-#################################################################
-
-:DeployerOrganization rdf:type owl:Class ;
-  rdfs:label "Deployer Organization" ;
-  rdfs:comment "An organization that deploys, integrates, or operates an AI system in a specific context. Distinct from the Provider who develops the model." ;
-  rdfs:subClassOf cco:Organization ;
+:UseScenarioSpecification rdf:type owl:Class ;
+  rdfs:label "Use Scenario Specification" ;
+  rdfs:comment "A directive ICE that constrains the realization context: who/what is affected. Class-level restrictions enforce aboutness to some System and some Role. The specific affected role (e.g., NaturalPersonRole) is on the instance, not the class." ;
+  rdfs:subClassOf cco:DirectiveInformationContentEntity ;
   rdfs:subClassOf [
     a owl:Restriction ;
-    owl:onProperty ro:0000087 ;
-    owl:someValuesFrom :DeployerRole
+    owl:onProperty iao:0000136 ;   # is about
+    owl:someValuesFrom :System
+  ] ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;   # is about
+    owl:someValuesFrom bfo:0000023  # Role (general — instance carries specifics)
   ] .
 
-:DeployerRole rdf:type owl:Class ;
-  rdfs:label "Deployer Role" ;
-  rdfs:subClassOf bfo:0000023 .
+:RemoteBiometricIdentificationProcess rdf:type owl:Class ;
+  rdfs:label "Remote Biometric Identification Process" ;
+  rdfs:comment "The process universal regulated under Annex III 1(a): remote biometric identification of natural persons." ;
+  rdfs:subClassOf bfo:0000015 . # Process
+
+:NaturalPersonRole rdf:type owl:Class ;
+  rdfs:label "Natural Person Role" ;
+  rdfs:comment "Legal designation under EU law. Not a biological kind — modeled as a BFO Role." ;
+  rdfs:subClassOf bfo:0000023 . # Role
+
+#################################################################
+# 4b) COMPLIANCE OBLIGATION MODELING
+#
+# Who bears what: a ComplianceObligationSpecification is a
+# directive ICE that links a system to the role responsible
+# for fulfilling a regulatory requirement. This is the
+# foundation for "provider must do X for system Y."
+#
+# No enforcement realization modeled yet — this captures
+# the obligation artifact only.
+#################################################################
+
+:ComplianceObligationSpecification rdf:type owl:Class ;
+  rdfs:label "Compliance Obligation Specification" ;
+  rdfs:comment "A directive ICE specifying that a particular role-bearer has compliance obligations for a system. Aboutness links to the system and the responsible role." ;
+  rdfs:subClassOf cco:DirectiveInformationContentEntity ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;   # is about
+    owl:someValuesFrom :System
+  ] ;
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty iao:0000136 ;   # is about
+    owl:someValuesFrom bfo:0000023  # Role (covers ProviderRole, DeployerRole)
+  ] .
+
+#################################################################
+# 5) ANNEX III 1(a) ENTAILMENT CLASS
+#
+# OWL entailment-first classification: AnnexIII1aApplicableSystem
+# membership is INFERRED by the reasoner when all three gates hold.
+# Demonstrated under owlrl OWL-RL semantics; each gate is
+# independently necessary (verified by test_gate_removal.py).
+#
+# Gate 1 (reality-side): System has_part some (SystemComponent
+#         AND has_disposition some BiometricIdentificationCapability)
+# Gate 2 (representation-side): An IntendedUseSpecification
+#         is_about this system (via inverse of iao:0000136)
+# Gate 3 (representation-side): A UseScenarioSpecification
+#         is_about this system (via inverse of iao:0000136)
+#
+# This class represents statutory applicability (an institutional
+# determination), not a change in the system's ontological kind.
+# Directive ICEs participate because Annex III conditions on
+# documented intended use ("intended to be used for..."); capability
+# remains reality-side (disposition in components).
+#
+# Inverse aboutness uses anonymous inverse property expressions
+# (OWL 2 DL expressible). Reasoner portability: owlrl materializes
+# these; other reasoners may vary. SHACL qualified shapes and
+# SPARQL ASK queries provide a fallback validation layer.
+#
+# Aboutness targets include class IRIs used as individuals (OWL 2
+# punning). This is permitted in OWL 2 but means the IRI is
+# interpreted separately as a class and as an individual. We do
+# not rely on punning for core classification entailments — it is
+# used for traceability and audit only.
+#
+# SPARQL checks are AUDIT ONLY — the classification is an
+# OWL entailment, not a pattern match.
+#################################################################
+
+:AnnexIII1aApplicableSystem rdf:type owl:Class ;
+  rdfs:label "Annex III 1(a) Applicable System" ;
+  rdfs:comment "System that meets Annex III 1(a) conditions via capability + intended use + affected category. Classification is OWL-entailed under owlrl; gate independence verified by regression test." ;
+  rdfs:subClassOf :System ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :System
+
+      # Gate 1 (reality-side): biometric capability via component
+      [ rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000051 ;                 # has_part
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :SystemComponent
+            [ rdf:type owl:Restriction ;
+              owl:onProperty ro:0000091 ;            # has_disposition
+              owl:someValuesFrom :BiometricIdentificationCapability
+            ]
+          )
+        ]
+      ]
+
+      # Gate 2 (representation-side): intended use spec exists about this system
+      [ rdf:type owl:Restriction ;
+        owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
+        owl:someValuesFrom :IntendedUseSpecification
+      ]
+
+      # Gate 3 (representation-side): scenario spec exists about this system
+      [ rdf:type owl:Restriction ;
+        owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
+        owl:someValuesFrom :UseScenarioSpecification
+      ]
+    )
+  ] .
 
 # Relation labels (has role, inheres in) are declared in ARCO_core.ttl.

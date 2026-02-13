@@ -22,7 +22,9 @@
 
 :AnnexIII_Condition_Q1 rdf:type :RegulatoryContent ;
   rdfs:label "Annex III Q1 (Biometric Rule)" ;
-  iao:0000136 :BiometricIdentificationCapability . # is_about the Universal (class)
+  iao:0000136 :BiometricIdentificationCapability ;            # is_about the capability universal
+  iao:0000136 :RemoteBiometricIdentificationProcess ;     # is_about the regulated process type
+  iao:0000136 :NaturalPersonRole .                            # is_about the affected role
 
 #################################################################
 # 2) SYSTEM LAYER (reality-side particulars) - UPDATED
@@ -41,6 +43,28 @@
   rdfs:label "Sentinel Facial Recognition Disposition" .
 
 #################################################################
+# 2b) INTENDED USE + USE SCENARIO (representation-side directives)
+#
+# Three-gate Annex III classification:
+#   Gate 1: Capability — system bears BiometricIdentificationCapability
+#   Gate 2: Intended use — directive ICE prescribes the regulated process type
+#   Gate 3: Use scenario — affected entities (natural persons)
+#################################################################
+
+:Sentinel_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "Sentinel Intended Use: Remote Biometric Identification" ;
+  cco:prescribes :RemoteBiometricIdentificationProcess ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :RemoteBiometricIdentificationProcess .
+
+:Sentinel_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "Sentinel Use Scenario: Biometric ID of Natural Persons" ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :RemoteBiometricIdentificationProcess ;
+  iao:0000136 cco:Person ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
 # 3) OPERATIONAL LAYER (realization + outputs)
 #################################################################
 
@@ -57,14 +81,15 @@
 #################################################################
 # 4) COMPLIANCE DETERMINATION (representation-side output)
 #
-#    CRITICAL: The determination artifact is typed as
-#    :ComplianceDetermination (not :HighRiskDetermination).
+#    The determination artifact is typed as :HighRiskDetermination
+#    (subClassOf :ComplianceDetermination). This documents the
+#    compliance assessment result.
 #
 #    The SYSTEM's classification as :HighRiskSystem is INFERRED
 #    by the reasoner via the bridge axiom in ARCO_core.ttl.
 #################################################################
 
-:HighRisk_Determination_001 rdf:type :ComplianceDetermination ;
+:HighRisk_Determination_001 rdf:type :HighRiskDetermination ;
   rdfs:label "High-Risk Determination 001" ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :AnnexIII_Condition_Q1 ;
@@ -85,10 +110,21 @@
 :AssessmentDocProcess_001 rdf:type :AssessmentDocumentationProcess ;
   rdfs:label "Assessment Documentation Process 001" ;
   ro:0000057 :Sentinel_ID_System ;
-  ro:0000057 :ProviderRole_001 ;
+  ro:0000057 :ProviderOrg_001 ;
   cco:has_output :AssessmentDoc_001 .
 
 :AssessmentDoc_001 rdf:type :AssessmentDocumentation ;
   rdfs:label "Assessment Documentation 001" ;
   iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :AnnexIII_Condition_Q1 .
+
+#################################################################
+# 6) COMPLIANCE OBLIGATION (who bears responsibility)
+#################################################################
+
+:ProviderObligation_001 rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Provider Compliance Obligation for Sentinel-ID" ;
+  rdfs:comment "Specifies that the provider role-bearer has compliance obligations for the Sentinel-ID system under Annex III 1(a)." ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :ProviderRole_001 ;
   iao:0000136 :AnnexIII_Condition_Q1 .

@@ -1,4 +1,5 @@
-"""
+"""QUARANTINED: not operational pipeline (stale high-risk assumptions).
+
 ARCO Compliance Verification Pipeline — Claude 3 Model Family
 
 Evaluates Anthropic's Claude 3 system against EU AI Act obligations.

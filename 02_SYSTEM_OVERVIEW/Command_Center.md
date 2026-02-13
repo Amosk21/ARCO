@@ -7,7 +7,7 @@
 
 **The Problem**
 
-Standard AI systems optimize for probability. Regulatory and legal contexts require certainty. In these settings, it is not sufficient to claim we are "87% confident" that something is correctly classified.
+Standard AI systems optimize for probability. Regulatory and legal contexts require certainty. In these settings, claiming "87% confidence" that something is correctly classified is not sufficient.
 
 **The Approach**
 
@@ -132,5 +132,5 @@ Retail tolerates hallucination. Defense and healthcare do not.
 
 Correctness functions as insurance.
 
-We are not selling software.
-We are selling the end of hallucination.
+This is not software sales.
+The value proposition is the end of hallucination.

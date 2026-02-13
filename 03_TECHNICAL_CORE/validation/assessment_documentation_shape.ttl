@@ -1,67 +1,52 @@
-@prefix sh:  <http://www.w3.org/ns/shacl#> .
-@prefix :    <https://arco.ai/ontology/core#> .
-@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
-@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
-@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
-@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix :     <https://arco.ai/ontology/core#> .
+@prefix iao:  <http://purl.obolibrary.org/obo/IAO_> .
+@prefix ro:   <http://purl.obolibrary.org/obo/RO_> .
+@prefix bfo:  <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco:  <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-#################################################################
-# ARCO SHACL Validation Shapes - UPDATED
-# 
-# Purpose: Validate structural completeness of assessment artifacts
-# Note: These shapes validate AFTER OWL reasoning has run
-#################################################################
+# ARCO SHACL Shapes — documentary completeness validation.
+# These run AFTER OWL-RL reasoning. Classification is handled by
+# OWL entailment; these shapes enforce that the supporting artifacts
+# (assessments, directive ICEs, obligations) are structurally complete.
+# SHACL is non-classificatory: it checks completeness of declared
+# components and dispositions. Risk classification is handled by
+# OWL entailment + SPARQL audit queries.
 
-#################################################################
-# Shape 1: AssessmentDocumentation must reference SOMETHING
-#          (relaxed - just checks the link exists, not the type)
-#################################################################
+# --- Assessment layer ---
 
 :AssessmentDocumentationShape
   a sh:NodeShape ;
   sh:targetClass :AssessmentDocumentation ;
-  sh:message "AssessmentDocumentation must have at least one iao:0000136 (is_about) link." ;
-
   sh:property [
     sh:path iao:0000136 ;
     sh:minCount 1 ;
     sh:message "AssessmentDocumentation must be about at least one thing." ;
   ] .
 
-#################################################################
-# Shape 2: AssessmentDocumentationProcess must have participants
-#          and produce output
-#################################################################
-
 :AssessmentDocumentationProcessShape
   a sh:NodeShape ;
   sh:targetClass :AssessmentDocumentationProcess ;
-
-  # must have at least one participant
   sh:property [
     sh:path ro:0000057 ;
     sh:minCount 1 ;
     sh:message "AssessmentDocumentationProcess must have at least one participant." ;
   ] ;
-
-  # must output at least one thing
   sh:property [
     sh:path cco:has_output ;
     sh:minCount 1 ;
     sh:message "AssessmentDocumentationProcess must have at least one output." ;
   ] .
 
-#################################################################
-# Shape 3: ProviderRole must inhere in something
-#################################################################
+# --- Roles and system structure ---
 
 :ProviderRoleShape
   a sh:NodeShape ;
   sh:targetClass :ProviderRole ;
-
   sh:property [
     sh:path ro:0000052 ;
     sh:minCount 1 ;
@@ -69,78 +54,98 @@
     sh:message "ProviderRole must inhere in exactly one entity." ;
   ] .
 
-#################################################################
-# Shape 4: System must have at least one hardware component - UPDATED
-#################################################################
-
 :SystemShape
   a sh:NodeShape ;
   sh:targetClass :System ;
-
   sh:property [
     sh:path bfo:0000051 ;
     sh:minCount 1 ;
-    sh:message "System must have at least one hardware component." ;
+    sh:message "System must have at least one component (SystemComponent)." ;
   ] .
-
-#################################################################
-# Shape 5: HardwareComponent must have at least one disposition - NEW
-#################################################################
 
 :HardwareComponentShape
   a sh:NodeShape ;
   sh:targetClass :HardwareComponent ;
-
   sh:property [
     sh:path ro:0000091 ;
     sh:minCount 1 ;
     sh:message "HardwareComponent must have at least one disposition (capability)." ;
   ] .
 
-#################################################################
-# Shape 6: ModelComponent must have at least one disposition
-#################################################################
-
-:ModelComponentShape
-  a sh:NodeShape ;
-  sh:targetClass :ModelComponent ;
-
-  sh:property [
-    sh:path ro:0000091 ;
-    sh:minCount 1 ;
-    sh:message "ModelComponent must have at least one disposition (capability)." ;
-  ] .
-
-#################################################################
-# Shape 7: SafetyEvaluationProcess must have participant + output
-#################################################################
-
-:SafetyEvaluationProcessShape
-  a sh:NodeShape ;
-  sh:targetClass :SafetyEvaluationProcess ;
-
-  sh:property [
-    sh:path ro:0000057 ;
-    sh:minCount 1 ;
-    sh:message "SafetyEvaluationProcess must have at least one participant (system)." ;
-  ] ;
-
-  sh:property [
-    sh:path cco:has_output ;
-    sh:minCount 1 ;
-    sh:message "SafetyEvaluationProcess must produce at least one output (report)." ;
-  ] .
-
-#################################################################
-# Shape 8: ComplianceDetermination must be about something
-#################################################################
+# --- Compliance determination ---
 
 :ComplianceDeterminationShape
   a sh:NodeShape ;
   sh:targetClass :ComplianceDetermination ;
-
   sh:property [
     sh:path iao:0000136 ;
     sh:minCount 1 ;
     sh:message "ComplianceDetermination must be about at least one thing." ;
+  ] .
+
+# --- Directive ICE shapes (qualified) ---
+#
+# These use qualified value shapes so they actually check ontological type,
+# not just link existence. For class-IRI targets (OWL 2 punning), we check
+# rdfs:subClassOf. For instance targets, we use sh:class.
+
+:IntendedUseSpecificationShape
+  a sh:NodeShape ;
+  sh:targetClass :IntendedUseSpecification ;
+
+  # prescribes target must be a Process subclass
+  sh:property [
+    sh:path cco:prescribes ;
+    sh:qualifiedValueShape [
+      sh:property [
+        sh:path rdfs:subClassOf ;
+        sh:hasValue bfo:0000015
+      ]
+    ] ;
+    sh:qualifiedMinCount 1 ;
+    sh:message "IntendedUseSpecification must prescribe at least one Process subclass." ;
+  ] ;
+
+  # is_about target must include a System
+  sh:property [
+    sh:path iao:0000136 ;
+    sh:qualifiedValueShape [ sh:class :System ] ;
+    sh:qualifiedMinCount 1 ;
+    sh:message "IntendedUseSpecification must be about at least one System." ;
+  ] .
+
+:UseScenarioSpecificationShape
+  a sh:NodeShape ;
+  sh:targetClass :UseScenarioSpecification ;
+
+  # must be about a System
+  sh:property [
+    sh:path iao:0000136 ;
+    sh:qualifiedValueShape [ sh:class :System ] ;
+    sh:qualifiedMinCount 1 ;
+    sh:message "UseScenarioSpecification must be about at least one System." ;
+  ] ;
+
+  # must be about a Role subclass (the affected entity category)
+  sh:property [
+    sh:path iao:0000136 ;
+    sh:qualifiedValueShape [
+      sh:property [
+        sh:path rdfs:subClassOf ;
+        sh:hasValue bfo:0000023
+      ]
+    ] ;
+    sh:qualifiedMinCount 1 ;
+    sh:message "UseScenarioSpecification must be about at least one Role subclass (affected entity)." ;
+  ] .
+
+# --- Obligation ---
+
+:ComplianceObligationSpecificationShape
+  a sh:NodeShape ;
+  sh:targetClass :ComplianceObligationSpecification ;
+  sh:property [
+    sh:path iao:0000136 ;
+    sh:minCount 2 ;
+    sh:message "ComplianceObligationSpecification must be about at least a system and a responsible role." ;
   ] .

@@ -10,7 +10,7 @@
 
 **The Problem:** Traditional classification tags (e.g., "High Risk: True") fail to capture conditional capabilities. A system may have hardware for biometric identification (High Risk) that is currently disabled via software.
 
-**The Solution:** We utilize BFO 2.0 Dispositions to model capability as a "Realizable Entity" that inheres in the hardware (Object Aggregate), independent of its current Process realization.
+**The Solution:** BFO 2.0 Dispositions are used to model capability as a "Realizable Entity" that inheres in the hardware (Object Aggregate), independent of its current Process realization.
 
 **Impact:** This allows the system to flag "Latent Liability" even when the software is configured to "Off."
 
@@ -45,7 +45,7 @@
 
 **The Problem:** OWL Reasoners (Open World Assumption) are poor at validating data completeness. They infer missing data rather than flagging it as an error.
 
-**The Solution:** We inject a SHACL Validation Layer (pyshacl) prior to the classification evaluation. This enforces a "Closed World" constraint on the graph, rejecting any AssessmentDocumentation that fails to link a System to its Regulatory Content.
+**The Solution:** A SHACL Validation Layer (pyshacl) is injected prior to the classification evaluation. This enforces a "Closed World" constraint on the graph, rejecting any AssessmentDocumentation that fails to link a System to its Regulatory Content.
 
 **Impact:** Prevents "Garbage In, True Out" scenarios where incomplete data passes audit silently.
 
@@ -79,7 +79,7 @@
 
 **The Problem:** Auditors require binary (Pass/Fail) verdicts. Standard knowledge graph queries (SELECT) return lists that require post-processing interpretation, introducing ambiguity.
 
-**The Solution:** We utilize SPARQL ASK queries which return a boolean `xsd:boolean` value. The query pattern matches whether classification conditions are satisfied.
+**The Solution:** SPARQL ASK queries are used because they return a boolean `xsd:boolean` value. The query pattern matches whether classification conditions are satisfied.
 
 **Impact:** The output is mathematically deterministic and machine-readable (JSON Boolean).
 
@@ -120,3 +120,19 @@ def main() -> None:
 ```
 
 **Design Principle:** SHACL validation ensures structural completeness. SPARQL ASK queries test whether classification conditions are satisfied. Together they produce deterministic, auditable regulatory determinations.
+
+---
+
+## 5. Public-Model Instance Exercise (Claude + GraphRAG)
+
+**Why this was added:** A framework can look perfect on synthetic data and still fail on real systems. A Claude public-model instance was added to test whether ARCO remains strict under incomplete, documentation-led evidence.
+
+**Entity/candidate selection approach:** GraphRAG outputs were used to surface candidate entities and relationships from model-card/addendum/policy artifacts (capabilities, controls, refusal behavior, governance references, benchmark evidence containers). These were treated as candidate claims, not automatic ontology truth.
+
+**Modeling rule:** only evidence-bounded claims were promoted into instance assertions.
+- Asserted: general text generation, static-image understanding, screenshot-mediated computer-use capabilities.
+- Not asserted: biometric identification capability and Annex III 1(a) applicability without full gate evidence.
+
+**Why this matters technically:** It shows ARCO can handle a real public model without collapsing into either over-assertion (false positives) or hand-wavy uncertainty. The graph stays BFO-aligned, traceable, and operational.
+
+For a concise reviewer-facing summary, see [Public_Model_Instance_Reviewer_Note.md](Public_Model_Instance_Reviewer_Note.md).

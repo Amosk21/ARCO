@@ -2,7 +2,7 @@
 
 This project explores how ontological modeling and deterministic evaluation can be used to support regulatory risk classification for AI systems, using Article 6 and Annex III of the EU AI Act as a motivating domain. Rather than treating classification as a probabilistic labeling problem, the project reframes it as a traceable reasoning task grounded in realist ontology.
 
-The central question is not "Can we predict whether a system is high-risk?" but rather "Can we make explicit why a system would qualify as high-risk, and under what assumptions?"
+The central question is not "Can a system's high-risk status be predicted?" but rather "Can it be made explicit why a system would qualify as high-risk, and under what assumptions?"
 
 ## Motivation and Problem Context
 

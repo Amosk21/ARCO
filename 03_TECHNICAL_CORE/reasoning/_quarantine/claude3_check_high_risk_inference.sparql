@@ -1,3 +1,5 @@
+## QUARANTINED: stale assumption-driven query; not part of canonical operational pipeline.
+
 PREFIX : <https://arco.ai/ontology/core#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 

@@ -6,7 +6,7 @@
 
 ---
 
-## 1. What We Do (The Value Proposition)
+## 1. What ARCO Does (The Value Proposition)
 
 ARCO provides deterministic classification of AI systems against regulatory criteria (e.g., EU AI Act Article 6 / Annex III), independent of probabilistic model outputs.
 
