@@ -40,6 +40,18 @@ This repository contains the complete reference implementation and supporting ma
 
 ARCO is under active development. Ontological commitments and determination mechanics are stable; documentation and additional regulatory regimes, extensions, and integrations are evolving.
 
+### Why Claude was introduced as a public-model case
+
+Sentinel is an engineered positive-control case that proves entailment can work when all structural gates are present.  
+Claude was introduced for the opposite reason: to test whether ARCO can stay rigorous when evidence is real-world, partial, and documentation-heavy.
+
+GraphRAG outputs were used to support candidate/entity selection from model-card style artifacts (capabilities, controls, policy constraints, and evidence containers), then only defensible items were mapped into instance assertions.
+
+The result is intentional:
+- ARCO demonstrates it can model a real public system without fabricating latent capability.
+- Current Claude instance evidence supports documented capabilities while leaving high-risk/Annex III 1(a) unentailed.
+- Determinations remain revisable as stronger evidence and deeper regime-specific modeling are added.
+
 ---
 
 ## Orientation (5-minute entry point)
@@ -106,6 +118,9 @@ Depending on what you are trying to understand, there are three recommended entr
 5. **[ARCO_Technical_Implementation.md](05_TECHNICAL_IMPLEMENTATION/ARCO_Technical_Implementation.md)**  
    Detailed architectural decisions: modeling latent risk via BFO dispositions, structural integrity via SHACL, deterministic audit via SPARQL ASK, and the execution pipeline.
 
+   **Companion note:** [Public_Model_Instance_Reviewer_Note.md](05_TECHNICAL_IMPLEMENTATION/Public_Model_Instance_Reviewer_Note.md)  
+   Short implementation note on why Claude was added, how GraphRAG-informed candidate selection was used, and how evidence-bounded public-model modeling works in ARCO.
+
 ### ⚙️ Phase 3: Execution (Operational View)
 
 *Recommended for technical validation and engagement modeling.*
@@ -140,6 +155,35 @@ pip install rdflib pyshacl
 python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 ```
 
+### Run a specific profile
+```bash
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --profile sentinel
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --profile claude
+```
+
+### Emit machine-readable JSON
+```bash
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --profile sentinel --json-out runs/sentinel_result.json
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --profile claude --json-out runs/claude_result.json
+```
+
+### Emit ontology-native determination artifact (TTL)
+```bash
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --profile sentinel --json-out runs/sentinel_result.json --determination-ttl-out runs/sentinel_determination.ttl
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --profile claude --json-out runs/claude_result.json --determination-ttl-out runs/claude_determination.ttl
+```
+
+### Emit human-readable Markdown report (projection only)
+```bash
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --profile sentinel --json-out runs/sentinel_result.json --determination-ttl-out runs/sentinel_determination.ttl --report-out runs/sentinel_report.md
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --profile claude --json-out runs/claude_result.json --determination-ttl-out runs/claude_determination.ttl --report-out runs/claude_report.md
+```
+
+### Override instances/system directly
+```bash
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py --instances 03_TECHNICAL_CORE/ontology/ARCO_instances_claude3.ttl --system-local Claude3_System
+```
+
 ### What you should see
 
 **Loaded triples:** `<number>`  
@@ -148,11 +192,27 @@ Confirms the ontology and instance graphs loaded correctly.
 **SPARQL ASK result:** `True` / `False`  
 Confirms the regulatory logic query executed successfully.
 
+**Commitment state:** `ENTAILED` / `UNDERDETERMINED` / `NOT ENTAILED`  
+Shows whether regulatory applicability is fully derivable, partially evidenced with missing commitments, or absent.
+
+**JSON artifact (`--json-out`)**  
+Writes a structured result object for downstream dashboards/audit ingestion, including checks, gates, missing commitments, and evidence paths.
+
+The JSON now also includes a `human_explanation` block with plain-language summary, determination rationale, and gate/check interpretation.
+
+**Determination TTL (`--determination-ttl-out`)**  
+Writes a BFO/IAO-compatible determination artifact (`:ComplianceDetermination` / `:HighRiskDetermination`) with human-readable `rdfs:comment` explanations of what happened and why.
+
+**Markdown report (`--report-out`)**  
+Writes a deterministic rendered view from the same JSON payload (single source of truth): no extra reasoning layer, no additional interpretation beyond field projection.
+
 **SHACL conforms:** `True` / `False`  
 Indicates whether the provided instance data satisfies the required documentation constraints.
 
 **A `False` result does not indicate a system error.**  
 It means the SHACL validator identified missing or inconsistent required information, which is the intended behavior of the assurance process. The printed validation report shows exactly what is missing or invalid.
+
+For `UNDERDETERMINED` outcomes, the pipeline prints an explicit missing-commitments list (Gate 1 capability, Gate 2 intended use, Gate 3 scenario) so evidence gaps are operationally actionable.
 
 This script is a reference execution used to demonstrate ingestion, structural validation, deterministic evaluation, and traceable output—not a production automation tool.
 
@@ -179,7 +239,8 @@ ARCO/
 │   └── validation/                   # SHACL shapes
 ├── 04_DIAGRAMS_AND_MODELS/           # Architecture diagrams, visual assets
 └── 05_TECHNICAL_IMPLEMENTATION/
-    └── ARCO_Technical_Implementation.md # Architectural decisions
+   ├── ARCO_Technical_Implementation.md # Architectural decisions
+   └── Public_Model_Instance_Reviewer_Note.md # Public-model instance pattern
 ```
 
 ---
@@ -211,4 +272,4 @@ Future work focuses on validation, deployment, and refinement through real-world
 Alex Moskowitz  
 [LinkedIn](https://www.linkedin.com/in/alex-moskowitz/) · [Email](alex.moskowitz97@gmail.com)
 
-*Interested in AI governance, regulatory technology, or applying formal methods to compliance problems? Let's talk.*
+*Interested in AI governance, regulatory technology, or applying formal methods to compliance problems? Reach out.*
