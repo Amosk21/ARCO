@@ -177,7 +177,7 @@ LLM extracts capabilities from unstructured text
 BFO grounding represents extracted claims as axioms
 
 **Stage 3: Classification (Logic)**
-SPARQL queries test classification conditions against modeled capabilities
+OWL reasoning derives classification from modeled capability structure; SPARQL verifies traceability and audit conditions
 
 > Uses LLM for recall, Ontology for precision, Logic for determination
 
@@ -200,7 +200,7 @@ SPARQL queries test classification conditions against modeled capabilities
 |--------|-------------|
 | **Typed** | Candidates are mapped to explicit BFO classes and relations |
 | **Validated** | Only assertions consistent with BFO constraints are retained |
-| **Constrained** | If LLM hallucinates a relationship that doesn't fit 'bearer_of' constraint, system rejects it |
+| **Constrained** | If LLM hallucinates a relationship that doesn't fit `has_disposition` constraints, system rejects it |
 | **Asserted** | Resulting Turtle is machine-readable and reasoner-ready |
 
 > LLMs interpret text. Ontologies define structure and constraints.
@@ -215,13 +215,13 @@ SPARQL queries test classification conditions against modeled capabilities
 
 ### System
 
-**BFO** – Physical bearer of the disposition; hardware carries capability independent of software state
+**BFO** – Material bearer of the disposition; system components carry capability independent of software state
 
 ### Regulation
 
 **IAO** – Legal information content that refers to and constrains system dispositions
 
-> Capability modeled as Disposition detects regulatory exposure based on what a machine IS, not just what it is DOING – biometric capability exists in hardware even when software is disabled.
+> Capability modeled as Disposition detects regulatory exposure based on what a machine IS, not just what it is DOING – biometric capability can exist in a component even when software behavior is constrained.
 
 ---
 
@@ -231,32 +231,39 @@ The Logic Layer: No AI involved—formal logic only
 
 ### Semantic Framework
 
-OWL axioms define class relationships (System bears CapabilityDisposition via `ro:0000053`)
+OWL axioms define class relationships (component bears capability disposition via `ro:0000091`)
 
 ```turtle
 :System rdf:type owl:Class ;
   rdfs:subClassOf bfo:0000027 ;
   rdfs:subClassOf [
     a owl:Restriction ;
-    owl:onProperty ro:0000053 ;
-    owl:someValuesFrom :CapabilityDisposition
+    owl:onProperty bfo:0000051 ;
+    owl:someValuesFrom [
+      a owl:Restriction ;
+      owl:onProperty ro:0000091 ;
+      owl:someValuesFrom :AnnexIIITriggeringCapability
+    ]
   ] .
 ```
 
 ### Classification Evaluation
 
-SPARQL ASK queries test whether modeled systems satisfy classification conditions:
+Classification is an OWL entailment (`rdf:type :HighRiskSystem`) from the bridge axiom; SPARQL ASK is used for deterministic audit/traceability checks:
 
 ```sparql
 ASK WHERE {
-  :AssessmentDoc_001 iao:0000136 :Sentinel_ID_System .
-  :AssessmentDoc_001 iao:0000136 :AnnexIII_Condition_Q1 .
+  ?doc a :AssessmentDocumentation .
+  ?doc iao:0000136 ?system .
+  ?system a :System .
+  ?doc iao:0000136 ?regulatory_content .
+  ?regulatory_content a :RegulatoryContent .
 }
 ```
 
 ### Logical Consequence
 
-If classification conditions are satisfied, the determination follows
+If ontology commitments satisfy the bridge conditions, classification follows as a logical consequence under OWL reasoning
 
 ### Auditability
 
