@@ -136,3 +136,16 @@ def main() -> None:
 **Why this matters technically:** It shows ARCO can handle a real public model without collapsing into either over-assertion (false positives) or hand-wavy uncertainty. The graph stays BFO-aligned, traceable, and operational.
 
 For a concise reviewer-facing summary, see [Public_Model_Instance_Reviewer_Note.md](Public_Model_Instance_Reviewer_Note.md).
+
+---
+
+## 6. Temporal Scope (Explicitly Deferred in v1)
+
+ARCO v1 focuses on structural capability commitments and deterministic determination over current graph assertions.
+
+Temporal qualification is acknowledged as part of BFO-aligned realism but is deferred for this version, including:
+- effective dates / validity windows for regulatory content,
+- temporal qualification of determination artifacts,
+- temporal scoping of process occurrences and role-bearing intervals.
+
+This deferral is intentional scope control, not an atemporal ontological claim. Future versions may add temporal relations and interval constraints once regime coverage and evidence pipelines are stabilized.

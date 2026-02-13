@@ -108,6 +108,14 @@
 # rather than requiring it to be explicitly asserted.
 #
 # CRITICAL: Uses ro:0000091 (has_disposition) to match instance data
+#
+# Realist note: :HighRiskSystem is treated here as a defined class
+# used for deterministic regulatory entailment in the reasoning layer.
+# It is not intended as a claim that systems change their underlying
+# material kind when classified; the underlying bearer remains a :System.
+# Institutional/regulatory status can additionally be represented at the
+# artifact/role layer (e.g., determination outputs) without changing
+# this bridge-class pattern.
 #################################################################
 
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
@@ -120,7 +128,7 @@
 
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "High-Risk AI System" ;
-  rdfs:comment "A system classified as high-risk by virtue of having a component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
+  rdfs:comment "A defined class used for regulatory entailment: a system with a component bearing an Annex III triggering capability. This class membership is INFERRED by the reasoner for determination workflows." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:intersectionOf (
