@@ -3,8 +3,8 @@
 - **System**: Sentinel_ID_System
 - **System IRI**: https://arco.ai/ontology/core#Sentinel_ID_System
 - **Instances file**: C:\Github Repos\ARCO\03_TECHNICAL_CORE\ontology\ARCO_instances_sentinel.ttl
-- **Run timestamp (UTC)**: 2026-02-13T01:01:23+00:00
-- **Git commit hash**: 6bef956
+- **Run timestamp (UTC)**: 2026-02-13T01:11:04+00:00
+- **Git commit hash**: ac3f145
 
 - **Regime**: EU AI Act (Article 6 / Annex III)
 - **Classification state**: ENTAILED

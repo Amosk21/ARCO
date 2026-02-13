@@ -3,8 +3,8 @@
 - **System**: Claude3_System
 - **System IRI**: https://arco.ai/ontology/core#Claude3_System
 - **Instances file**: C:\Github Repos\ARCO\03_TECHNICAL_CORE\ontology\ARCO_instances_claude3.ttl
-- **Run timestamp (UTC)**: 2026-02-13T01:01:24+00:00
-- **Git commit hash**: 6bef956
+- **Run timestamp (UTC)**: 2026-02-13T01:11:04+00:00
+- **Git commit hash**: ac3f145
 
 - **Regime**: EU AI Act (Article 6 / Annex III)
 - **Classification state**: UNDERDETERMINED

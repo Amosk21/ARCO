@@ -1,8 +1,8 @@
 {
   "schema_version": "arco.pipeline.result.v1",
   "run": {
-    "timestamp_utc": "2026-02-13T01:01:23+00:00",
-    "git_commit_hash": "6bef956"
+    "timestamp_utc": "2026-02-13T01:11:04+00:00",
+    "git_commit_hash": "ac3f145"
   },
   "profile": "sentinel",
   "system": {
@@ -41,6 +41,7 @@
     "entailment": true,
     "latent_risk": true
   },
+  "pipeline_integrity_passed": true,
   "all_checks_passed": true,
   "evidence_paths": [
     {

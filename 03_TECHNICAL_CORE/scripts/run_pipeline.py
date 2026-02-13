@@ -533,9 +533,7 @@ def build_result_payload(
     if latent_ok is not None:
         checks["latent_risk"] = latent_ok
 
-    all_pass = checks["shacl"] and checks["traceability"] and checks["entailment"]
-    if latent_ok is not None:
-        all_pass = all_pass and latent_ok
+    pipeline_integrity_passed = checks["shacl"] and checks["traceability"]
 
     human_explanation = {
         "overview": (
@@ -597,7 +595,8 @@ def build_result_payload(
             "has_any_capability_signal": diagnostics.get("has_any_capability_signal", False),
         },
         "checks": checks,
-        "all_checks_passed": all_pass,
+        "pipeline_integrity_passed": pipeline_integrity_passed,
+        "all_checks_passed": pipeline_integrity_passed,
         "evidence_paths": evidence_paths,
         "evidence_path_predicates": {
             "has_part": "http://purl.obolibrary.org/obo/BFO_0000051",
@@ -845,11 +844,9 @@ def main() -> None:
     print(f"State:         {commitment_state}")
     print(f"Entailed triples added: +{inferred_added}")
 
-    all_pass = shacl_ok and traceability_ok and inference_ok
-    if latent_ok is not None:
-        all_pass = all_pass and latent_ok
-
-    print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
+    pipeline_integrity_ok = shacl_ok and traceability_ok
+    print("\nPIPELINE INTEGRITY PASSED" if pipeline_integrity_ok else "\nPIPELINE INTEGRITY FAILED")
+    print(f"DETERMINATION OUTCOME:      {commitment_state}")
 
     # ---------------------------------------------------------------
     # REGULATORY DETERMINATION CERTIFICATE
