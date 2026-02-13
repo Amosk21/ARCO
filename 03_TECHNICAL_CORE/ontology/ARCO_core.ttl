@@ -168,5 +168,15 @@ ro:0000057 rdfs:label "has participant" .
 ro:0000087 rdfs:label "has role" .
 ro:0000091 rdfs:label "has disposition" .
 
+# Local disposition-scoped inverse (safer than binding to generic ro:0000052)
+:disposition_inheres_in rdf:type owl:ObjectProperty ;
+  rdfs:label "disposition inheres in" ;
+  rdfs:comment "Local inverse traversal for has_disposition assertions. Scoped to dispositions and their bearers to avoid mixing with generic role inherence." ;
+  rdfs:subPropertyOf ro:0000052 ;
+  rdfs:domain :CapabilityDisposition ;
+  rdfs:range :SystemComponent .
+
+ro:0000091 owl:inverseOf :disposition_inheres_in .
+
 # IAO relations
 iao:0000136 rdfs:label "is about" .
