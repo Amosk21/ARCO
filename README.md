@@ -2,9 +2,11 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-ARCO is a pre-deployment regulatory classification engine for AI systems. It tells organizations — before deployment, before sunk costs, before regulatory exposure — whether a system triggers high-risk classification conditions and exactly why.
+Companies are building AI systems without knowing whether those systems will be classified as high-risk under the EU AI Act. When that determination happens after deployment, the costs are severe — redesign, regulatory fines (up to 6% of global revenue), forced withdrawal, reputational damage. Compliance discovered late is a sunk cost crisis.
 
-The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable regulatory determination backed by formal logic.
+ARCO moves that risk decision upstream. It is a pre-deployment regulatory classification engine that tells organizations — before deployment, before sunk costs, before regulatory exposure — whether a system triggers high-risk conditions and exactly why.
+
+The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable regulatory determination backed by formal logic. The primary value is financial, not just legal: ARCO turns regulatory classification from a post-hoc legal crisis into a design-time engineering decision.
 
 ---
 
@@ -16,7 +18,8 @@ The output is not a score, a confidence level, or an advisory opinion. It is a d
 - **Audit-ready evidence** — every classification traces back through components, capabilities, and regulatory criteria with no gaps
 - **Reduced regulatory exposure** — identify classification triggers while architecture changes are still cheap
 - **Repeatable, defensible determinations** — same system description in, same classification out, every time
-- **No AI in the loop for decisions** — AI extracts candidates; formal logic drives the determination
+- **No AI in the loop for decisions** — AI extracts candidates only; formal logic drives the determination
+- **Revenue protection** — prevent delayed or blocked deployments by resolving classification before money is sunk
 
 > **The core value:** Replace probabilistic "confidence" with audit-traceable logical determination.
 
@@ -48,13 +51,19 @@ This determination is **derived**, not asserted. If the structural prerequisites
 
 ---
 
-## The problem ARCO solves
+## Why this problem is hard
 
-Companies build AI systems without knowing whether those systems will be classified as high-risk under regulations like the EU AI Act. When that determination happens after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
+Regulatory frameworks like the EU AI Act classify systems by **capability** — what a system is structurally able to do — not by what it happens to be doing today. But organizations build systems without an explicit model of what exists, what those things are capable of, and which regulatory conditions those capabilities trigger.
 
-The root cause: systems are built without an explicit model of **what exists**, **what those things are capable of**, and **which regulatory conditions those capabilities trigger**. Early modeling choices quietly lock in regulatory exposure, but because those choices are treated as technical configuration rather than structural commitments, they escape governance entirely.
+The result: early modeling choices quietly lock in regulatory exposure. A hardware module with biometric capability makes the entire system high-risk under Annex III, whether or not that capability is currently enabled. Because those choices are treated as technical configuration rather than structural commitments, they escape governance entirely — until a regulator or auditor surfaces them.
 
-ARCO moves that risk decision upstream — to design time, where it costs a fraction of post-deployment remediation.
+| Phase | Cost of discovering misclassification |
+|-------|---------------------------------------|
+| **Design** | Architecture adjustments — modest investment |
+| **Post-training** | Model retraining, pipeline rebuilds, documentation overhaul |
+| **Post-deployment** | Regulatory fines, legal costs, product recalls, forced withdrawal, reputational damage |
+
+ARCO operates at the design phase — when the same issue costs a fraction of what it costs later.
 
 ---
 
