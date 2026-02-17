@@ -157,3 +157,100 @@ Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` after every coherent unit
 - Do not touch GitHub Actions workflow files unless pipeline output format changes require it
 - Do not model NaturalPerson as a biological subclass — if you need a person universal, use `cco:Person`; represent "natural person" as `NaturalPersonRole ⊑ bfo:Role`
 - Do not create Person instances or role-bearing axioms for the demo — use aboutness (`iao:0000136`) only
+
+## Context Selection Rules
+
+When choosing files to load:
+
+### PRIORITY (auto-load for any technical task)
+- `03_TECHNICAL_CORE/ontology/*.ttl` — Core ontology, governance extension, Sentinel instances
+- `03_TECHNICAL_CORE/validation/*.ttl` — SHACL shapes
+- `03_TECHNICAL_CORE/scripts/run_pipeline.py` — Main execution pipeline
+- `03_TECHNICAL_CORE/reasoning/*.sparql` — All SPARQL ASK queries
+
+### SECONDARY (load only if explicitly needed)
+- `01_COMMERCIAL/` — Business positioning, engagement scopes
+- `02_SYSTEM_OVERVIEW/` — Technical deck, white papers, positioning
+- `04_DIAGRAMS_AND_MODELS/` — Architecture diagrams, Mermaid sources
+- `05_TECHNICAL_IMPLEMENTATION/` — Implementation narrative
+- `README.md`, `ONTOLOGY_REVIEW.md`, `.github/workflows/`
+
+### NEVER AUTOLOAD
+- `runs/demo/*` — Pipeline outputs (certificate.txt, evidence.json, shacl_report.txt, summary.json)
+- `03_TECHNICAL_CORE/.venv/` — Python virtual environment
+- Generated artifacts, logs, temporary files
+
+## Inference Behavior
+
+- Infer relevance by file TYPE, not repo-wide search.
+- When task mentions reasoning, SHACL, OWL, determination, capability, disposition, classification, or pipeline → load PRIORITY files.
+- When task mentions business case, positioning, architecture diagrams → load SECONDARY only if explicitly requested.
+- Before proposing new classes or relations, search existing TTL files for similar patterns first.
+
+### Keyword → Class Routing
+- "high-risk" → `HighRiskSystem`, `AnnexIIITriggeringCapability` (in `ARCO_core.ttl`)
+- "intended use" → `IntendedUseSpecification`, `cco:prescribes` (in `ARCO_governance_extension.ttl`)
+- "scenario" / "affected persons" → `UseScenarioSpecification`, `NaturalPersonRole` (in `ARCO_governance_extension.ttl`)
+- "capabilities" → `CapabilityDisposition`, `BiometricIdentificationCapability` (in `ARCO_core.ttl`)
+- "determinations" → `ComplianceDetermination`, `HighRiskDetermination` (in `ARCO_core.ttl`)
+- "components" → `SystemComponent`, `HardwareComponent`, `SoftwareArtifact` (in `ARCO_core.ttl`)
+- "providers" / "obligations" → `ProviderOrganization`, `ProviderRole`, `ComplianceObligationSpecification` (in `ARCO_governance_extension.ttl`)
+- "Annex III 1(a)" → `AnnexIII1aApplicableSystem` three-gate equivalentClass (in `ARCO_governance_extension.ttl`)
+
+## Exploration Limits
+
+- Do NOT perform repo-wide scanning or indexing.
+- Do NOT build full architecture maps unless explicitly requested.
+- Do NOT re-read `runs/demo/` outputs unless the user asks to inspect them.
+- If searching for a class or relation, grep within `03_TECHNICAL_CORE/` only.
+- Do not reconstruct the ontology model from scratch each session — use the Architectural Memory below.
+
+## Architectural Memory
+
+ARCO = BFO/CCO-aligned OWL ontology for deterministic EU AI Act risk classification. OWL-RL reasoning + SHACL validation + SPARQL ASK queries produce outputs. LLMs are not in the pipeline.
+
+### Key Classes — Reality-Side (`ARCO_core.ttl`)
+- `System` ⊑ ObjectAggregate (`bfo:0000027`) — has_part some SystemComponent
+- `SystemComponent` ⊑ Object (`bfo:0000030`) — material components only
+- `HardwareComponent` ⊑ SystemComponent — has_disposition some CapabilityDisposition
+- `CapabilityDisposition` ⊑ Disposition (`bfo:0000016`)
+- `BiometricIdentificationCapability` ⊑ CapabilityDisposition
+- `OperationalProcess` ⊑ Process (`bfo:0000015`)
+- `SoftwareArtifact` ⊑ ICE (`iao:0000030`) — NOT a SystemComponent
+
+### Key Classes — Representation-Side (`ARCO_core.ttl`)
+- `ComplianceDetermination` ⊑ ICE
+- `HighRiskDetermination` ⊑ ComplianceDetermination
+
+### Key Classes — Governance Extension (`ARCO_governance_extension.ttl`)
+- `ProviderOrganization` ⊑ cco:Organization — has_role some ProviderRole
+- `ProviderRole`, `DeployerRole` ⊑ Role (`bfo:0000023`)
+- `IntendedUseSpecification` ⊑ DirectiveICE — prescribes some Process, is_about some System
+- `UseScenarioSpecification` ⊑ DirectiveICE — is_about some System, is_about some Role
+- `ComplianceObligationSpecification` ⊑ DirectiveICE — is_about some System, is_about some Role
+- `RemoteBiometricIdentificationProcess` ⊑ Process
+- `NaturalPersonRole` ⊑ Role
+- `AnnexIII1aApplicableSystem` ⊑ System — equivalentClass: 3-gate (capability + intended use + scenario)
+
+### Bridge Axioms (`ARCO_core.ttl`)
+- `AnnexIIITriggeringCapability` ≡ union(`BiometricIdentificationCapability`) — extend union for new categories
+- `HighRiskSystem` ≡ System ∩ has_part some (has_disposition some AnnexIIITriggeringCapability) — capability-only, latent risk
+
+### Key Relations (all BFO/RO/IAO/CCO — no custom properties)
+- `bfo:0000051` (has_part) — System → SystemComponent
+- `ro:0000091` (has_disposition) — HardwareComponent → CapabilityDisposition
+- `iao:0000136` (is_about) — ICE → reality-side entities/universals
+- `cco:prescribes` — DirectiveICE → Process type or Continuant
+- `cco:has_output` — Process → ICE artifact
+- `ro:0000057` (has_participant) — Process → System or Organization
+- `ro:0000087` (has_role) — Organization → Role
+
+### Pipeline Flow
+Load TTL → OWL-RL reasoning → SHACL validation → SPARQL ASK queries → emit certificate → write to `runs/demo/`
+
+## Execution Style
+
+- Assume ARCO architecture is stable. Use Architectural Memory before reading files.
+- Produce minimal patches. Avoid full rewrites unless requested.
+- Process ontology files in small batches. After every change, run the pipeline.
+- If remaining usage appears low: save current state, output short summary, stop.
