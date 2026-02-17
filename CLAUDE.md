@@ -55,7 +55,7 @@ Load TTL → OWL-RL → SHACL → SPARQL ASK → certificate → `runs/demo/`
 
 ## Execution Rules
 
-- Use Architectural Memory before reading files. Do not re-derive architecture.
+- Use Architectural Memory before reading files. Do not re-derive architecture. Do NOT read TTL files to answer conceptual questions — use the Architectural Memory. Only read TTL files when editing them or verifying exact syntax, unless instructed for an extensive or full review.
 - No repo-wide scanning. Grep within `03_TECHNICAL_CORE/` only.
 - Minimal patches. No full rewrites unless requested.
 - After every change, run pipeline. Do not batch changes to triples/shapes.
