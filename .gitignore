@@ -1,4 +1,44 @@
-runs/
+# Claude local state
+.claude/
+.claude-code/
+
+# Git metadata (huge)
+.git/
+
+# Python junk
 __pycache__/
 *.pyc
-.claude/
+.venv/
+venv/
+
+# Build / outputs / artifacts
+runs/
+run/
+output/
+outputs/
+artifacts/
+dist/
+build/
+target/
+.cache/
+*.log
+
+# Large / binary / non-text
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.zip
+*.7z
+*.tar
+*.gz
+*.sqlite
+*.db
+
+# Common data dumps
+*.jsonl
+*.parquet
+*.csv
+data/
+tmp/
