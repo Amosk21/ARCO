@@ -1,0 +1,14 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+
+#################################################################
+# claude3_check_assessment_traceability.sparql
+#
+# PURPOSE: Verify assessment documentation links Claude 3
+#          to the triggering regulatory content.
+#################################################################
+
+ASK WHERE {
+  :Claude3_AssessmentDoc iao:0000136 :Claude3_System .
+  :Claude3_AssessmentDoc iao:0000136 :AnnexIII_1a_Biometric .
+}

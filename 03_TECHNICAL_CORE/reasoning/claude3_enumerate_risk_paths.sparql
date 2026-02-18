@@ -1,0 +1,25 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+#################################################################
+# claude3_enumerate_risk_paths.sparql
+#
+# PURPOSE: Enumerate ALL risk paths for Claude 3 — every
+#          (component, disposition, capability type) triple
+#          that triggers regulatory classification.
+#
+# Unlike ASK queries this returns SELECT results showing every
+# concrete evidence path the reasoner can identify.
+#################################################################
+
+SELECT ?component ?disposition ?capabilityType WHERE {
+  :Claude3_System bfo:0000051 ?component .
+  ?component ro:0000091 ?disposition .
+  ?disposition a ?capabilityType .
+  ?capabilityType rdfs:subClassOf* :AnnexIIITriggeringCapability .
+  FILTER(?capabilityType != :AnnexIIITriggeringCapability)
+}
+ORDER BY ?component ?capabilityType
