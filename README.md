@@ -48,56 +48,6 @@ If the structural prerequisites for the regulated capability were not present, t
 
 ---
 
-## Why this exists (design-time governance)
-
-The core problem in AI governance is not a lack of rules, transparency, or oversight. It is that systems are built without an explicit, shared model of **what exists**, **what those things are capable of**, and **which processes can occur as a result**.
-
-Early modeling choices quietly define reality for a system, fixing what can be perceived, optimized, or ignored. Because those choices are treated as technical configuration rather than structural commitments, they escape ownership and governance.
-
-Liability attaches to what a system **is able to do**, not only to what it happens to be doing. The real leverage point is **design time**, where continuants, capabilities, roles, and processes can still be made explicit, inspectable, and contestable.
-
----
-
-## Regulatory classification as a design-time problem
-
-Modern AI regulation increasingly classifies systems by **capability**, not by configuration or stated intent. Under the EU Artificial Intelligence Act, this shift is explicit: Article 6 and Annex III define high-risk status in terms of what a system is structurally capable of doing, regardless of whether those capabilities are currently enabled.
-
-ARCO operates on top of this regulatory reality.
-
-Rather than treating regulatory classification as an interpretive or post-hoc exercise, ARCO formalizes Article 6 and Annex III criteria as explicit, capability-based conditions that can be evaluated at design time using a general assurance architecture designed for capability-based regulation.
-
----
-
-## Ontological grounding (why structure matters)
-
-ARCO does not treat ontology as an authority that defines reality, but as an epistemic formalism that constrains what the system may coherently infer about a system’s capabilities.
-
-For regulatory classification to be derived from system structure, the underlying model must distinguish clearly between:
-
-- what exists
-- what it is capable of
-- what processes may occur as a result
-
-ARCO is grounded in a realist ontological framework aligned with the [Basic Formal Ontology (BFO)](https://basic-formal-ontology.org/). This grounding enforces explicit separation between material entities, dispositions (capabilities), roles, and processes, preventing regulatory classifications from being inferred from implementation detail alone.
-
-This is what allows ARCO to treat capability as something that **resolves from structure** rather than something asserted by documentation or intent. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes.
-
----
-
-## Bigger picture: why this scales beyond a single regulation
-
-Most governance systems focus on prediction: what might happen, based on past data and observed behavior.
-
-ARCO focuses on commitment: what outcomes a system has already made possible by virtue of how it is built.
-
-Once a system's structure exists, certain futures are no longer hypothetical. They are locked in unless the structure changes. ARCO is designed to surface those commitments early, before they appear as audit findings, regulatory enforcement, forced redesigns, or reputational loss.
-
-While this repository demonstrates ARCO against a single regulatory regime (EU AI Act), the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
-
-The long-term aim is not to predict the future, but to make explicit which futures a system has already made unavoidable and which ones can still be prevented through design.
-
----
-
 ## Overview
 
 ARCO is a framework for producing clear, defensible regulatory classifications for high-stakes AI systems.
@@ -193,3 +143,53 @@ The pipeline will:
 ### Run in GitHub Actions
 
 This pipeline also runs automatically in CI. Go to **Actions > ARCO Demo Run > Run workflow** to trigger it manually. The workflow uploads `runs/demo/` as a downloadable artifact.
+
+---
+
+## Why this exists (design-time governance)
+
+The core problem in AI governance is not a lack of rules, transparency, or oversight. It is that systems are built without an explicit, shared model of **what exists**, **what those things are capable of**, and **which processes can occur as a result**.
+
+Early modeling choices quietly define reality for a system, fixing what can be perceived, optimized, or ignored. Because those choices are treated as technical configuration rather than structural commitments, they escape ownership and governance.
+
+Liability attaches to what a system **is able to do**, not only to what it happens to be doing. The real leverage point is **design time**, where continuants, capabilities, roles, and processes can still be made explicit, inspectable, and contestable.
+
+---
+
+## Regulatory classification as a design-time problem
+
+Modern AI regulation increasingly classifies systems by **capability**, not by configuration or stated intent. Under the EU Artificial Intelligence Act, this shift is explicit: Article 6 and Annex III define high-risk status in terms of what a system is structurally capable of doing, regardless of whether those capabilities are currently enabled.
+
+ARCO operates on top of this regulatory reality.
+
+Rather than treating regulatory classification as an interpretive or post-hoc exercise, ARCO formalizes Article 6 and Annex III criteria as explicit, capability-based conditions that can be evaluated at design time using a general assurance architecture designed for capability-based regulation.
+
+---
+
+## Ontological grounding (why structure matters)
+
+ARCO does not treat ontology as an authority that defines reality, but as an epistemic formalism that constrains what the system may coherently infer about a system’s capabilities.
+
+For regulatory classification to be derived from system structure, the underlying model must distinguish clearly between:
+
+- what exists
+- what it is capable of
+- what processes may occur as a result
+
+ARCO is grounded in a realist ontological framework aligned with the [Basic Formal Ontology (BFO)](https://basic-formal-ontology.org/). This grounding enforces explicit separation between material entities, dispositions (capabilities), roles, and processes, preventing regulatory classifications from being inferred from implementation detail alone.
+
+This is what allows ARCO to treat capability as something that **resolves from structure** rather than something asserted by documentation or intent. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes.
+
+---
+
+## Bigger picture: why this scales beyond a single regulation
+
+Most governance systems focus on prediction: what might happen, based on past data and observed behavior.
+
+ARCO focuses on commitment: what outcomes a system has already made possible by virtue of how it is built.
+
+Once a system's structure exists, certain futures are no longer hypothetical. They are locked in unless the structure changes. ARCO is designed to surface those commitments early, before they appear as audit findings, regulatory enforcement, forced redesigns, or reputational loss.
+
+While this repository demonstrates ARCO against a single regulatory regime (EU AI Act), the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
+
+The long-term aim is not to predict the future, but to make explicit which futures a system has already made unavoidable and which ones can still be prevented through design.
