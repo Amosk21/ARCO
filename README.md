@@ -8,6 +8,11 @@ ARCO moves that risk decision upstream. It is a pre-deployment regulatory classi
 
 The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable regulatory determination backed by formal logic.
 
+**TL;DR**
+- ARCO is a pre-deployment EU AI Act classification engine that tells you — before you build — whether your AI system is high-risk and exactly why.
+- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO/CCO-grounded ontology, with no probabilistic scoring and no LLMs in the decision loop.
+- Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` to produce a regulatory determination certificate with a full evidence path from system components through capabilities to regulatory criteria.
+
 ---
 
 [![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml)
