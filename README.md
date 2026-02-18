@@ -2,7 +2,7 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-Companies are building AI systems without knowing whether those systems will be classified as high-risk under the EU AI Act. When that determination happens after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
+Companies are building AI systems without knowing whether those systems will be classified as high-risk under the EU AI Act and other regulatory framewworks. When that determination happens after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
 
 ARCO moves that risk decision upstream. It is a pre-deployment regulatory classification engine that tells organizations — before deployment, before sunk costs, before regulatory exposure — whether a system triggers high-risk conditions and exactly why.
 
