@@ -2,26 +2,29 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-ARCO produces regulatory classifications as logical consequences of explicitly modeled system capabilities, rather than probabilistic assessments.
+Companies are building AI systems without knowing whether those systems will be classified as high-risk under the EU AI Act. When that determination happens after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
 
----
+ARCO moves that risk decision upstream. It is a pre-deployment regulatory classification engine that tells organizations — before deployment, before sunk costs, before regulatory exposure — whether a system triggers high-risk conditions and exactly why.
 
-## Instant understanding
-
-- **Input:** A system description modeled as instances (components, roles, capabilities, intended context)
-- **Output:** A deterministic regulatory determination plus traceability artifacts (validation report + query evidence)
-- **Mechanism:** BFO-aligned OWL ontology + OWL-RL entailment + SHACL completeness validation + SPARQL ASK audit queries
-
-**Why:** Replace probabilistic "confidence" with audit-traceable logical determination.
-
-A concrete example of a produced determination is available below and in detail here:
-→ [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
+The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable regulatory determination backed by formal logic.
 
 ---
 
 [![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml)
 
-## Example output (regulatory determination)
+## What organizations get
+
+- **Regulatory clarity at design time** — know whether your system is high-risk before you build it, not after you deploy it
+- **Audit-ready evidence** — every classification traces back through components, capabilities, and regulatory criteria with no gaps
+- **Reduced regulatory exposure** — identify classification triggers while architecture changes are still cheap
+- **Repeatable, defensible determinations** — same system description in, same classification out, every time
+- **No AI in the loop for decisions** — AI extracts candidates; formal logic drives the determination
+
+> **The core value:** Replace probabilistic "confidence" with audit-traceable logical determination.
+
+---
+
+## Proof: a real determination
 
 ```text
 ========================================================================
@@ -43,81 +46,53 @@ REGULATORY DETERMINATION CERTIFICATE
 ========================================================================
 ```
 
-This determination is **derived**, not asserted.
-If the structural prerequisites for the regulated capability were not present, the classification would not be inferred.
+This determination is **derived**, not asserted. If the structural prerequisites for the regulated capability were not present, the classification would not be inferred. Full case study: [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
 
 ---
 
-## Why this exists (design-time governance)
+## The problem ARCO solves
 
-The core problem in AI governance is not a lack of rules, transparency, or oversight. It is that systems are built without an explicit, shared model of **what exists**, **what those things are capable of**, and **which processes can occur as a result**.
+The root cause: systems are built without an explicit model of **what exists**, **what those things are capable of**, and **which regulatory conditions those capabilities trigger**. Early modeling choices quietly lock in regulatory exposure, but because those choices are treated as technical configuration rather than structural commitments, they escape governance entirely.
 
-Early modeling choices quietly define reality for a system, fixing what can be perceived, optimized, or ignored. Because those choices are treated as technical configuration rather than structural commitments, they escape ownership and governance.
-
-Liability attaches to what a system **is able to do**, not only to what it happens to be doing. The real leverage point is **design time**, where continuants, capabilities, roles, and processes can still be made explicit, inspectable, and contestable.
+ARCO moves that risk decision upstream — to design time, where it costs a fraction of post-deployment remediation.
 
 ---
 
-## Regulatory classification as a design-time problem
+## How it works
 
-Modern AI regulation increasingly classifies systems by **capability**, not by configuration or stated intent. Under the EU Artificial Intelligence Act, this shift is explicit: Article 6 and Annex III define high-risk status in terms of what a system is structurally capable of doing, regardless of whether those capabilities are currently enabled.
+**Input:** A system description modeled as instances — components, roles, capabilities, intended use context.
 
-ARCO operates on top of this regulatory reality.
+**Process:**
+1. The system's structure is encoded in a formal ontology grounded in [BFO](https://basic-formal-ontology.org/) (the same foundational ontology used across biomedical, defense, and industrial standards)
+2. OWL-RL reasoning materializes what the system is capable of based on its components and structure
+3. SHACL validation enforces documentary completeness
+4. SPARQL audit queries verify classification conditions against EU AI Act criteria (Article 6, Annex III)
 
-Rather than treating regulatory classification as an interpretive or post-hoc exercise, ARCO formalizes Article 6 and Annex III criteria as explicit, capability-based conditions that can be evaluated at design time using a general assurance architecture designed for capability-based regulation.
+**Output:** A regulatory determination certificate with full evidence path — which component bears which capability, which regulatory condition it triggers, and why.
 
----
-
-## Ontological grounding (why structure matters)
-
-ARCO does not treat ontology as an authority that defines reality, but as an epistemic formalism that constrains what the system may coherently infer about a system’s capabilities.
-
-For regulatory classification to be derived from system structure, the underlying model must distinguish clearly between:
-
-- what exists
-- what it is capable of
-- what processes may occur as a result
-
-ARCO is grounded in a realist ontological framework aligned with the [Basic Formal Ontology (BFO)](https://basic-formal-ontology.org/). This grounding enforces explicit separation between material entities, dispositions (capabilities), roles, and processes, preventing regulatory classifications from being inferred from implementation detail alone.
-
-This is what allows ARCO to treat capability as something that **resolves from structure** rather than something asserted by documentation or intent. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes.
+The system is **agnostic by design**. New AI systems are evaluated by authoring new instance data against the same framework. The core ontology, validation rules, and classification logic do not change.
 
 ---
 
-## Bigger picture: why this scales beyond a single regulation
+## Why the approach is structural, not behavioral
 
-Most governance systems focus on prediction: what might happen, based on past data and observed behavior.
+Liability attaches to what a system **is able to do**, not only to what it happens to be doing. Modern regulation classifies by capability, not configuration.
 
-ARCO focuses on commitment: what outcomes a system has already made possible by virtue of how it is built.
+ARCO treats capability as something that **resolves from structure** — traced from system components through dispositions to regulatory conditions. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes. If they are present, the classification follows as a logical consequence.
 
-Once a system's structure exists, certain futures are no longer hypothetical. They are locked in unless the structure changes. ARCO is designed to surface those commitments early, before they appear as audit findings, regulatory enforcement, forced redesigns, or reputational loss.
-
-While this repository demonstrates ARCO against a single regulatory regime (EU AI Act), the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
-
-The long-term aim is not to predict the future, but to make explicit which futures a system has already made unavoidable and which ones can still be prevented through design.
+This makes ARCO fundamentally different from post-hoc tools that observe behavior or score risk probabilistically. The classification is deterministic, traceable, and stable — it changes only when the system's structure changes.
 
 ---
 
-## Overview
+## Beyond a single regulation
 
-ARCO is a framework for producing clear, defensible regulatory classifications for high-stakes AI systems.
+While this repository demonstrates ARCO against the EU AI Act, the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
 
-ARCO is **system-agnostic by design**. New AI systems are evaluated by authoring new instance data against the same ontological and reasoning framework; the core ontology, validation rules, and classification logic do not change.
-
-Instead of generating scores, confidence levels, or probabilistic assessments, ARCO produces regulatory determinations that can be traced directly back to the structure and capabilities of the system being evaluated.
-
-> **The goal is simple:**
-> Replace probabilistic "confidence" with audit-traceable logical determination.
-
-This repository contains the complete reference implementation and supporting materials for that approach.
-
-ARCO is an active research and engineering effort. Ontological commitments and determination mechanics are stable. Documentation, additional regulatory regimes, and integrations are evolving.
+Once a system's structure exists, certain regulatory futures are locked in unless the structure changes. ARCO surfaces those commitments early — before they appear as audit findings, regulatory enforcement, forced redesigns, or reputational loss.
 
 ---
 
 ## Orientation (5-minute entry point)
-
-For readers who want a fast, system-level understanding before diving into the full materials:
 
 **0. Executive overview (non-technical)**
 A concise, business-facing overview of ARCO's purpose, economic value, and positioning for decision-makers.
@@ -140,20 +115,20 @@ Visual models showing how Article 6 and Annex III classification criteria are re
 
 ## Where to start
 
-This repository is structured to support both high-level review and hands-on technical validation. Depending on what you are trying to understand, there are three recommended entry paths.
+This repository supports both high-level review and hands-on technical validation. Three entry paths depending on your role.
 
-### 🏛️ Phase 1: Methodology (Strategic View)
+### Phase 1: Methodology (Strategic View)
 
 - [`ARCO_Assurance_Engine.md`](01_COMMERCIAL/ARCO_Assurance_Engine.md)
 - [`Command_Center.md`](01_COMMERCIAL/Command_Center.md)
 - [`Glass_Box_Compliance_White_Paper.md`](01_COMMERCIAL/Glass_Box_Compliance_White_Paper.md)
 
-### 📄 Phase 2: Technical Deep-Dive
+### Phase 2: Technical Deep-Dive
 
 - [`TechnicalDeck.md`](02_SYSTEM_OVERVIEW/TechnicalDeck.md)
 - [`ARCO_Technical_Implementation.md`](02_SYSTEM_OVERVIEW/ARCO_Technical_Implementation.md)
 
-### ⚙️ Phase 3: Execution (Operational View)
+### Phase 3: Execution (Operational View)
 
 - [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
 - [`ARCO_Pilot_Engagement_Scope.md`](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.md)
@@ -162,8 +137,6 @@ This repository is structured to support both high-level review and hands-on tec
 ---
 
 ## Getting started (run the reference pipeline)
-
-This repository includes a reference implementation that demonstrates the full ARCO assurance pipeline in execution.
 
 ### Requirements
 
