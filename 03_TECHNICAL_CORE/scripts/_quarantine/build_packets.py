@@ -1,4 +1,5 @@
-"""
+"""QUARANTINED: support tooling only, not canonical ontology/reasoning pipeline.
+
 build_packets.py — Extract ARCO candidate packets from GraphRAG parquet output.
 
 PURPOSE: Takes the GraphRAG output (entities.parquet, relationships.parquet,

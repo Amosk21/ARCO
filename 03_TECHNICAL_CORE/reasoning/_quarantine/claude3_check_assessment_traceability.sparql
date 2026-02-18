@@ -1,3 +1,5 @@
+## QUARANTINED: stale assumption-driven query; not part of canonical operational pipeline.
+
 PREFIX : <https://arco.ai/ontology/core#>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 

@@ -1,3 +1,5 @@
+QUARANTINED: not operational pipeline prompt; review against main realism commitments before use.
+
 You are mapping extracted candidate entities into an ontology-backed ARCO instance model.
 
 Output JSON only. No prose.

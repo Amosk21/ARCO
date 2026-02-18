@@ -1,0 +1,67 @@
+{
+  "schema_version": "arco.pipeline.result.v1",
+  "run": {
+    "timestamp_utc": "2026-02-13T01:11:04+00:00",
+    "git_commit_hash": "ac3f145"
+  },
+  "profile": "sentinel",
+  "system": {
+    "local_name": "Sentinel_ID_System",
+    "iri": "https://arco.ai/ontology/core#Sentinel_ID_System",
+    "instances_file": "C:\\Github Repos\\ARCO\\03_TECHNICAL_CORE\\ontology\\ARCO_instances_sentinel.ttl"
+  },
+  "regime": "EU AI Act (Article 6 / Annex III)",
+  "counts": {
+    "asserted_triples": 302,
+    "reasoned_triples": 994,
+    "entailed_triples_added": 692
+  },
+  "classification": {
+    "label": "HighRiskSystem",
+    "class_iri": "https://arco.ai/ontology/core#HighRiskSystem",
+    "mode": "INFERRED",
+    "state": "ENTAILED"
+  },
+  "gates": {
+    "gate1_biometric_capability": true,
+    "gate2_intended_use": true,
+    "gate3_use_scenario": true,
+    "missing_commitments": []
+  },
+  "signals": {
+    "high_risk_entailed": true,
+    "annex_iii_1a_entailed": true,
+    "has_assessment_documentation": true,
+    "has_any_capability_signal": true
+  },
+  "checks": {
+    "shacl": true,
+    "shacl_violation_count": 0,
+    "traceability": true,
+    "entailment": true,
+    "latent_risk": true
+  },
+  "pipeline_integrity_passed": true,
+  "all_checks_passed": true,
+  "evidence_paths": [
+    {
+      "system": "Sentinel_ID_System",
+      "component": "Sentinel_FaceID_Module",
+      "disposition": "Sentinel_FaceID_Disposition"
+    }
+  ],
+  "evidence_path_predicates": {
+    "has_part": "http://purl.obolibrary.org/obo/BFO_0000051",
+    "has_disposition": "http://purl.obolibrary.org/obo/RO_0000091"
+  },
+  "human_explanation": {
+    "overview": "This artifact records a deterministic ARCO determination over the provided ontology and instance graph.",
+    "determination": "Regulatory applicability is derivable from asserted commitments. The required gate chain is structurally present in the reasoned graph.",
+    "gates": [
+      "Gate 1 (biometric capability commitment): satisfied.",
+      "Gate 2 (intended-use specification): satisfied.",
+      "Gate 3 (use-scenario specification): satisfied."
+    ],
+    "checks": "SHACL validates structural documentation constraints; traceability verifies required audit links; entailment verifies whether HighRiskSystem is derivable from asserted structure."
+  }
+}
