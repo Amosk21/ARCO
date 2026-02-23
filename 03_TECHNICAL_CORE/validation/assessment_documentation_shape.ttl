@@ -17,71 +17,149 @@
 # components and dispositions. Risk classification is handled by
 # OWL entailment + SPARQL audit queries.
 
+# ============================================================
+# Named property shapes — stable IRIs for audit-traceable reports
+# ============================================================
+
+:PS_AssessmentDoc_IsAbout
+  a sh:PropertyShape ;
+  sh:path iao:0000136 ;
+  sh:minCount 1 ;
+  sh:message "AssessmentDocumentation must be about at least one thing." .
+
+:PS_AssessmentDocProcess_HasParticipant
+  a sh:PropertyShape ;
+  sh:path ro:0000057 ;
+  sh:minCount 1 ;
+  sh:message "AssessmentDocumentationProcess must have at least one participant." .
+
+:PS_AssessmentDocProcess_HasOutput
+  a sh:PropertyShape ;
+  sh:path cco:has_output ;
+  sh:minCount 1 ;
+  sh:message "AssessmentDocumentationProcess must have at least one output." .
+
+:PS_ProviderRole_InheresIn
+  a sh:PropertyShape ;
+  sh:path ro:0000052 ;
+  sh:minCount 1 ;
+  sh:maxCount 1 ;
+  sh:message "ProviderRole must inhere in exactly one entity." .
+
+:PS_System_HasPart
+  a sh:PropertyShape ;
+  sh:path bfo:0000051 ;
+  sh:minCount 1 ;
+  sh:message "System must have at least one component (SystemComponent)." .
+
+:PS_HardwareComponent_HasDisposition
+  a sh:PropertyShape ;
+  sh:path ro:0000091 ;
+  sh:minCount 1 ;
+  sh:message "HardwareComponent must have at least one disposition (capability)." .
+
+:PS_ComplianceDetermination_IsAbout
+  a sh:PropertyShape ;
+  sh:path iao:0000136 ;
+  sh:minCount 1 ;
+  sh:message "ComplianceDetermination must be about at least one thing." .
+
+:PS_IntendedUse_PrescribesProcess
+  a sh:PropertyShape ;
+  sh:path cco:prescribes ;
+  sh:qualifiedValueShape [
+    sh:property [
+      sh:path rdfs:subClassOf ;
+      sh:hasValue bfo:0000015
+    ]
+  ] ;
+  sh:qualifiedMinCount 1 ;
+  sh:message "IntendedUseSpecification must prescribe at least one Process subclass." .
+
+:PS_IntendedUse_IsAboutSystem
+  a sh:PropertyShape ;
+  sh:path iao:0000136 ;
+  sh:qualifiedValueShape [ sh:class :System ] ;
+  sh:qualifiedMinCount 1 ;
+  sh:message "IntendedUseSpecification must be about at least one System." .
+
+:PS_UseScenario_IsAboutSystem
+  a sh:PropertyShape ;
+  sh:path iao:0000136 ;
+  sh:qualifiedValueShape [ sh:class :System ] ;
+  sh:qualifiedMinCount 1 ;
+  sh:message "UseScenarioSpecification must be about at least one System." .
+
+:PS_UseScenario_IsAboutRole
+  a sh:PropertyShape ;
+  sh:path iao:0000136 ;
+  sh:qualifiedValueShape [
+    sh:property [
+      sh:path rdfs:subClassOf ;
+      sh:hasValue bfo:0000023
+    ]
+  ] ;
+  sh:qualifiedMinCount 1 ;
+  sh:message "UseScenarioSpecification must be about at least one Role subclass (affected entity)." .
+
+:PS_ObligationSpec_IsAbout
+  a sh:PropertyShape ;
+  sh:path iao:0000136 ;
+  sh:minCount 2 ;
+  sh:message "ComplianceObligationSpecification must be about at least a system and a responsible role." .
+
+# ============================================================
+# Node shapes
+# ============================================================
+
 # --- Assessment layer ---
 
 :AssessmentDocumentationShape
   a sh:NodeShape ;
+  sh:name "Assessment Documentation Completeness" ;
+  sh:description "Enforces that every AssessmentDocumentation is anchored via iao:is_about to at least one subject, confirming no unmoored documentation records exist." ;
   sh:targetClass :AssessmentDocumentation ;
-  sh:property [
-    sh:path iao:0000136 ;
-    sh:minCount 1 ;
-    sh:message "AssessmentDocumentation must be about at least one thing." ;
-  ] .
+  sh:property :PS_AssessmentDoc_IsAbout .
 
 :AssessmentDocumentationProcessShape
   a sh:NodeShape ;
+  sh:name "Assessment Documentation Process Completeness" ;
+  sh:description "Enforces that every AssessmentDocumentationProcess has at least one participant and produces at least one output, preserving process provenance for audit." ;
   sh:targetClass :AssessmentDocumentationProcess ;
-  sh:property [
-    sh:path ro:0000057 ;
-    sh:minCount 1 ;
-    sh:message "AssessmentDocumentationProcess must have at least one participant." ;
-  ] ;
-  sh:property [
-    sh:path cco:has_output ;
-    sh:minCount 1 ;
-    sh:message "AssessmentDocumentationProcess must have at least one output." ;
-  ] .
+  sh:property :PS_AssessmentDocProcess_HasParticipant ;
+  sh:property :PS_AssessmentDocProcess_HasOutput .
 
 # --- Roles and system structure ---
 
 :ProviderRoleShape
   a sh:NodeShape ;
+  sh:name "Provider Role Inherence" ;
+  sh:description "Enforces that a ProviderRole inheres in exactly one entity, satisfying BFO role-bearer uniqueness and enabling unambiguous provider attribution." ;
   sh:targetClass :ProviderRole ;
-  sh:property [
-    sh:path ro:0000052 ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:message "ProviderRole must inhere in exactly one entity." ;
-  ] .
+  sh:property :PS_ProviderRole_InheresIn .
 
 :SystemShape
   a sh:NodeShape ;
+  sh:name "System Structural Completeness" ;
+  sh:description "Enforces that every System has at least one part via bfo:has_part, confirming the system is not an empty structural declaration." ;
   sh:targetClass :System ;
-  sh:property [
-    sh:path bfo:0000051 ;
-    sh:minCount 1 ;
-    sh:message "System must have at least one component (SystemComponent)." ;
-  ] .
+  sh:property :PS_System_HasPart .
 
 :HardwareComponentShape
   a sh:NodeShape ;
+  sh:name "Hardware Component Capability Presence" ;
+  sh:description "Enforces that every HardwareComponent bears at least one disposition, which is the structural prerequisite for any capability-based Annex III classification trigger." ;
   sh:targetClass :HardwareComponent ;
-  sh:property [
-    sh:path ro:0000091 ;
-    sh:minCount 1 ;
-    sh:message "HardwareComponent must have at least one disposition (capability)." ;
-  ] .
+  sh:property :PS_HardwareComponent_HasDisposition .
 
 # --- Compliance determination ---
 
 :ComplianceDeterminationShape
   a sh:NodeShape ;
+  sh:name "Compliance Determination Subject" ;
+  sh:description "Enforces that every ComplianceDetermination is about at least one thing, ensuring no unanchored determination records are produced by the pipeline." ;
   sh:targetClass :ComplianceDetermination ;
-  sh:property [
-    sh:path iao:0000136 ;
-    sh:minCount 1 ;
-    sh:message "ComplianceDetermination must be about at least one thing." ;
-  ] .
+  sh:property :PS_ComplianceDetermination_IsAbout .
 
 # --- Directive ICE shapes (qualified) ---
 #
@@ -91,61 +169,25 @@
 
 :IntendedUseSpecificationShape
   a sh:NodeShape ;
+  sh:name "Intended Use Specification Completeness" ;
+  sh:description "Enforces that an IntendedUseSpecification prescribes a Process subclass and is about a System, satisfying the intended-use gate in EU AI Act Annex III classification." ;
   sh:targetClass :IntendedUseSpecification ;
-
-  # prescribes target must be a Process subclass
-  sh:property [
-    sh:path cco:prescribes ;
-    sh:qualifiedValueShape [
-      sh:property [
-        sh:path rdfs:subClassOf ;
-        sh:hasValue bfo:0000015
-      ]
-    ] ;
-    sh:qualifiedMinCount 1 ;
-    sh:message "IntendedUseSpecification must prescribe at least one Process subclass." ;
-  ] ;
-
-  # is_about target must include a System
-  sh:property [
-    sh:path iao:0000136 ;
-    sh:qualifiedValueShape [ sh:class :System ] ;
-    sh:qualifiedMinCount 1 ;
-    sh:message "IntendedUseSpecification must be about at least one System." ;
-  ] .
+  sh:property :PS_IntendedUse_PrescribesProcess ;
+  sh:property :PS_IntendedUse_IsAboutSystem .
 
 :UseScenarioSpecificationShape
   a sh:NodeShape ;
+  sh:name "Use Scenario Specification Completeness" ;
+  sh:description "Enforces that a UseScenarioSpecification is about both a System and a Role subclass, capturing the deployment context required for scenario-based Annex III classification." ;
   sh:targetClass :UseScenarioSpecification ;
-
-  # must be about a System
-  sh:property [
-    sh:path iao:0000136 ;
-    sh:qualifiedValueShape [ sh:class :System ] ;
-    sh:qualifiedMinCount 1 ;
-    sh:message "UseScenarioSpecification must be about at least one System." ;
-  ] ;
-
-  # must be about a Role subclass (the affected entity category)
-  sh:property [
-    sh:path iao:0000136 ;
-    sh:qualifiedValueShape [
-      sh:property [
-        sh:path rdfs:subClassOf ;
-        sh:hasValue bfo:0000023
-      ]
-    ] ;
-    sh:qualifiedMinCount 1 ;
-    sh:message "UseScenarioSpecification must be about at least one Role subclass (affected entity)." ;
-  ] .
+  sh:property :PS_UseScenario_IsAboutSystem ;
+  sh:property :PS_UseScenario_IsAboutRole .
 
 # --- Obligation ---
 
 :ComplianceObligationSpecificationShape
   a sh:NodeShape ;
+  sh:name "Compliance Obligation Specification Coverage" ;
+  sh:description "Enforces that a ComplianceObligationSpecification is about at least two things (minimally a system and a responsible role), ensuring obligations are never issued without both subject and accountable party." ;
   sh:targetClass :ComplianceObligationSpecification ;
-  sh:property [
-    sh:path iao:0000136 ;
-    sh:minCount 2 ;
-    sh:message "ComplianceObligationSpecification must be about at least a system and a responsible role." ;
-  ] .
+  sh:property :PS_ObligationSpec_IsAbout .
