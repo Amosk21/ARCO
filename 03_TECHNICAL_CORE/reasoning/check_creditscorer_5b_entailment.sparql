@@ -1,0 +1,27 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#################################################################
+# check_creditscorer_5b_entailment.sparql
+#
+# PURPOSE: Confirm Annex III 5(b) applicability is entailed for
+#          CreditScorer_001 after OWL-RL reasoning.
+#
+# EXPECTED RESULT: TRUE (entailed)
+#
+# INFERENCE CHAIN:
+#   1. CreditScorer_001 rdf:type :System
+#   2. CreditScorer_001 bfo:0000051 CreditScorer_Processing_Module
+#   3. CreditScorer_Processing_Module ro:0000091 CreditScorer_Eval_Disposition
+#   4. CreditScorer_Eval_Disposition rdf:type :CreditworthinessEvaluationCapability
+#   5. CreditworthinessEvaluationCapability subClassOf AnnexIIITriggeringCapability (via union)
+#   6. CreditScorer_IntendedUse_001 iao:0000136 CreditScorer_001 (Gate 2)
+#   7. CreditScorer_UseScenario_001 iao:0000136 CreditScorer_001 (Gate 3)
+#   8. AnnexIII5bApplicableSystem equivalentClass three-gate intersectionOf
+#   => CreditScorer_001 rdf:type AnnexIII5bApplicableSystem (INFERRED)
+#   => CreditScorer_001 rdf:type HighRiskSystem (INFERRED via AnnexIIITriggeringCapability)
+#################################################################
+
+ASK WHERE {
+  :CreditScorer_001 rdf:type :AnnexIII5bApplicableSystem .
+}

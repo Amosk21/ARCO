@@ -42,10 +42,28 @@ Reads: "directive artifact about the system that prescribes a remote biometric i
 Three-gate: capability (reality) + intended use (process prescribed) + scenario (who affected).
 
 ### Regulatory Provisions
-Annex III conditions are ICE instances. `iao:0000136` references ALL regulated universals — capability, process type, affected role. Interoperable across systems.
+Annex III conditions are `RegulatoryContent ⊑ cco:DirectiveInformationContentEntity` instances.
+- `cco:prescribes` the regulated process type (DirectiveICE → Process — the Three D's pattern)
+- `iao:0000136` references ALL regulated universals — capability, process type, affected role (traceability/audit)
+- Both relations co-exist on the same instance; `cco:prescribes` is the stronger, semantically precise link
+
+### ICE Typing (Three D's)
+- **Directive ICE** (`cco:DirectiveInformationContentEntity`): `RegulatoryContent`, `IntendedUseSpecification`, `UseScenarioSpecification`, `ComplianceObligationSpecification` — prescribe behavior
+- **Descriptive ICE** (`cco:DescriptiveInformationContentEntity`): `InformationOutput` (incl. `AssessmentDocumentation`), `ComplianceDetermination` — report states of affairs
 
 ### Classification Determination
-`HighRiskDetermination` ⊑ `ComplianceDetermination` (ICE). Is_about system AND Annex III condition. Output of process (`cco:has_output`).
+`HighRiskDetermination` ⊑ `ComplianceDetermination` ⊑ `DescriptiveInformationContentEntity`. Is_about system AND Annex III condition. Output of process (`cco:has_output`).
+
+### Adding a New Annex III Category
+Use the three-gate pattern:
+1. Add `XCapability ⊑ CapabilityDisposition` to `ARCO_core.ttl`
+2. Extend `AnnexIIITriggeringCapability` union in `ARCO_core.ttl` (add new capability)
+3. Add `XProcess ⊑ bfo:0000015` to `ARCO_governance_extension.ttl`
+4. Add `AnnexIIIXApplicableSystem` with three-gate equivalentClass to `ARCO_governance_extension.ttl`
+5. Add instances file `ARCO_instances_X.ttl` with full SHACL-compliant structure
+6. Add `AnnexIII_Condition_X` regulatory content instance with `cco:prescribes` + `iao:0000136`
+7. Add SPARQL entailment check + cross-category non-entailment checks
+8. Update pipeline to load new instances and run new checks
 
 ### Component-Level Disposition Tracing
 System (ObjectAggregate) `has_part` SystemComponent. SystemComponent `has_disposition` CapabilityDisposition. Traces regulatory exposure to the component bearing the capability.
@@ -53,7 +71,7 @@ System (ObjectAggregate) `has_part` SystemComponent. SystemComponent `has_dispos
 ## What NOT To Do
 
 - Do not rewrite HighRiskSystem equivalentClass axiom (keep capability-based = latent risk)
-- Do not model all 8 Annex III categories — biometrics only
+- Do not model all 8 Annex III categories at once — extend one category at a time, pipeline must pass after each
 - Do not create separate files per Annex III item
 - Do not add CCO as full import — local stubs with proper OWL typing
 - Do not refactor directory structure

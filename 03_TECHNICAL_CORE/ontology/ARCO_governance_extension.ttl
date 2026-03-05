@@ -166,6 +166,11 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment "1:1 biometric verification process. Confirms a claimed identity against a single reference. NOT RemoteBiometricIdentificationProcess. NOT regulated under Annex III 1(a)." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
+:CreditworthinessEvaluationProcess rdf:type owl:Class ;
+  rdfs:label "Creditworthiness Evaluation Process" ;
+  rdfs:comment "Process of evaluating the creditworthiness of natural persons for access to financial or public services. Regulated under Annex III 5(b)." ;
+  rdfs:subClassOf bfo:0000015 . # Process
+
 :NaturalPersonRole rdf:type owl:Class ;
   rdfs:label "Natural Person Role" ;
   rdfs:comment "Legal designation under EU law. Not a biological kind — modeled as a BFO Role." ;
@@ -253,6 +258,56 @@ cco:Organization rdf:type owl:Class ;
             [ rdf:type owl:Restriction ;
               owl:onProperty ro:0000091 ;            # has_disposition
               owl:someValuesFrom :BiometricIdentificationCapability
+            ]
+          )
+        ]
+      ]
+
+      # Gate 2 (representation-side): intended use spec exists about this system
+      [ rdf:type owl:Restriction ;
+        owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
+        owl:someValuesFrom :IntendedUseSpecification
+      ]
+
+      # Gate 3 (representation-side): scenario spec exists about this system
+      [ rdf:type owl:Restriction ;
+        owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
+        owl:someValuesFrom :UseScenarioSpecification
+      ]
+    )
+  ] .
+
+#################################################################
+# 6) ANNEX III 5(b) ENTAILMENT CLASS
+#
+# Same three-gate pattern as AnnexIII1aApplicableSystem.
+# Gate 1 (reality-side): CreditworthinessEvaluationCapability in component
+# Gate 2 (representation-side): IntendedUseSpecification about this system
+# Gate 3 (representation-side): UseScenarioSpecification about this system
+#
+# Validates that the three-gate schema generalizes to a second,
+# genuinely distinct Annex III category (creditworthiness != biometrics).
+#################################################################
+
+:AnnexIII5bApplicableSystem rdf:type owl:Class ;
+  rdfs:label "Annex III 5(b) Applicable System" ;
+  rdfs:comment "System meeting Annex III 5(b) conditions: creditworthiness evaluation capability + intended use + affected natural persons. Classification is OWL-entailed under owlrl. Conservative claim: demonstrates category extension for creditworthiness evaluation; does not model all 5(b) nuances (e.g., micro-enterprise exclusions)." ;
+  rdfs:subClassOf :System ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :System
+
+      # Gate 1 (reality-side): creditworthiness evaluation capability via component
+      [ rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000051 ;                 # has_part
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :SystemComponent
+            [ rdf:type owl:Restriction ;
+              owl:onProperty ro:0000091 ;            # has_disposition
+              owl:someValuesFrom :CreditworthinessEvaluationCapability
             ]
           )
         ]

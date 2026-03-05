@@ -1,0 +1,102 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances/creditscoring> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Credit Scoring Instances — Annex III 5(b)" ;
+  rdfs:comment "Demonstrates Annex III 5(b) classification for a creditworthiness evaluation system. Uses the same three-gate schema as Annex III 1(a). Conservative scope: demonstrates category extension; does not model all 5(b) legal nuances. Cross-category non-entailment: CreditScorer_001 is NOT entailed as AnnexIII1aApplicableSystem (no biometric capability); Sentinel_ID_System is NOT entailed as AnnexIII5bApplicableSystem (no creditworthiness capability). All non-entailment claims are OWA." ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# 1) REGULATORY LAYER — Annex III 5(b)
+#################################################################
+
+:AnnexIII_Condition_5b rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III 5(b) (Creditworthiness Rule)" ;
+  rdfs:comment "Annex III item 5(b): AI systems intended to be used to evaluate the creditworthiness of natural persons or establish their credit score." ;
+  cco:prescribes :CreditworthinessEvaluationProcess ;
+  iao:0000136 :CreditworthinessEvaluationCapability ;
+  iao:0000136 :CreditworthinessEvaluationProcess ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
+# 2) SYSTEM LAYER
+#################################################################
+
+:CreditScorer_Processing_Module rdf:type :HardwareComponent ;
+  rdfs:label "Credit Scorer Processing Module" ;
+  rdfs:comment "Hardware component bearing creditworthiness evaluation capability." ;
+  ro:0000091 :CreditScorer_Eval_Disposition .
+
+:CreditScorer_001 rdf:type :System ;
+  rdfs:label "Credit Scorer 001" ;
+  rdfs:comment "AI system that evaluates creditworthiness of natural persons for access to financial services. No biometric identification capability — does NOT trigger Annex III 1(a)." ;
+  bfo:0000051 :CreditScorer_Processing_Module .
+
+:CreditScorer_Eval_Disposition rdf:type :CreditworthinessEvaluationCapability ;
+  rdfs:label "Credit Scorer Evaluation Disposition" .
+
+#################################################################
+# 2b) INTENDED USE + USE SCENARIO
+#################################################################
+
+:CreditScorer_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "Credit Scorer Intended Use: Creditworthiness Evaluation" ;
+  cco:prescribes :CreditworthinessEvaluationProcess ;
+  iao:0000136 :CreditScorer_001 ;
+  iao:0000136 :CreditworthinessEvaluationProcess .
+
+:CreditScorer_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "Credit Scorer Use Scenario: Natural Person Applicants" ;
+  iao:0000136 :CreditScorer_001 ;
+  iao:0000136 :CreditworthinessEvaluationProcess ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
+# 3) COMPLIANCE DETERMINATION
+#################################################################
+
+:CreditScorer_Determination_001 rdf:type :HighRiskDetermination ;
+  rdfs:label "Credit Scorer High-Risk Determination (Annex III 5b)" ;
+  rdfs:comment "Documents the Annex III 5(b) classification. AnnexIII5bApplicableSystem and HighRiskSystem membership are INFERRED by the reasoner." ;
+  iao:0000136 :CreditScorer_001 ;
+  iao:0000136 :AnnexIII_Condition_5b .
+
+#################################################################
+# 4) PROVIDER + DOCUMENTATION WORKFLOW
+#################################################################
+
+:CreditScorerProviderOrg_001 rdf:type :ProviderOrganization ;
+  rdfs:label "Credit Scorer Provider Org (Example)" ;
+  ro:0000087 :CreditScorerProviderRole_001 .
+
+:CreditScorerProviderRole_001 rdf:type :ProviderRole ;
+  rdfs:label "Credit Scorer Provider Role" ;
+  ro:0000052 :CreditScorerProviderOrg_001 .
+
+:CreditScorerAssessmentDocProcess_001 rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Credit Scorer Assessment Documentation Process 001" ;
+  ro:0000057 :CreditScorer_001 ;
+  ro:0000057 :CreditScorerProviderOrg_001 ;
+  cco:has_output :CreditScorerAssessmentDoc_001 .
+
+:CreditScorerAssessmentDoc_001 rdf:type :AssessmentDocumentation ;
+  rdfs:label "Credit Scorer Assessment Documentation 001" ;
+  iao:0000136 :CreditScorer_001 ;
+  iao:0000136 :AnnexIII_Condition_5b .
+
+#################################################################
+# 5) COMPLIANCE OBLIGATION
+#################################################################
+
+:CreditScorerObligation_001 rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Provider Compliance Obligation for Credit Scorer" ;
+  rdfs:comment "Specifies that the provider has compliance obligations for CreditScorer_001 under Annex III 5(b)." ;
+  iao:0000136 :CreditScorer_001 ;
+  iao:0000136 :CreditScorerProviderRole_001 ;
+  iao:0000136 :AnnexIII_Condition_5b .

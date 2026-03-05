@@ -35,6 +35,7 @@ CORE = ONTOLOGY_DIR / "ARCO_core.ttl"
 GOV = ONTOLOGY_DIR / "ARCO_governance_extension.ttl"
 INSTANCES = ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"
 INSTANCES_VERIFICATION = ONTOLOGY_DIR / "ARCO_instances_verification.ttl"
+INSTANCES_CREDITSCORING = ONTOLOGY_DIR / "ARCO_instances_creditscoring.ttl"
 
 SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 
@@ -45,6 +46,9 @@ INTENDED_USE_QUERY = REASONING_DIR / "check_intended_use.sparql"
 ANNEX_III_1A_QUERY = REASONING_DIR / "check_annex_iii_1a_entailment.sparql"
 OBLIGATION_QUERY = REASONING_DIR / "check_obligation_link.sparql"
 VERIFICATION_NON_ENTAILMENT_QUERY = REASONING_DIR / "check_verification_non_entailment.sparql"
+CREDITSCORER_5B_QUERY = REASONING_DIR / "check_creditscorer_5b_entailment.sparql"
+CREDITSCORER_NON_1A_QUERY = REASONING_DIR / "check_creditscorer_non_1a.sparql"
+SENTINEL_NON_5B_QUERY = REASONING_DIR / "check_sentinel_non_5b.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -272,7 +276,7 @@ def main() -> None:
 
     sub("LOAD")
     print("Loading: core ontology + governance extension + instance data")
-    g_source = load_union_graph(CORE, GOV, INSTANCES, INSTANCES_VERIFICATION)
+    g_source = load_union_graph(CORE, GOV, INSTANCES, INSTANCES_VERIFICATION, INSTANCES_CREDITSCORING)
     print(f"Triples loaded (asserted): {len(g_source)}")
 
     # clone -> reason over the copy so we can compare pre vs post
@@ -318,6 +322,26 @@ def main() -> None:
         verification_neg_ok = not _verif_raw  # PASS when NOT entailed (result=False)
         print(f"AnnexIII1a NOT entailed for VerificationKiosk: {verification_neg_ok}")
 
+    creditscorer_5b_ok = None
+    if CREDITSCORER_5B_QUERY.exists():
+        print("\nCredit scorer Annex III 5(b) entailment...")
+        creditscorer_5b_ok = run_sparql_ask_from_file(g, CREDITSCORER_5B_QUERY)
+        print(f"AnnexIII5b entailed for CreditScorer: {creditscorer_5b_ok}")
+
+    creditscorer_non_1a_ok = None
+    if CREDITSCORER_NON_1A_QUERY.exists():
+        print("\nCredit scorer non-entailment for Annex III 1(a) (OWA)...")
+        _cs_1a_raw = run_sparql_ask_from_file(g, CREDITSCORER_NON_1A_QUERY)
+        creditscorer_non_1a_ok = not _cs_1a_raw
+        print(f"AnnexIII1a NOT entailed for CreditScorer: {creditscorer_non_1a_ok}")
+
+    sentinel_non_5b_ok = None
+    if SENTINEL_NON_5B_QUERY.exists():
+        print("\nSentinel non-entailment for Annex III 5(b) (OWA)...")
+        _sent_5b_raw = run_sparql_ask_from_file(g, SENTINEL_NON_5B_QUERY)
+        sentinel_non_5b_ok = not _sent_5b_raw
+        print(f"AnnexIII5b NOT entailed for Sentinel: {sentinel_non_5b_ok}")
+
     inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
     # ---------------------------------------------------------------
@@ -336,6 +360,12 @@ def main() -> None:
         print(f"Obligation:    {_pf(obligation_ok)}")
     if verification_neg_ok is not None:
         print(f"Verif. excl.:  {_pf(verification_neg_ok)}  (1:1 NOT entailed as Annex III 1a — OWA)")
+    if creditscorer_5b_ok is not None:
+        print(f"5b entailment: {_pf(creditscorer_5b_ok)}  (CreditScorer entailed as Annex III 5b)")
+    if creditscorer_non_1a_ok is not None:
+        print(f"CS non-1a:     {_pf(creditscorer_non_1a_ok)}  (CreditScorer NOT entailed as 1a — OWA)")
+    if sentinel_non_5b_ok is not None:
+        print(f"Sent. non-5b:  {_pf(sentinel_non_5b_ok)}  (Sentinel NOT entailed as 5b — OWA)")
     print(f"Entailment:    {_pf(inference_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
@@ -350,6 +380,12 @@ def main() -> None:
         all_pass = all_pass and obligation_ok
     if verification_neg_ok is not None:
         all_pass = all_pass and verification_neg_ok
+    if creditscorer_5b_ok is not None:
+        all_pass = all_pass and creditscorer_5b_ok
+    if creditscorer_non_1a_ok is not None:
+        all_pass = all_pass and creditscorer_non_1a_ok
+    if sentinel_non_5b_ok is not None:
+        all_pass = all_pass and sentinel_non_5b_ok
 
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
 
@@ -435,6 +471,12 @@ def main() -> None:
         cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
     if verification_neg_ok is not None:
         cert_lines.append(f"  VERIF EXCLUSION (OWA):   {_pf(verification_neg_ok)}")
+    if creditscorer_5b_ok is not None:
+        cert_lines.append(f"  ANNEX III 5(b):          {'VERIFIED (ENTAILED)' if creditscorer_5b_ok else 'NOT VERIFIED'}")
+    if creditscorer_non_1a_ok is not None:
+        cert_lines.append(f"  CS NON-1A (OWA):         {_pf(creditscorer_non_1a_ok)}")
+    if sentinel_non_5b_ok is not None:
+        cert_lines.append(f"  SENTINEL NON-5B (OWA):   {_pf(sentinel_non_5b_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     cert_lines.append("=" * 72)
     (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
@@ -451,6 +493,9 @@ def main() -> None:
         "annex_iii_1a": (_pf(annex_iii_1a_ok) if annex_iii_1a_ok is not None else "N/A"),
         "obligation": (_pf(obligation_ok) if obligation_ok is not None else "N/A"),
         "verification_exclusion_owa": (_pf(verification_neg_ok) if verification_neg_ok is not None else "N/A"),
+        "annex_iii_5b": (_pf(creditscorer_5b_ok) if creditscorer_5b_ok is not None else "N/A"),
+        "creditscorer_non_1a_owa": (_pf(creditscorer_non_1a_ok) if creditscorer_non_1a_ok is not None else "N/A"),
+        "sentinel_non_5b_owa": (_pf(sentinel_non_5b_ok) if sentinel_non_5b_ok is not None else "N/A"),
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,
         "all_checks_passed": all_pass,

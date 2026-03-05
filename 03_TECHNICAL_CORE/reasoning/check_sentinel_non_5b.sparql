@@ -1,0 +1,24 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#################################################################
+# check_sentinel_non_5b.sparql
+#
+# PURPOSE: Confirm AnnexIII5bApplicableSystem is NOT entailed for
+#          Sentinel_ID_System under current assertions.
+#
+# EXPECTED RESULT: FALSE (not entailed)
+# Pipeline interpretation: (not result) == True => PASS
+#
+# WHY NOT ENTAILED (OWA):
+#   Gate 1 of AnnexIII5bApplicableSystem requires CreditworthinessEvaluationCapability.
+#   Sentinel_ID_System bears BiometricIdentificationCapability only.
+#   No CreditworthinessEvaluationCapability present => Gate 1 fails => NOT entailed.
+#
+# NOTE: Sentinel_ID_System IS entailed as AnnexIII1aApplicableSystem and HighRiskSystem.
+# This non-entailment check demonstrates category separation under OWA.
+#################################################################
+
+ASK WHERE {
+  :Sentinel_ID_System rdf:type :AnnexIII5bApplicableSystem .
+}

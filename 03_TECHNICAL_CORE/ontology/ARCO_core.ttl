@@ -115,12 +115,17 @@
 # CRITICAL: Uses ro:0000091 (has_disposition) to match instance data
 #################################################################
 
+:CreditworthinessEvaluationCapability rdf:type owl:Class ;
+  rdfs:label "Creditworthiness Evaluation Capability" ;
+  rdfs:comment "Capability to evaluate creditworthiness of natural persons for access to financial or public services. Triggers Annex III 5(b). NOT a BiometricIdentificationCapability." ;
+  rdfs:subClassOf :CapabilityDisposition .
+
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
   rdfs:label "Annex III Triggering Capability" ;
-  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Extend the union to add new triggering capabilities." ;
+  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Extended as new Annex III categories are modeled." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
-    owl:unionOf ( :BiometricIdentificationCapability )
+    owl:unionOf ( :BiometricIdentificationCapability :CreditworthinessEvaluationCapability )
   ] .
 
 :HighRiskSystem rdf:type owl:Class ;

@@ -1,0 +1,24 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#################################################################
+# check_creditscorer_non_1a.sparql
+#
+# PURPOSE: Confirm AnnexIII1aApplicableSystem is NOT entailed for
+#          CreditScorer_001 under current assertions.
+#
+# EXPECTED RESULT: FALSE (not entailed)
+# Pipeline interpretation: (not result) == True => PASS
+#
+# WHY NOT ENTAILED (OWA):
+#   Gate 1 of AnnexIII1aApplicableSystem requires BiometricIdentificationCapability.
+#   CreditScorer_001 bears CreditworthinessEvaluationCapability only.
+#   No BiometricIdentificationCapability present => Gate 1 fails => NOT entailed.
+#
+# NOTE: CreditScorer_001 IS entailed as AnnexIII5bApplicableSystem and HighRiskSystem.
+# This non-entailment check demonstrates category separation under OWA.
+#################################################################
+
+ASK WHERE {
+  :CreditScorer_001 rdf:type :AnnexIII1aApplicableSystem .
+}
