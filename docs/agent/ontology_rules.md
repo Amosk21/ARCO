@@ -1,5 +1,26 @@
 # Ontology Rules
 
+## Evaluating Any Addition — Three Standards
+
+Before adding any class, relation, axiom, instance, or SPARQL query, evaluate against all three:
+
+### 1. Upper Ontology Compliance
+- Every class must trace to BFO 2020. Every relation must use BFO/RO/IAO/CCO IRIs. No invented properties.
+- The test: would Barry Smith or John Beverley find this principled? Can the modeling decision be backed by a specific BFO/CCO paper, definition, or formal commitment? If the answer is "I think so" rather than "yes, because [citation/principle]," revisit the decision.
+- When in doubt, use a more general existing class rather than creating a new subclass. Specificity must be earned by a genuine ontological distinction, not convenience.
+
+### 2. Genuine Reasoning vs. Pattern Matching
+- An inference earns its place only if removing its enabling axiom causes the reasoner to stop drawing the conclusion. Run the negative test: if the conclusion still holds after removing the axiom, the axiom is not doing reasoning work.
+- Equivalence axioms (`owl:equivalentClass`) do real reasoning. `rdfs:subClassOf` with a single named superclass and no further restrictions does not — it is taxonomy, not inference.
+- If the same pipeline output can be produced by adding a direct `rdf:type` assertion to the instance, the axiom chain is not reasoning — it is documented guessing.
+
+### 3. Business-Owner Traceability
+- Every addition must connect to a person who built an AI system and needs a compliance determination under the EU AI Act (or future legislation).
+- The test: "This addition tells the business owner [X], because [Y], and without it they would be stuck at [Z]." If you cannot complete that sentence concretely, the addition is not ready.
+- Ontological correctness alone is not sufficient justification. A correctly typed class that produces no query result, inference, or certificate content visible to the user adds ontological overhead without value. Build the output first or remove the addition.
+
+---
+
 ## Hard Constraints (NEVER violate)
 
 1. **BFO/CCO Maximal Alignment**: Every class traces to BFO 2020. Every relation uses BFO or RO IRIs. No invented object properties. New domain classes must be proper subclasses of existing BFO/CCO classes with explicit justification. Reuse CCO IRIs locally with proper OWL typing (`owl:Class`, `owl:ObjectProperty`).

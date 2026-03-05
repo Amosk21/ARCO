@@ -53,6 +53,16 @@ Run after every change. Must print "ALL CHECKS PASSED" and exit 0.
 ### Pipeline Flow
 Load TTL → OWL-RL → SHACL → SPARQL ASK → certificate → `runs/demo/`
 
+## Design Standards
+
+Every addition must satisfy all three before it enters the pipeline:
+
+1. **Upper ontology compliance** — Every class, relation, and axiom must be defensible against BFO/CCO/RO/IAO literature. If Barry Smith or John Beverley reviewed the modeling decision, they should find it principled and non-arbitrary. No custom properties when a standard one exists. Non-obvious decisions require a comment citing the justification.
+
+2. **Genuine reasoning, not pattern matching** — An inference is only real if removing the enabling axiom causes the reasoner to stop drawing the conclusion. If the same output can be achieved by hardcoding the answer in instance data, it is not reasoning — it is lookup. Every addition must be tested: what does the reasoner infer, what does it not infer, and why is that the correct logical consequence?
+
+3. **Business-owner traceability** — Every addition must connect to a person who built an AI system and needs a compliance determination. If you cannot state "this tells the business owner X, because Y, and without it they would be stuck at Z" — it does not belong in the pipeline. Ontological correctness is necessary but not sufficient.
+
 ## Execution Rules
 
 - Use Architectural Memory before reading files. Do not re-derive architecture. Do NOT read TTL files to answer conceptual questions — use the Architectural Memory. Only read TTL files when editing them or verifying exact syntax, unless instructed for an extensive or full review.
@@ -65,6 +75,6 @@ Load TTL → OWL-RL → SHACL → SPARQL ASK → certificate → `runs/demo/`
 
 | File | Read when... |
 |------|-------------|
-| `docs/agent/ontology_rules.md` | Editing TTL, adding classes/relations, modeling new concepts |
+| `docs/agent/ontology_rules.md` | Editing TTL, adding classes/relations, modeling new concepts, or evaluating whether any addition is justified |
 | `docs/agent/coding_rules.md` | Modifying pipeline, scripts, CI, repo structure |
 | `docs/agent/eu_ai_act_rules.md` | Working on Annex III, Article 6, classification logic |
