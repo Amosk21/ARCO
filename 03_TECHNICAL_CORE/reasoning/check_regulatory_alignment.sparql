@@ -1,0 +1,25 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+
+# Regulatory alignment check (auditor traceability).
+#
+# Confirms that the process type the regulatory condition prescribes
+# is the same process type the provider's intended use specification prescribes.
+#
+# This is the KPMG-style documentation alignment check:
+# "Does your declared intended use reference the same regulated activity
+# that the law actually regulates?"
+#
+# Without this, the pipeline only confirms documentation exists —
+# not that it is aligned with the specific regulatory obligation.
+
+ASK WHERE {
+  # What the law prescribes
+  :AnnexIII_Condition_Q1 cco:prescribes ?processType .
+
+  # What the provider's documentation prescribes for this system
+  ?ius a :IntendedUseSpecification ;
+    cco:prescribes ?processType ;
+    iao:0000136 :Sentinel_ID_System .
+}

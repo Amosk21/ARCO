@@ -43,6 +43,7 @@ HIGH_RISK_INFERENCE_QUERY = REASONING_DIR / "check_high_risk_inference.sparql"
 INTENDED_USE_QUERY = REASONING_DIR / "check_intended_use.sparql"
 ANNEX_III_1A_QUERY = REASONING_DIR / "check_annex_iii_1a_entailment.sparql"
 OBLIGATION_QUERY = REASONING_DIR / "check_obligation_link.sparql"
+REGULATORY_ALIGNMENT_QUERY = REASONING_DIR / "check_regulatory_alignment.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -309,6 +310,12 @@ def main() -> None:
         obligation_ok = run_sparql_ask_from_file(g, OBLIGATION_QUERY)
         print(f"Obligation linked: {obligation_ok}")
 
+    reg_alignment_ok = None
+    if REGULATORY_ALIGNMENT_QUERY.exists():
+        print("\nRegulatory alignment (law prescribes == intended use prescribes)...")
+        reg_alignment_ok = run_sparql_ask_from_file(g, REGULATORY_ALIGNMENT_QUERY)
+        print(f"Regulatory aligned: {reg_alignment_ok}")
+
     inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
     # ---------------------------------------------------------------
@@ -325,6 +332,8 @@ def main() -> None:
         print(f"Annex III 1a:  {_pf(annex_iii_1a_ok)}")
     if obligation_ok is not None:
         print(f"Obligation:    {_pf(obligation_ok)}")
+    if reg_alignment_ok is not None:
+        print(f"Reg. aligned:  {_pf(reg_alignment_ok)}")
     print(f"Entailment:    {_pf(inference_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
@@ -337,6 +346,8 @@ def main() -> None:
         all_pass = all_pass and annex_iii_1a_ok
     if obligation_ok is not None:
         all_pass = all_pass and obligation_ok
+    if reg_alignment_ok is not None:
+        all_pass = all_pass and reg_alignment_ok
 
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
 

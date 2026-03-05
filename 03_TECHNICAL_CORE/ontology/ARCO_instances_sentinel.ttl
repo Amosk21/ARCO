@@ -22,8 +22,9 @@
 
 :AnnexIII_Condition_Q1 rdf:type :RegulatoryContent ;
   rdfs:label "Annex III Q1 (Biometric Rule)" ;
+  cco:prescribes :RemoteBiometricIdentificationProcess ;      # directive: prescribes the regulated process type (Three D's — DirectiveICE → Process)
   iao:0000136 :BiometricIdentificationCapability ;            # is_about the capability universal
-  iao:0000136 :RemoteBiometricIdentificationProcess ;     # is_about the regulated process type
+  iao:0000136 :RemoteBiometricIdentificationProcess ;         # is_about the regulated process type
   iao:0000136 :NaturalPersonRole .                            # is_about the affected role
 
 #################################################################
