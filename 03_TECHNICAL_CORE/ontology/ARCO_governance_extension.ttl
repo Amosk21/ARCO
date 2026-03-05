@@ -90,9 +90,20 @@ cco:DirectiveInformationContentEntity rdf:type owl:Class ;
   rdfs:label "Directive Information Content Entity" ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
+cco:DescriptiveInformationContentEntity rdf:type owl:Class ;
+  rdfs:label "Descriptive Information Content Entity" ;
+  rdfs:comment "ICE that describes or reports states of affairs. Examples: compliance determinations, assessment documentation, operational outputs. Contrast with DirectiveInformationContentEntity (prescribes behavior)." ;
+  rdfs:subClassOf iao:0000030 . # Information Content Entity
+
+# Three D's subtyping — map existing ARCO ICE classes to directive/descriptive.
+# Added here (not in core.ttl) to keep CCO stubs in one place.
+:RegulatoryContent rdfs:subClassOf cco:DirectiveInformationContentEntity .
+:InformationOutput rdfs:subClassOf cco:DescriptiveInformationContentEntity .
+:ComplianceDetermination rdfs:subClassOf cco:DescriptiveInformationContentEntity .
+
 cco:prescribes rdf:type owl:ObjectProperty ;
   rdfs:label "prescribes" ;
-  rdfs:comment "A directive ICE prescribes an entity (process type or continuant) as rule or guide." .
+  rdfs:comment "A directive ICE prescribes a process type as a rule or guide. Domain: DirectiveInformationContentEntity. Range: Process (bfo:0000015 subclass)." .
 
 cco:has_output rdf:type owl:ObjectProperty ;
   rdfs:label "has output" .
@@ -147,7 +158,12 @@ cco:Organization rdf:type owl:Class ;
 
 :RemoteBiometricIdentificationProcess rdf:type owl:Class ;
   rdfs:label "Remote Biometric Identification Process" ;
-  rdfs:comment "The process universal regulated under Annex III 1(a): remote biometric identification of natural persons." ;
+  rdfs:comment "1:N biometric identification process regulated under Annex III 1(a). Distinct from BiometricVerificationProcess (1:1)." ;
+  rdfs:subClassOf bfo:0000015 . # Process
+
+:BiometricVerificationProcess rdf:type owl:Class ;
+  rdfs:label "Biometric Verification Process" ;
+  rdfs:comment "1:1 biometric verification process. Confirms a claimed identity against a single reference. NOT RemoteBiometricIdentificationProcess. NOT regulated under Annex III 1(a)." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
 :NaturalPersonRole rdf:type owl:Class ;

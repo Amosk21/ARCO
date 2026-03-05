@@ -1,0 +1,88 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances/verification> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Verification Kiosk Instances — Annex III 1(a) Exclusion" ;
+  rdfs:comment "Demonstrates that a system bearing BiometricVerificationCapability (1:1) does NOT trigger Annex III 1(a). BiometricVerificationCapability is NOT subClassOf BiometricIdentificationCapability and NOT in AnnexIIITriggeringCapability. Non-entailment is OWA: AnnexIII1aApplicableSystem is not entailed under current assertions." ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# 1) REGULATORY LAYER
+#################################################################
+
+:AnnexIII_Condition_Q1_Exclusion rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III 1(a) — Verification Exclusion Note" ;
+  rdfs:comment "Recital 22 and Art. 3(41): 1:1 biometric verification is excluded from Annex III 1(a). Only 1:N remote biometric identification triggers classification." ;
+  iao:0000136 :BiometricVerificationCapability ;
+  iao:0000136 :BiometricIdentificationCapability .
+
+#################################################################
+# 2) SYSTEM LAYER
+#################################################################
+
+:Kiosk_VeriComp_Module rdf:type :HardwareComponent ;
+  rdfs:label "Kiosk Biometric Verification Module" ;
+  rdfs:comment "Hardware component bearing 1:1 verification capability. NOT an identification module." ;
+  ro:0000091 :Kiosk_VeriComp_Disposition .
+
+:VerificationKiosk_001 rdf:type :System ;
+  rdfs:label "Verification Kiosk 001" ;
+  rdfs:comment "A 1:1 identity verification kiosk. Confirms claimed identities; does not identify unknown individuals from a population." ;
+  bfo:0000051 :Kiosk_VeriComp_Module .
+
+:Kiosk_VeriComp_Disposition rdf:type :BiometricVerificationCapability ;
+  rdfs:label "Kiosk Biometric Verification Disposition" .
+
+#################################################################
+# 2b) INTENDED USE + USE SCENARIO
+#################################################################
+
+:Kiosk_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "Kiosk Intended Use: Biometric Verification (1:1)" ;
+  cco:prescribes :BiometricVerificationProcess ;
+  iao:0000136 :VerificationKiosk_001 ;
+  iao:0000136 :BiometricVerificationProcess .
+
+:Kiosk_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "Kiosk Use Scenario: Verification of Natural Persons" ;
+  iao:0000136 :VerificationKiosk_001 ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
+# 3) COMPLIANCE DETERMINATION (descriptive ICE — not high-risk)
+#################################################################
+
+:Kiosk_Determination_001 rdf:type :ComplianceDetermination ;
+  rdfs:label "Kiosk Compliance Determination: NOT Annex III 1(a)" ;
+  rdfs:comment "Documents that AnnexIII1aApplicableSystem is not entailed for VerificationKiosk_001. Capability gate fails: BiometricVerificationCapability is not BiometricIdentificationCapability." ;
+  iao:0000136 :VerificationKiosk_001 ;
+  iao:0000136 :AnnexIII_Condition_Q1_Exclusion .
+
+#################################################################
+# 4) PROVIDER + DOCUMENTATION WORKFLOW
+#################################################################
+
+:KioskProviderOrg_001 rdf:type :ProviderOrganization ;
+  rdfs:label "Kiosk Provider Org (Example)" ;
+  ro:0000087 :KioskProviderRole_001 .
+
+:KioskProviderRole_001 rdf:type :ProviderRole ;
+  rdfs:label "Kiosk Provider Role" ;
+  ro:0000052 :KioskProviderOrg_001 .
+
+:KioskAssessmentDocProcess_001 rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Kiosk Assessment Documentation Process 001" ;
+  ro:0000057 :VerificationKiosk_001 ;
+  ro:0000057 :KioskProviderOrg_001 ;
+  cco:has_output :KioskAssessmentDoc_001 .
+
+:KioskAssessmentDoc_001 rdf:type :AssessmentDocumentation ;
+  rdfs:label "Kiosk Assessment Documentation 001" ;
+  iao:0000136 :VerificationKiosk_001 ;
+  iao:0000136 :AnnexIII_Condition_Q1 .

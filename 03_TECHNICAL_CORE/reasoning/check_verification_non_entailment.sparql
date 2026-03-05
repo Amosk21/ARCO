@@ -1,0 +1,28 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#################################################################
+# check_verification_non_entailment.sparql
+#
+# PURPOSE: Confirm that AnnexIII1aApplicableSystem is NOT entailed
+#          for VerificationKiosk_001 under current assertions.
+#
+# EXPECTED RESULT: FALSE (not entailed)
+# Pipeline interpretation: (not result) == True => PASS
+#
+# WHY NOT ENTAILED (OWA — absence of evidence, not logical negation):
+#   Gate 1 fails: VerificationKiosk_001 has_part Kiosk_VeriComp_Module
+#     which has_disposition Kiosk_VeriComp_Disposition
+#     which rdf:type BiometricVerificationCapability
+#   BiometricVerificationCapability is NOT subClassOf BiometricIdentificationCapability
+#   BiometricVerificationCapability is NOT in AnnexIIITriggeringCapability union
+#   => No AnnexIIITriggeringCapability present => AnnexIII1aApplicableSystem not entailed
+#
+# NOTE: This is OWA non-entailment. Under a closed world assumption,
+# VerificationKiosk_001 would be positively classified as NOT applicable.
+# Under OWA, we say: the classification is not supported by current assertions.
+#################################################################
+
+ASK WHERE {
+  :VerificationKiosk_001 rdf:type :AnnexIII1aApplicableSystem .
+}

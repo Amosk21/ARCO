@@ -34,6 +34,7 @@ REASONING_DIR = REPO_ROOT / "03_TECHNICAL_CORE" / "reasoning"
 CORE = ONTOLOGY_DIR / "ARCO_core.ttl"
 GOV = ONTOLOGY_DIR / "ARCO_governance_extension.ttl"
 INSTANCES = ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"
+INSTANCES_VERIFICATION = ONTOLOGY_DIR / "ARCO_instances_verification.ttl"
 
 SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 
@@ -43,6 +44,7 @@ HIGH_RISK_INFERENCE_QUERY = REASONING_DIR / "check_high_risk_inference.sparql"
 INTENDED_USE_QUERY = REASONING_DIR / "check_intended_use.sparql"
 ANNEX_III_1A_QUERY = REASONING_DIR / "check_annex_iii_1a_entailment.sparql"
 OBLIGATION_QUERY = REASONING_DIR / "check_obligation_link.sparql"
+VERIFICATION_NON_ENTAILMENT_QUERY = REASONING_DIR / "check_verification_non_entailment.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -270,7 +272,7 @@ def main() -> None:
 
     sub("LOAD")
     print("Loading: core ontology + governance extension + instance data")
-    g_source = load_union_graph(CORE, GOV, INSTANCES)
+    g_source = load_union_graph(CORE, GOV, INSTANCES, INSTANCES_VERIFICATION)
     print(f"Triples loaded (asserted): {len(g_source)}")
 
     # clone -> reason over the copy so we can compare pre vs post
@@ -309,6 +311,13 @@ def main() -> None:
         obligation_ok = run_sparql_ask_from_file(g, OBLIGATION_QUERY)
         print(f"Obligation linked: {obligation_ok}")
 
+    verification_neg_ok = None
+    if VERIFICATION_NON_ENTAILMENT_QUERY.exists():
+        print("\nVerification kiosk non-entailment (1:1 != 1:N, OWA)...")
+        _verif_raw = run_sparql_ask_from_file(g, VERIFICATION_NON_ENTAILMENT_QUERY)
+        verification_neg_ok = not _verif_raw  # PASS when NOT entailed (result=False)
+        print(f"AnnexIII1a NOT entailed for VerificationKiosk: {verification_neg_ok}")
+
     inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
     # ---------------------------------------------------------------
@@ -325,6 +334,8 @@ def main() -> None:
         print(f"Annex III 1a:  {_pf(annex_iii_1a_ok)}")
     if obligation_ok is not None:
         print(f"Obligation:    {_pf(obligation_ok)}")
+    if verification_neg_ok is not None:
+        print(f"Verif. excl.:  {_pf(verification_neg_ok)}  (1:1 NOT entailed as Annex III 1a — OWA)")
     print(f"Entailment:    {_pf(inference_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
@@ -337,6 +348,8 @@ def main() -> None:
         all_pass = all_pass and annex_iii_1a_ok
     if obligation_ok is not None:
         all_pass = all_pass and obligation_ok
+    if verification_neg_ok is not None:
+        all_pass = all_pass and verification_neg_ok
 
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
 
@@ -420,6 +433,8 @@ def main() -> None:
         cert_lines.append(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT VERIFIED'}")
     if obligation_ok is not None:
         cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
+    if verification_neg_ok is not None:
+        cert_lines.append(f"  VERIF EXCLUSION (OWA):   {_pf(verification_neg_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     cert_lines.append("=" * 72)
     (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
@@ -435,6 +450,7 @@ def main() -> None:
         "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "N/A"),
         "annex_iii_1a": (_pf(annex_iii_1a_ok) if annex_iii_1a_ok is not None else "N/A"),
         "obligation": (_pf(obligation_ok) if obligation_ok is not None else "N/A"),
+        "verification_exclusion_owa": (_pf(verification_neg_ok) if verification_neg_ok is not None else "N/A"),
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,
         "all_checks_passed": all_pass,

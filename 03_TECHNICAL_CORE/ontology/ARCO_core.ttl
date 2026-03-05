@@ -64,7 +64,12 @@
 
 :BiometricIdentificationCapability rdf:type owl:Class ;
   rdfs:label "Biometric Identification Capability" ;
-  rdfs:comment "A capability-disposition whose realizations include identifying or verifying individuals via biometric characteristics." ;
+  rdfs:comment "1:N biometric identification capability. Realizations identify an unknown individual against a population database. Triggers Annex III 1(a). NOT the same as 1:1 verification." ;
+  rdfs:subClassOf :CapabilityDisposition .
+
+:BiometricVerificationCapability rdf:type owl:Class ;
+  rdfs:label "Biometric Verification Capability" ;
+  rdfs:comment "1:1 biometric verification capability. Realizations confirm whether a presented individual matches a claimed identity. NOT subClassOf BiometricIdentificationCapability. NOT in AnnexIIITriggeringCapability. Does NOT trigger Annex III 1(a)." ;
   rdfs:subClassOf :CapabilityDisposition .
 
 :OperationalProcess rdf:type owl:Class ;
