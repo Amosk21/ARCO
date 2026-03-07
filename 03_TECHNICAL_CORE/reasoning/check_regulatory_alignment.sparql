@@ -4,22 +4,26 @@ PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 
 # Regulatory alignment check (auditor traceability).
 #
-# Confirms that the process type the regulatory condition prescribes
-# is the same process type the provider's intended use specification prescribes.
+# Confirms that the process INSTANCE the provider's intended use specification
+# prescribes is of the same process TYPE that the regulatory condition prescribes.
 #
 # This is the KPMG-style documentation alignment check:
-# "Does your declared intended use reference the same regulated activity
-# that the law actually regulates?"
+# "Does your declared intended use prescribe a process of the regulated activity type?"
 #
-# Without this, the pipeline only confirms documentation exists —
-# not that it is aligned with the specific regulatory obligation.
+# The law (AnnexIII_Condition_Q1) prescribes the process CLASS as a concept-individual.
+# The provider (IntendedUseSpecification) prescribes a process TOKEN typed as that class.
+# Alignment is verified by checking that the token is rdf:type the regulated class —
+# which OWL-RL closure materializes from the instance data.
 
 ASK WHERE {
-  # What the law prescribes
-  :AnnexIII_Condition_Q1 cco:prescribes ?processType .
+  # What process class the law prescribes (class IRI as concept-individual)
+  :AnnexIII_Condition_Q1 cco:prescribes ?processClass .
 
-  # What the provider's documentation prescribes for this system
+  # What process instance the provider's documentation prescribes for this system
   ?ius a :IntendedUseSpecification ;
-    cco:prescribes ?processType ;
+    cco:prescribes ?process ;
     iao:0000136 :Sentinel_ID_System .
+
+  # Alignment: provider's process instance is of the regulated class
+  ?process a ?processClass .
 }

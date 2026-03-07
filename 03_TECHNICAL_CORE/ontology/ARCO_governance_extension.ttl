@@ -222,9 +222,8 @@ cco:Organization rdf:type owl:Class ;
   rdfs:label "Annex III 1(a) Applicable System" ;
   rdfs:comment """System that meets Annex III 1(a) conditions via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
-    Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes :RemoteBiometricIdentificationProcess. cco:prescribes is the load-bearing statutory relation; iao:is_about alone is not sufficient.
-    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about :NaturalPersonRole.
-  owl:hasValue is used in Gates 2 and 3 because instance data uses class IRIs as punned individuals (OWL 2 interim pattern — cleaner alternative: process-type tokens as proper instances of the class).
+    Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :RemoteBiometricIdentificationProcess. Uses owl:someValuesFrom for genuine type-checking; any correctly typed process token satisfies the gate.
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about :NaturalPersonRole. Uses owl:hasValue intentionally: the scenario spec is about the role CATEGORY (the universal), not a specific role-bearer token. Referencing the class IRI as concept-individual is the correct OWL 2 encoding for this regulatory pattern.
   Classification is OWL-entailed under owlrl; gate independence verified by regression test.""" ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
@@ -247,11 +246,12 @@ cco:Organization rdf:type owl:Class ;
         ]
       ]
 
-      # Gate 2 (representation-side): intended use spec is_about this system AND prescribes the
-      # regulated process for Annex III 1(a). cco:prescribes carries the statutory prescriptive
-      # force; iao:0000136 (aboutness) is retained on the class but is not the load-bearing gate
-      # condition. owl:hasValue is used because instance data uses class IRIs as punned individuals
-      # (interim modeling choice — cleaner alternative: process-type tokens as class instances).
+      # Gate 2 (representation-side): intended use spec is_about this system AND prescribes an
+      # instance of the regulated process class for Annex III 1(a). cco:prescribes carries the
+      # statutory prescriptive force. owl:someValuesFrom :RemoteBiometricIdentificationProcess
+      # performs genuine type-checking: any named individual typed as that class satisfies the gate.
+      # This eliminates the false-negative risk of the prior owl:hasValue pattern (which only matched
+      # the class IRI as a punned individual, not correctly-typed process tokens).
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -260,14 +260,18 @@ cco:Organization rdf:type owl:Class ;
             :IntendedUseSpecification
             [ rdf:type owl:Restriction ;
               owl:onProperty cco:prescribes ;
-              owl:hasValue :RemoteBiometricIdentificationProcess
+              owl:someValuesFrom :RemoteBiometricIdentificationProcess
             ]
           )
         ]
       ]
 
       # Gate 3 (representation-side): scenario spec is_about this system AND is_about the relevant
-      # affected role for Annex III 1(a). owl:hasValue used for same punning reason as Gate 2.
+      # affected role for Annex III 1(a). owl:hasValue is intentional here (not interim debt):
+      # the scenario spec is about the NaturalPersonRole CATEGORY (the universal), not a specific
+      # role-bearer instance (which would require a specific individual at a specific time).
+      # Referencing the class IRI as a concept-individual is the correct OWL 2 encoding for
+      # "this scenario addresses the regulated role type."
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [

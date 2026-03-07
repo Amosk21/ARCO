@@ -50,11 +50,21 @@
 #   Gate 1: Capability — system bears BiometricIdentificationCapability
 #   Gate 2: Intended use — directive ICE prescribes the regulated process type
 #   Gate 3: Use scenario — affected entities (natural persons)
+#
+# Gate 2 uses owl:someValuesFrom :RemoteBiometricIdentificationProcess, so the
+# cco:prescribes filler must be a TYPED INSTANCE of that class, not the class
+# IRI itself. :Sentinel_RBIP_Process is that token — a named individual
+# representing the specific remote biometric identification process that
+# Sentinel-ID is intended to realize.
 #################################################################
+
+:Sentinel_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess ;
+  rdfs:label "Sentinel Remote Biometric Identification Process" ;
+  rdfs:comment "Process token for Gate 2: cco:prescribes filler typed as RemoteBiometricIdentificationProcess. owl:someValuesFrom in the gate axiom requires an instance of the class, not the class IRI." .
 
 :Sentinel_IntendedUse_001 rdf:type :IntendedUseSpecification ;
   rdfs:label "Sentinel Intended Use: Remote Biometric Identification" ;
-  cco:prescribes :RemoteBiometricIdentificationProcess ;
+  cco:prescribes :Sentinel_RBIP_Process ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :RemoteBiometricIdentificationProcess .
 

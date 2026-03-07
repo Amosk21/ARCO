@@ -1,20 +1,25 @@
 PREFIX : <https://arco.ai/ontology/core#>
 PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 
 # Checks gates 2 and 3 of the Annex III three-gate pattern.
 # Gate 1 (capability) is covered by detect_latent_risk.sparql.
+#
+# Gate 2: IntendedUseSpecification is_about the system AND prescribes an instance
+# of the regulated process class. Type-check via rdf:type (works after OWL-RL closure).
+#
+# Gate 3: UseScenarioSpecification is_about the system AND is_about NaturalPersonRole.
 
 ASK WHERE {
-  # Gate 2: intended use — a directive ICE prescribes a process type for this system
+  # Gate 2: intended use — a directive ICE prescribes a regulated process instance for this system
   ?ius a :IntendedUseSpecification ;
-    cco:prescribes ?processType ;
-    iao:0000136 :Sentinel_ID_System ;
-    iao:0000136 ?processType .
+    cco:prescribes ?process ;
+    iao:0000136 :Sentinel_ID_System .
+  ?process a :RemoteBiometricIdentificationProcess .
 
   # Gate 3: use scenario — affected entities are specified for this system
   ?uss a :UseScenarioSpecification ;
     iao:0000136 :Sentinel_ID_System ;
-    iao:0000136 ?processType ;
     iao:0000136 :NaturalPersonRole .
 }

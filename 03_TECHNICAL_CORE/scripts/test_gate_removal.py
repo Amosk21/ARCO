@@ -49,11 +49,12 @@ GATE_REMOVALS = {
         ARCO["Sentinel_ID_System"],
     ),
     # Content-based gate failures (Gap A regression tests):
-    # Gate 2 must require cco:prescribes the regulated process, not just existence of IUS.
+    # Gate 2 must require cco:prescribes an instance of the regulated process class, not just
+    # existence of IUS. Triple references the token individual, not the class IRI.
     "gate2_prescribes_removed": (
         ARCO["Sentinel_IntendedUse_001"],
         CCO["prescribes"],                   # cco:prescribes
-        ARCO["RemoteBiometricIdentificationProcess"],
+        ARCO["Sentinel_RBIP_Process"],       # the typed process token (not the class IRI)
     ),
     # Gate 3 must require iao:is_about NaturalPersonRole, not just existence of USS.
     "gate3_missing_role": (
@@ -94,7 +95,7 @@ GATE_MUTATIONS = {
         "remove": (
             ARCO["Sentinel_IntendedUse_001"],
             CCO["prescribes"],
-            ARCO["RemoteBiometricIdentificationProcess"],
+            ARCO["Sentinel_RBIP_Process"],   # the typed process token
         ),
         "add": (
             ARCO["Sentinel_IntendedUse_001"],
