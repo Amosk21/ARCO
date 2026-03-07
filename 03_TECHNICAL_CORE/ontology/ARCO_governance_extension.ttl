@@ -220,7 +220,12 @@ cco:Organization rdf:type owl:Class ;
 
 :AnnexIII1aApplicableSystem rdf:type owl:Class ;
   rdfs:label "Annex III 1(a) Applicable System" ;
-  rdfs:comment "System that meets Annex III 1(a) conditions via capability + intended use + affected category. Classification is OWL-entailed under owlrl; gate independence verified by regression test." ;
+  rdfs:comment """System that meets Annex III 1(a) conditions via three independently necessary gates:
+    Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
+    Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes :RemoteBiometricIdentificationProcess. cco:prescribes is the load-bearing statutory relation; iao:is_about alone is not sufficient.
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about :NaturalPersonRole.
+  owl:hasValue is used in Gates 2 and 3 because instance data uses class IRIs as punned individuals (OWL 2 interim pattern — cleaner alternative: process-type tokens as proper instances of the class).
+  Classification is OWL-entailed under owlrl; gate independence verified by regression test.""" ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
     rdf:type owl:Class ;
@@ -242,16 +247,39 @@ cco:Organization rdf:type owl:Class ;
         ]
       ]
 
-      # Gate 2 (representation-side): intended use spec exists about this system
+      # Gate 2 (representation-side): intended use spec is_about this system AND prescribes the
+      # regulated process for Annex III 1(a). cco:prescribes carries the statutory prescriptive
+      # force; iao:0000136 (aboutness) is retained on the class but is not the load-bearing gate
+      # condition. owl:hasValue is used because instance data uses class IRIs as punned individuals
+      # (interim modeling choice — cleaner alternative: process-type tokens as class instances).
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
-        owl:someValuesFrom :IntendedUseSpecification
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :IntendedUseSpecification
+            [ rdf:type owl:Restriction ;
+              owl:onProperty cco:prescribes ;
+              owl:hasValue :RemoteBiometricIdentificationProcess
+            ]
+          )
+        ]
       ]
 
-      # Gate 3 (representation-side): scenario spec exists about this system
+      # Gate 3 (representation-side): scenario spec is_about this system AND is_about the relevant
+      # affected role for Annex III 1(a). owl:hasValue used for same punning reason as Gate 2.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
-        owl:someValuesFrom :UseScenarioSpecification
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :UseScenarioSpecification
+            [ rdf:type owl:Restriction ;
+              owl:onProperty iao:0000136 ;
+              owl:hasValue :NaturalPersonRole
+            ]
+          )
+        ]
       ]
     )
   ] .

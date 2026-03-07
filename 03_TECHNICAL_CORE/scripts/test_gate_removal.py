@@ -29,6 +29,7 @@ ARCO = Namespace("https://arco.ai/ontology/core#")
 RDF = Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 IAO = Namespace("http://purl.obolibrary.org/obo/IAO_")
 RO = Namespace("http://purl.obolibrary.org/obo/RO_")
+CCO = Namespace("http://www.ontologyrepository.com/CommonCoreOntologies/")
 
 # The triple removals that knock out each gate
 GATE_REMOVALS = {
@@ -47,6 +48,19 @@ GATE_REMOVALS = {
         IAO["0000136"],                      # is_about
         ARCO["Sentinel_ID_System"],
     ),
+    # Content-based gate failures (Gap A regression tests):
+    # Gate 2 must require cco:prescribes the regulated process, not just existence of IUS.
+    "gate2_prescribes_removed": (
+        ARCO["Sentinel_IntendedUse_001"],
+        CCO["prescribes"],                   # cco:prescribes
+        ARCO["RemoteBiometricIdentificationProcess"],
+    ),
+    # Gate 3 must require iao:is_about NaturalPersonRole, not just existence of USS.
+    "gate3_missing_role": (
+        ARCO["Sentinel_UseScenario_001"],
+        IAO["0000136"],                      # is_about
+        ARCO["NaturalPersonRole"],
+    ),
 }
 
 # Expected entailment results after each gate removal
@@ -62,6 +76,51 @@ EXPECTED = {
     "gate3_use_scenario": {
         "AnnexIII1aApplicableSystem": False,
         "HighRiskSystem": True,     # HighRiskSystem only needs capability
+    },
+    "gate2_prescribes_removed": {
+        "AnnexIII1aApplicableSystem": False,  # prescribes removed -> Gate 2 fails
+        "HighRiskSystem": True,               # capability unchanged
+    },
+    "gate3_missing_role": {
+        "AnnexIII1aApplicableSystem": False,  # NaturalPersonRole removed -> Gate 3 fails
+        "HighRiskSystem": True,               # capability unchanged
+    },
+}
+
+# Mutation tests: remove one triple and add a replacement (wrong value).
+# These verify that wrong content, not just absence, also breaks the gate.
+GATE_MUTATIONS = {
+    "gate2_wrong_process_type": {
+        "remove": (
+            ARCO["Sentinel_IntendedUse_001"],
+            CCO["prescribes"],
+            ARCO["RemoteBiometricIdentificationProcess"],
+        ),
+        "add": (
+            ARCO["Sentinel_IntendedUse_001"],
+            CCO["prescribes"],
+            ARCO["SomeOtherProcess"],          # wrong process type
+        ),
+        "expected": {
+            "AnnexIII1aApplicableSystem": False,  # Gate 2 fails: wrong process
+            "HighRiskSystem": True,               # capability unchanged
+        },
+    },
+    "gate3_wrong_role_type": {
+        "remove": (
+            ARCO["Sentinel_UseScenario_001"],
+            IAO["0000136"],
+            ARCO["NaturalPersonRole"],
+        ),
+        "add": (
+            ARCO["Sentinel_UseScenario_001"],
+            IAO["0000136"],
+            ARCO["SomeOtherRole"],              # wrong role
+        ),
+        "expected": {
+            "AnnexIII1aApplicableSystem": False,  # Gate 3 fails: wrong role
+            "HighRiskSystem": True,               # capability unchanged
+        },
     },
 }
 
@@ -82,6 +141,29 @@ def reason(g: Graph) -> Graph:
 
 def check_type(g: Graph, individual: URIRef, cls: URIRef) -> bool:
     return (individual, RDF["type"], cls) in g
+
+
+def run_mutation_test(gate_name: str, mutation: dict) -> dict:
+    """Remove one triple, add a replacement with wrong content, reason, check entailments."""
+    g = load_graph()
+    remove_triple = mutation["remove"]
+    add_triple = mutation["add"]
+
+    s, p, o = remove_triple
+    if (s, p, o) not in g:
+        return {"gate": gate_name, "error": f"Triple to remove not found: ({s}, {p}, {o})"}
+
+    g.remove((s, p, o))
+    g.add(add_triple)
+    reason(g)
+
+    system = ARCO["Sentinel_ID_System"]
+    return {
+        "gate": gate_name,
+        "mutated": f"replaced <{o}> with <{add_triple[2]}>",
+        "AnnexIII1aApplicableSystem": check_type(g, system, ARCO["AnnexIII1aApplicableSystem"]),
+        "HighRiskSystem": check_type(g, system, ARCO["HighRiskSystem"]),
+    }
 
 
 def run_test(gate_name: str, triple_to_remove: tuple) -> dict:
@@ -150,11 +232,32 @@ def main() -> None:
                 all_pass = False
             print(f"  {cls_name}: {actual} (expected {expected_val}) [{status}]")
 
+    # Mutation tests: wrong content (not just absence) also breaks the gate
+    print("\n--- CONTENT-MUTATION TESTS (Gap A regression) ---")
+    for gate_name, mutation in GATE_MUTATIONS.items():
+        print(f"\n--- {gate_name.upper()} ---")
+        result = run_mutation_test(gate_name, mutation)
+
+        if "error" in result:
+            print(f"  ERROR: {result['error']}")
+            all_pass = False
+            continue
+
+        print(f"  Mutation: {result['mutated']}")
+        expected = mutation["expected"]
+        for cls_name, expected_val in expected.items():
+            actual = result[cls_name]
+            status = "OK" if actual == expected_val else "FAIL"
+            if status == "FAIL":
+                all_pass = False
+            print(f"  {cls_name}: {actual} (expected {expected_val}) [{status}]")
+
     # Summary
     print("\n" + "=" * 72)
     if all_pass:
         print("ALL GATE-REMOVAL TESTS PASSED")
         print("Each gate is independently necessary for AnnexIII1aApplicableSystem.")
+        print("Wrong content (not just absence) also breaks the gate.")
     else:
         print("SOME GATE-REMOVAL TESTS FAILED")
         sys.exit(1)
