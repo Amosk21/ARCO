@@ -297,11 +297,15 @@ This query confirms: does the process type the law prescribes match the process 
 
 ---
 
-## The audit problem: Gap A
+## The audit problem: Gap A — RESOLVED
+
+> **Status as of 2026-03-08:** Gap A has been resolved via Option A (tightened Gate 2). Gate 2 now uses `owl:someValuesFrom :RemoteBiometricIdentificationProcess` with a properly typed process token, eliminating the false-negative risk and the certificate contradiction. Gate 3 retains `owl:hasValue :NaturalPersonRole` intentionally — scenario specs reference the role category (universal), not a role-bearer token. The SPARQL audit layer is now explicitly distinguished from the OWL classification layer in all files. Regression tests confirm each gate remains independently necessary. The section below is preserved for architectural context.
+
+---
 
 **Location:** The relationship between `check_regulatory_alignment.sparql` and the `AnnexIII1aApplicableSystem` OWL axiom.
 
-**The problem, precisely:**
+**The problem, precisely (historical):**
 
 Gate 2 of the three-gate equivalentClass axiom is:
 
@@ -416,20 +420,29 @@ Tradeoffs: Defensible if the intent is to detect all systems that could be Annex
 
 ---
 
-## Current pipeline state (8 checks, all passing)
+## Current pipeline state (all checks passing — updated 2026-03-08)
+
+Two-layer architecture. Classification layer produces the determination; audit layer inspects the result.
+
+**Classification layer (OWL-RL entailment):**
 
 | Check | Mechanism | What it verifies |
 |---|---|---|
-| SHACL conforms | pyshacl | DocumentationProcess, System, IntendedUse, UseScenario, Obligation shapes populated |
-| Traceability | SPARQL ASK | HighRisk_Determination_001 is_about Sentinel_ID_System |
-| Latent risk | SPARQL ASK | Sentinel_ID_System rdf:type HighRiskSystem (capability-only entailment) |
-| Intended use | SPARQL ASK | IntendedUseSpecification prescribes process, is_about system |
-| Annex III 1(a) | SPARQL ASK | Sentinel_ID_System rdf:type AnnexIII1aApplicableSystem (three-gate entailment) |
-| Obligation link | SPARQL ASK | ComplianceObligationSpecification links system to role |
-| Reg. aligned | SPARQL ASK | Law and documentation prescribe same process type |
-| Entailment count | Python assertion | Entailed triples > asserted triples (reasoner is doing real work) |
+| SHACL conforms | pyshacl | Documentary shapes: IntendedUse, UseScenario, Obligation structurally complete |
+| HighRiskSystem entailment | OWL-RL | System rdf:type HighRiskSystem — inferred from capability alone (latent risk) |
+| Annex III 1(a) entailment | OWL-RL | System rdf:type AnnexIII1aApplicableSystem — inferred from all three content-checking gates |
 
-Current counts: 296 asserted → 982 entailed (+686).
+**Audit documentation layer (SPARQL ASK on reasoned graph):**
+
+| Check | Mechanism | What it verifies |
+|---|---|---|
+| Traceability | SPARQL ASK | HighRisk_Determination_001 is_about Sentinel_ID_System |
+| Latent risk | SPARQL ASK | HighRiskSystem entailment present (hardware path) |
+| Intended use | SPARQL ASK | IUS prescribes a process typed as RemoteBiometricIdentificationProcess; USS references NaturalPersonRole |
+| Obligation link | SPARQL ASK | ComplianceObligationSpecification links system to role |
+| Reg. aligned | SPARQL ASK | Provider's process token is of the same type the law prescribes — type-level alignment, not IRI matching |
+
+Current counts: 324 asserted → 1066 entailed (+742).
 
 ---
 

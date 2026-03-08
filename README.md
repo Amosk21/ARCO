@@ -47,7 +47,7 @@ REGULATORY DETERMINATION CERTIFICATE
   INTENDED USE:            PASS
   ANNEX III 1(a):          VERIFIED (ENTAILED)
   OBLIGATION:              PASS
-  ENTAILED TRIPLES ADDED:  +692
+  ENTAILED TRIPLES ADDED:  +742
 ========================================================================
 ```
 
@@ -69,9 +69,9 @@ ARCO moves that risk decision upstream — to design time, where it costs a frac
 
 **Process:**
 1. The system's structure is encoded in a formal ontology grounded in [BFO](https://basic-formal-ontology.org/) (the same foundational ontology used across biomedical, defense, and industrial standards)
-2. OWL-RL reasoning materializes what the system is capable of based on its components and structure
+2. OWL-RL reasoning derives what the system is capable of and whether it meets the three-gate classification condition: capability (reality-side), prescribed process type (representation-side), and affected role category (representation-side). All three gates check specific content — not the existence of documentation alone.
 3. SHACL validation enforces documentary completeness
-4. SPARQL audit queries verify classification conditions against EU AI Act criteria (Article 6, Annex III)
+4. SPARQL audit queries run on the reasoned graph as a downstream documentation layer — confirming that the right content is explicitly declared and that the law's process prescription aligns with the provider's documentation. These queries inspect what the reasoning produced; they do not produce the classification themselves.
 
 **Output:** A regulatory determination certificate with full evidence path — which component bears which capability, which regulatory condition it triggers, and why.
 
@@ -162,9 +162,11 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 The pipeline will:
 
 1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (~300 asserted → ~1000 post-reasoning)
+2. Run OWL-RL reasoning to materialize entailments (~324 asserted → ~1066 post-reasoning)
 3. Validate documentary completeness with SHACL
-4. Run seven deterministic checks: SHACL conformance + six SPARQL audit queries (traceability, latent risk, intended use, Annex III 1(a) entailment, obligation linkage, HighRiskSystem entailment)
+4. Run two layers of checks:
+   - **Classification layer (OWL-RL):** SHACL conformance, HighRiskSystem entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs
+   - **Audit documentation layer (SPARQL ASK on reasoned graph):** traceability, latent risk, intended use, obligation linkage, regulatory alignment — these inspect declared documentary content and confirm it matches what the classification requires
 5. Emit a regulatory determination certificate with evidence path
 6. Write artifact files to `runs/demo/` (certificate, summary JSON, evidence bindings, SHACL report)
 

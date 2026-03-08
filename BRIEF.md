@@ -22,8 +22,8 @@ ARCO applies OWL-RL reasoning over a BFO/CCO-aligned ontology to produce a **det
 Each determination includes:
 
 - A signed certificate naming the triggering capability, evidence path, and classification
-- Seven SPARQL ASK audit queries run against the post-reasoning graph — each boolean, each traceable
-- A SHACL validation report confirming structural compliance of the system description
+- Two verification layers: OWL-RL classification (the formal entailment that produces the determination) and SPARQL ASK audit queries that run on the reasoned graph to confirm documentary content is explicitly declared and aligned with the regulatory condition — each boolean, each traceable
+- A SHACL validation report confirming structural completeness of the system description
 - A traceable chain: system capabilities → triggering classification → applicable obligations → provider role
 
 ---
@@ -34,9 +34,9 @@ Each determination includes:
 
 | Gate | Formal Condition | Status |
 |------|-----------------|--------|
-| 1 — Reality | Hardware component bears `BiometricIdentificationCapability` | ✓ PASS |
-| 2 — Intent | Intended use prescribes `RemoteBiometricIdentificationProcess` | ✓ PASS |
-| 3 — Scope | Use scenario constrains affected entities to `NaturalPersonRole` | ✓ PASS |
+| 1 — Reality | Hardware component bears `BiometricIdentificationCapability` (disposition-level, reality-side) | ✓ PASS |
+| 2 — Intent | IntendedUseSpecification `cco:prescribes` an instance typed as `RemoteBiometricIdentificationProcess` — type-checked via `owl:someValuesFrom`, not IRI-matched | ✓ PASS |
+| 3 — Scope | UseScenarioSpecification references `NaturalPersonRole` as the affected role category — the universal, not a specific role-bearer | ✓ PASS |
 
 **ARCO determination (OWL-RL entailed, not asserted):**
 
@@ -47,10 +47,10 @@ TRIGGERING CAP:     BiometricIdentificationCapability
 SHACL:              PASS
 TRACEABILITY:       PASS
 OBLIGATION:         ComplianceObligations → ProviderRole (LINKED)
-ENTAILED TRIPLES:   +692
+ENTAILED TRIPLES:   +742
 ```
 
-If any gate fails — capability not present, intended use not matching, scenario out of scope — the entailment does not fire. The system is not classified as high-risk, and the reasoning why is documented in the same format.
+Each gate checks specific content, not the existence of documentation alone. Gate 2 requires the intended use document to prescribe a process that is actually typed as the regulated process class — a system documented as intended for on-site fingerprint enrollment would fail Gate 2 and not be classified under 1(a), even if it has biometric capability. Gate 3 requires the scenario to explicitly reference the affected role category. If any gate fails — capability not present, wrong process type prescribed, role category absent — the entailment does not fire. The system is not classified as high-risk, and the reasoning why is documented in the same format.
 
 ---
 
