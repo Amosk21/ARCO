@@ -26,10 +26,16 @@ Model derogation claims as ICE artifacts (descriptive, asserting non-significanc
 
 Sentinel-ID demo covers 1(a). The verification-only exclusion should eventually be modelable.
 
-## Current Known Issues
+## Current State
 
-**Pipeline is working.** These remain:
+Pipeline is working. All previously known issues resolved as of 2026-03-08:
 
-1. **Instance typing**: `HighRisk_Determination_001` typed as `:ComplianceDetermination` — should be `:HighRiskDetermination`
-2. **No intended use modeling**: Bridge axiom fires on capability alone without intended use context — ontologically incomplete per Annex III
-3. **Hardware-only component constraint**: `SystemShape` SHACL requires hardware components only — should allow broader `SystemComponent`
+- `HighRisk_Determination_001` typed as `:HighRiskDetermination` ✓
+- Three-gate `AnnexIII1aApplicableSystem` equivalentClass axiom implemented and tested ✓
+  - Gate 2: `owl:someValuesFrom :RemoteBiometricIdentificationProcess` — prescribes a *typed* process token, not just any process; a system documented as on-site fingerprint enrollment fails Gate 2
+  - Gate 3: `owl:hasValue :NaturalPersonRole` — checks role category (universal), not a role-bearer instance; intentional design for extensibility
+- SHACL `SystemShape` targets `SystemComponent` (not hardware-only) ✓
+- Two-layer architecture in place: OWL-RL classification + SPARQL ASK audit layer, explicitly separated in pipeline and certificate output ✓
+- Gate-removal regression tests (`test_gate_removal.py`) pass: each gate is independently necessary ✓
+
+Current pipeline counts: ~324 asserted → ~1066 entailed (+742).
