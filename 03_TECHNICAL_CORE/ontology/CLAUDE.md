@@ -30,6 +30,19 @@ EU AI Act classification logic: `docs/agent/eu_ai_act_rules.md` — read for Ann
 
 **NaturalPerson is a role** — `NaturalPersonRole ⊑ bfo:0000023 (Role)`. Not a biological subclass of Person/Object. No person instances. Use `iao:0000136` aboutness only.
 
+## Ontology Stability Contract
+
+Every ontology edit must preserve all of the following. If any is violated, the edit is not complete:
+
+- **Bucket discipline** — every instance stays in its correct BFO category (Disposition, Process, ICE, Role, Object, etc.). An instance cannot migrate between categories as a side effect of a "refactor."
+- **Entailment behavior** — existing inferences must still fire after the change; no new inferences fire from unchanged instance data
+- **Gate integrity** — the three-gate `AnnexIII1aApplicableSystem` equivalentClass axiom must fire if and only if all three conditions are independently satisfied; no change may make it fire with fewer
+- **Semantics stability** — changes that appear stylistic (reordering axioms, renaming blank nodes, reformatting Turtle) must not alter what the reasoner produces; verify by comparing triple counts before and after
+
+Before finalizing any TTL edit: run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` and `python 03_TECHNICAL_CORE/scripts/test_gate_removal.py`. Entailed triple count must be ≥ the pre-edit count. Gate tests must all pass independently.
+
+Axiom edits that look cosmetic are often not. When uncertain whether a change alters entailment behavior, compare triple counts with and without the change.
+
 ## Good / Bad Examples
 
 ```

@@ -74,6 +74,27 @@ Detailed reference files (read when the task requires it, not by default):
 - Minimal patches. No full rewrites unless requested.
 - **NEVER autoload**: `runs/demo/*`, `03_TECHNICAL_CORE/.venv/`, generated artifacts, logs, `ONTOLOGY_REVIEW.md`, `DESIGN_REVIEW_BRIEF.md`
 
+## Determination Layer Precedence
+
+For regulatory classification, layer authority is strictly ordered:
+
+1. **OWL-RL entailment** — authoritative source for all regulatory determinations
+2. **SHACL** — validates structural completeness of documentary artifacts only; does not classify
+3. **SPARQL ASK** — audit/documentation layer; inspects the reasoned graph; does not classify
+
+SPARQL and SHACL must never replicate, override, or serve as a substitute for OWL classification logic.
+
+## Diagnose Before Rewriting
+
+When a contradiction, failing check, or unexpected result appears:
+
+1. Identify which layer is responsible — ontology axiom, instance data, SHACL shape, SPARQL query, or certificate formatter
+2. Diagnose the root cause in that layer
+3. Apply the minimal fix to the responsible layer only
+4. Re-run the pipeline and confirm no cross-layer contradiction was introduced
+
+Do not simultaneously edit ontology, SHACL, and SPARQL to make a failing check pass — that masks the root cause and can introduce hidden inconsistencies.
+
 ## Cross-Layer Safety Rule
 
 Any change touching classification logic, gate conditions, audit queries, ontology semantics, or certificate output must be checked for contradiction risk across the full determination chain before finalizing. If a change at one layer could produce misleading output at another layer, diagnose and fix both sides — do not patch only the symptom.

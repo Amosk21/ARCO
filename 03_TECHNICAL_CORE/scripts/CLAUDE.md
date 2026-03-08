@@ -31,3 +31,9 @@ Every pipeline run must satisfy all of:
 **Gate regression must stay wired** — `test_gate_removal.py` must always test each gate independently. If gate axioms change, update the test. Never remove gate tests.
 
 **No hardcoded expected values** — Pipeline assertions about entailed triple counts should use a minimum threshold (e.g., `> asserted_count`), not an exact expected value that silently passes on a wrong reasoner run.
+
+**Certificate field integrity** — Every certificate field must reflect a specific formal result from a specific layer. No field may be hardcoded, approximated, or inferred from another field:
+- Classification fields (`HighRiskSystem`, `AnnexIII1a`) → presence in OWL-RL graph post-reasoning
+- Validation field (`SHACL`) → pyshacl conformance return value
+- Audit fields (`Traceability`, `Latent Risk`, `Intended Use`, `Obligation`, `Reg. Aligned`) → individual SPARQL ASK return values
+- Triple counts → actual reasoner output, not a stored constant
