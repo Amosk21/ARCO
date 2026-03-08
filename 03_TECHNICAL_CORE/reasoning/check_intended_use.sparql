@@ -3,22 +3,34 @@ PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 
-# Checks gates 2 and 3 of the Annex III three-gate pattern.
-# Gate 1 (capability) is covered by detect_latent_risk.sparql.
+# AUDIT LAYER — documentary structure check.
+# This query is NOT the classification mechanism. AnnexIII1aApplicableSystem
+# membership is OWL-entailed by the gate axioms in ARCO_governance_extension.ttl
+# and verified independently by test_gate_removal.py. Remove an enabling axiom
+# and the entailment disappears — that is the test of genuine reasoning.
 #
-# Gate 2: IntendedUseSpecification is_about the system AND prescribes an instance
-# of the regulated process class. Type-check via rdf:type (works after OWL-RL closure).
+# This query verifies that the asserted documentary structure matches the
+# regulatory pattern. It is an auditor-facing check that the right content is
+# explicitly declared, not merely entailed as a broader type. Auditors verify
+# declared content; OWL-RL produces the classification.
 #
-# Gate 3: UseScenarioSpecification is_about the system AND is_about NaturalPersonRole.
+# Gate 2 audit: an IntendedUseSpecification is_about the system AND cco:prescribes
+# an individual typed as :RemoteBiometricIdentificationProcess. The rdf:type check
+# is on the ASSERTED type (intentional — auditors want explicit declaration,
+# not inference to a broader process supertype like bfo:0000015).
+#
+# Gate 3 audit: a UseScenarioSpecification is_about the system AND is_about
+# :NaturalPersonRole (the role category as concept-individual — intentional,
+# scenario specs reference the role type, not a specific role-bearer token).
 
 ASK WHERE {
-  # Gate 2: intended use — a directive ICE prescribes a regulated process instance for this system
+  # Gate 2 audit: intended use — a directive ICE prescribes a regulated process instance for this system
   ?ius a :IntendedUseSpecification ;
     cco:prescribes ?process ;
     iao:0000136 :Sentinel_ID_System .
   ?process a :RemoteBiometricIdentificationProcess .
 
-  # Gate 3: use scenario — affected entities are specified for this system
+  # Gate 3 audit: use scenario — affected entities are specified for this system
   ?uss a :UseScenarioSpecification ;
     iao:0000136 :Sentinel_ID_System ;
     iao:0000136 :NaturalPersonRole .

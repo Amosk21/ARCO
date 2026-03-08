@@ -224,7 +224,8 @@ cco:Organization rdf:type owl:Class ;
     Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :RemoteBiometricIdentificationProcess. Uses owl:someValuesFrom for genuine type-checking; any correctly typed process token satisfies the gate.
     Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about :NaturalPersonRole. Uses owl:hasValue intentionally: the scenario spec is about the role CATEGORY (the universal), not a specific role-bearer token. Referencing the class IRI as concept-individual is the correct OWL 2 encoding for this regulatory pattern.
-  Classification is OWL-entailed under owlrl; gate independence verified by regression test.""" ;
+  Classification is OWL-entailed under owlrl; gate independence verified by regression test (test_gate_removal.py).
+  SPARQL ASK queries (check_intended_use, check_regulatory_alignment) are downstream audit-layer checks that inspect declared documentary content on the reasoned graph; they do not contribute to this entailment and cannot affect it.""" ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
     rdf:type owl:Class ;

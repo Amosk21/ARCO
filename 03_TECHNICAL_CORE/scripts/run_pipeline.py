@@ -319,22 +319,29 @@ def main() -> None:
     inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
     # ---------------------------------------------------------------
-    # SUMMARY (existing)
+    # SUMMARY
+    # Two-layer architecture: classification (OWL-RL) vs. audit (SPARQL).
+    # Classification rows are OWL-entailed — gate-removal tests verify them.
+    # Audit rows inspect declared documentary content on the reasoned graph;
+    # they do not produce and cannot affect the classification result.
     # ---------------------------------------------------------------
     hr("SUMMARY")
+    print("  [classification layer — OWL-RL entailment]")
     print(f"SHACL:         {_pf(shacl_ok)}")
+    print(f"Entailment:    {_pf(inference_ok)}")
+    if annex_iii_1a_ok is not None:
+        print(f"Annex III 1a:  {_pf(annex_iii_1a_ok)} (OWL-entailed)")
+    print()
+    print("  [audit documentation layer — SPARQL ASK on reasoned graph]")
     print(f"Traceability:  {_pf(traceability_ok)}")
     if latent_ok is not None:
         print(f"Latent risk:   {_pf(latent_ok)}")
     if intended_use_ok is not None:
         print(f"Intended use:  {_pf(intended_use_ok)}")
-    if annex_iii_1a_ok is not None:
-        print(f"Annex III 1a:  {_pf(annex_iii_1a_ok)}")
     if obligation_ok is not None:
         print(f"Obligation:    {_pf(obligation_ok)}")
     if reg_alignment_ok is not None:
         print(f"Reg. aligned:  {_pf(reg_alignment_ok)}")
-    print(f"Entailment:    {_pf(inference_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
     all_pass = shacl_ok and traceability_ok and inference_ok
