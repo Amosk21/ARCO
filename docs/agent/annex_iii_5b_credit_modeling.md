@@ -4,216 +4,61 @@
 
 ## Goals, Planned Changes, and Why
 
-### What We Are Trying to Do
-
-ARCO currently classifies one system (Sentinel-ID) under one Annex III category
-(1a — biometric identification). The architecture is sound but the coverage is
-a single example. The goal of this extension is to prove the architecture
-generalizes by adding a second Annex III category and a second example system.
-
-**The specific goal**: Add Annex III 5(b) — creditworthiness assessment / credit
-scoring — as a fully classified category with a working example system, using
-the exact same three-gate reasoning pattern already established for 1(a).
-
-After this extension ARCO will:
-- Cover two Annex III categories (1a biometrics, 5b credit scoring)
-- Classify two example systems with full certificates
-- Demonstrate that the pipeline is not hardcoded to one use case
-- Have a defensible proof-of-concept for any external audience
+ARCO currently classifies one system (Sentinel-ID) under one Annex III category (1a — biometric identification). The architecture is sound but the coverage is a single example. The goal of this extension is to prove the architecture generalizes by adding Annex III 5(b) — creditworthiness assessment and credit scoring — as a fully classified second category with a working second example system, using the exact same three-gate reasoning pattern already established for 1(a). After this extension, ARCO covers two Annex III categories, classifies two example systems with two separate certificate artifacts, and demonstrates that the pipeline is not hardcoded to one use case.
 
 ---
 
-### Planned Changes — Exact Scope
+### Change 1 — New Capability Class in `ARCO_core.ttl`
 
-#### Change 1 — `ARCO_core.ttl`: New Capability Class
-
-**Add**:
-```turtle
-:CreditworthinessAssessmentCapability rdf:type owl:Class ;
-    rdfs:subClassOf :CapabilityDisposition ;
-    rdfs:label "Creditworthiness Assessment Capability" ;
-    rdfs:comment "Disposition of a hardware component to execute processes that
-    evaluate the creditworthiness of natural persons or establish their credit
-    score. Grounds Annex III 5(b) classification." .
-```
-
-**Why**: The three-gate pattern requires a capability class at the reality layer.
-The disposition inheres in a hardware component (compute infrastructure), not
-in the software artifact — consistent with BFO's requirement that dispositions
-inhere in material continuants. This mirrors `BiometricIdentificationCapability`
-exactly.
-
-**Open to suggestion**: Whether the capability should be named differently,
-whether it should be split into two classes (evaluation vs. score establishment),
-or whether a more specific BFO-aligned parent class is appropriate.
+Add `CreditworthinessAssessmentCapability` as a direct subclass of `AnnexIIITriggeringCapability` (see Change 2 below for why subclassing replaces the union). This class represents the disposition of a configured hardware component — compute infrastructure — to execute processes that evaluate the creditworthiness of natural persons or establish their credit score. The disposition inheres in the material continuant (the hardware component), not in the software artifact, consistent with BFO 2020's requirement that dispositions inhere in material continuants. This mirrors `BiometricIdentificationCapability` exactly. The current architecture in `ARCO_core.ttl` puts all capabilities at this layer and there is no reason to deviate. Note that calling this "hardware-centric" is a misreading: the claim is that the assembled, configured physical component of the system bears the disposition, not that the silicon chip intrinsically possesses it. That is correct BFO. Open to suggestion on whether this should be split into two classes — one for creditworthiness evaluation and one for credit score establishment — but the bar for splitting is a genuine ontological distinction in what the system is doing, not a difference in legal phrasing. V1 treats them as one unified capability family.
 
 ---
 
-#### Change 2 — `ARCO_core.ttl`: Extend Bridge Axiom
+### Change 2 — Replace Union Bridge Axiom in `ARCO_core.ttl`
 
-**Current**:
-```turtle
-:AnnexIIITriggeringCapability owl:equivalentClass [
-    owl:unionOf ( :BiometricIdentificationCapability )
-] .
-```
-
-**Change to**:
-```turtle
-:AnnexIIITriggeringCapability owl:equivalentClass [
-    owl:unionOf (
-        :BiometricIdentificationCapability
-        :CreditworthinessAssessmentCapability
-    )
-] .
-```
-
-**Why**: This is the single axiom that drives `HighRiskSystem` entailment for
-all Annex III categories. Extending the union is the minimal and correct change.
-The Sentinel-ID inference chain is unaffected. This is additive — nothing is
-removed or modified.
-
-**Open to suggestion**: Whether the union pattern is the right long-term
-approach as we add more categories, or whether a class hierarchy would be
-more maintainable at scale.
+The current `AnnexIIITriggeringCapability` is defined as `owl:equivalentClass [ owl:unionOf (:BiometricIdentificationCapability) ]`. The union pattern is functional for one category but becomes brittle and requires manual updates with each new Annex III capability added. The cleaner and more extensible BFO-aligned pattern is to make `AnnexIIITriggeringCapability` a plain named class and have each specific capability subclass it directly. `HighRiskSystem` already points at `AnnexIIITriggeringCapability` via `someValuesFrom` at line 133 of the current file, so subclassing works immediately without touching the `HighRiskSystem` axiom. The union equivalence is dropped. Both `BiometricIdentificationCapability` and `CreditworthinessAssessmentCapability` become direct subclasses. This is the right change to make now while the file is open, and it eliminates the need to ever touch the bridge axiom again when adding future categories. Sentinel-ID inference is unaffected because subclass membership satisfies the `someValuesFrom` restriction.
 
 ---
 
-#### Change 3 — `ARCO_core.ttl`: New Process Type
+### Change 3 — New Process Type in `ARCO_core.ttl`
 
-**Add**:
-```turtle
-:CreditworthinessAssessmentProcess rdf:type owl:Class ;
-    rdfs:subClassOf cco:Process ;
-    rdfs:label "Creditworthiness Assessment Process" ;
-    rdfs:comment "Process type covering both the evaluation of creditworthiness
-    of natural persons and the establishment of a credit score. Referenced by
-    IntendedUseSpecification instances for Annex III 5(b) classification." .
-```
-
-**Why**: The `IntendedUseSpecification` (Gate 2) must prescribe a specific
-process type. This process type is the universal that the intended use
-directive is *about*. Covers both trigger acts in the legal text ("evaluate
-creditworthiness" and "establish credit score") as one unified process type
-because they describe the same underlying systemic function.
-
-**Open to suggestion**: Whether the two legal trigger acts warrant separate
-process types. The bar for splitting would be a genuine ontological distinction
-in what the system is doing — not just a difference in legal phrasing.
+Add `CreditworthinessAssessmentProcess` as a subclass of `cco:Process`. This is the universal that the `IntendedUseSpecification` in Gate 2 prescribes. It covers both trigger acts named in the Annex III 5(b) legal text — "evaluate the creditworthiness of natural persons" and "establish their credit score" — as one unified process type, because they describe the same underlying systemic function. V1 collapses them into one class; this is documented explicitly so that if a later regulatory or modeling need requires distinguishing them, the refactor path is clear. Open to suggestion on whether two process types are warranted, with the same bar as for the capability class: the split must reflect a genuine ontological difference in the kind of process occurring, not just two different outputs.
 
 ---
 
-#### Change 4 — `ARCO_core.ttl`: New Applicability Equivalence Class
+### Change 4 — New Applicability Equivalence Class in `ARCO_governance_extension.ttl`
 
-**Add**:
-```turtle
-:AnnexIII5bApplicableSystem rdf:type owl:Class ;
-    owl:equivalentClass [
-        owl:intersectionOf (
-            :System
-            [ owl:onProperty bfo:0000051 ;
-              owl:someValuesFrom [
-                owl:onProperty ro:0000091 ;
-                owl:someValuesFrom :CreditworthinessAssessmentCapability ] ]
-            [ owl:onProperty iao:0000136 ;
-              owl:someValuesFrom [
-                a owl:Class ;
-                owl:intersectionOf (
-                    :IntendedUseSpecification
-                    [ owl:onProperty cco:prescribes ;
-                      owl:someValuesFrom :CreditworthinessAssessmentProcess ] ) ] ]
-            [ owl:onProperty iao:0000136 ;
-              owl:someValuesFrom [
-                a owl:Class ;
-                owl:intersectionOf (
-                    :UseScenarioSpecification
-                    [ owl:onProperty iao:0000136 ;
-                      owl:someValuesFrom :NaturalPersonRole ] ) ] ]
-        )
-    ] .
-```
-
-**Why**: Three-gate equivalence class identical in structure to
-`AnnexIII1aApplicableSystem`. Gate 1 = hardware bears creditworthiness
-capability. Gate 2 = intended use prescribes the assessment process. Gate 3 =
-scenario involves natural persons. All three gates are legally required by
-Annex III 5(b). Together they are sufficient for classification.
-
-**Open to suggestion**: Whether the three gates as defined correctly capture the
-legal requirements, or whether additional constraints (e.g., explicit reference
-to the essential services context) should be added as a fourth gate.
+Add `AnnexIII5bApplicableSystem` as a three-gate OWL equivalence class in the governance extension file, not in core. This is a correction from an earlier draft. `AnnexIII1aApplicableSystem` lives in `ARCO_governance_extension.ttl` at line 221, and the same placement rule applies here: core holds reusable domain concepts (capabilities, process types), governance holds regulatory classification classes and gate axioms. The three gates are: Gate 1, the system has a part that has a disposition that is a `CreditworthinessAssessmentCapability`; Gate 2, the system is about an `IntendedUseSpecification` that prescribes `CreditworthinessAssessmentProcess`; Gate 3, the system is about a `UseScenarioSpecification` that is about `NaturalPersonRole`. The logical structure is identical to `AnnexIII1aApplicableSystem`. The coverage claim for v1 is explicitly the positive-side applicability pattern only. Annex III 5(b) contains a statutory exclusion for fraud detection systems and Article 6(3) contains derogation paths; neither is modeled in v1, and the coverage claim is stated accordingly: "Adds positive-side 5(b) applicability pattern; statutory exclusions and derogations deferred." Open to suggestion on whether the essential services access context — the category header in Annex III 5 — requires a fourth gate or a specialized `UseScenarioSpecification` subclass such as `EssentialServicesAccessScenario`. If added, Gate 3 would require the scenario to be of that specific type rather than any scenario involving a natural person. This would tighten the model and narrow the coverage claim appropriately. This question must be decided before writing TTL.
 
 ---
 
-#### Change 5 — New Instance File: `ARCO_instances_creditscore.ttl`
+### Change 5 — New Instance File `ARCO_instances_creditscore.ttl`
 
-**Add**: A new instance file modeling a hypothetical credit scoring system with:
-- `System` individual with a `HardwareComponent` that bears
-  `CreditworthinessAssessmentCapability`
-- `IntendedUseSpecification` prescribing `CreditworthinessAssessmentProcess`
-- `UseScenarioSpecification` referencing `NaturalPersonRole`
-- `HighRiskDetermination` artifact about the system
-- `ProviderOrganization`, `ProviderRole`, `AssessmentDocumentation`
-
-**Why**: The pipeline requires instance data to reason over. The instance file
-demonstrates that a concrete system can be modeled, classified, and certified
-under 5(b) using the same pattern as Sentinel-ID.
-
-**Open to suggestion**: Whether the instance file should be separate (clean
-separation of demos) or combined with the Sentinel-ID file (single instance
-graph). Default recommendation is separate.
+Add a separate instance file modeling a hypothetical credit scoring system. It includes a `System` individual with a `HardwareComponent` bearing `CreditworthinessAssessmentCapability`, an `IntendedUseSpecification` prescribing `CreditworthinessAssessmentProcess`, a `UseScenarioSpecification` referencing `NaturalPersonRole`, a `HighRiskDetermination` artifact about the system, and supporting individuals for `ProviderOrganization`, `ProviderRole`, and `AssessmentDocumentation`. The file is separate from the Sentinel-ID instance file. This keeps the demos modular and consistent with the existing convention. Combining them into one instance graph is an option but is not recommended because it complicates certificate output semantics when the pipeline is run per system.
 
 ---
 
-#### Change 6 — New SPARQL Query: `check_annex_iii_5b_entailment.sparql`
+### Change 6 — New SPARQL Query `check_annex_iii_5b_entailment.sparql`
 
-**Add**: An ASK query that verifies the credit scoring system is entailed as
-`AnnexIII5bApplicableSystem` after OWL-RL reasoning.
-
-**Why**: Consistent with existing audit query pattern. Provides a named,
-inspectable check for the 5(b) classification. Integrated into pipeline summary
-and certificate output.
-
-**Open to suggestion**: Whether additional audit queries are warranted (e.g.,
-a latent risk query for systems that have the capability without an intended
-use specification).
+Add an ASK query that verifies the credit scoring system individual is entailed as a member of `AnnexIII5bApplicableSystem` after OWL-RL reasoning. This follows the existing audit query pattern exactly. The query verifies that the OWL entailment happened; it does not carry legal semantics that the OWL model does not. Classification is done by the reasoner; the SPARQL layer only asks whether the result is present. Open to suggestion on whether a latent-risk query — asking whether a system has the capability but lacks a compliant intended use specification — is warranted as an additional audit check.
 
 ---
 
-#### Change 7 — Pipeline Update: `run_pipeline.py`
+### Change 7 — Pipeline Update in `run_pipeline.py`
 
-**Add**: One new constant pointing to `ARCO_instances_creditscore.ttl`. Load it
-alongside existing files. Extend summary output and certificate to reflect the
-second system if running in multi-system mode, OR run as a separate invocation
-per system.
-
-**Open to suggestion**: Whether the pipeline should run once per system (current
-model, simplest) or process multiple systems in one pass. The current
-architecture naturally supports one system per run — changing this is a larger
-refactor and is not required for v1.
+The pipeline currently hardcodes one instance file path (line 36), one system local name (line 50), and one system IRI (line 51), and emits one `certificate.txt` and one `summary.json`. Adding a second system into the same merged graph run would result in the SPARQL audit queries, which target `Sentinel_ID_System` by IRI, producing misleading output: the credit scoring system would be classified correctly by the reasoner but invisible in the certificate. The v1 solution is one run per system. The pipeline is invoked twice with two different configurations. Each run loads its own instance file and targets its own system IRI, producing two separate certificate artifacts. This requires minimal pipeline changes: one new configuration block alongside the existing Sentinel-ID constants. Multi-system mode in a single pass is a later refactor and is not required for v1.
 
 ---
 
-### What We Are Not Changing
+### What Is Not Changing
 
-- `HighRiskSystem` bridge axiom structure — unchanged
-- Sentinel-ID instances — unchanged, must still pass
-- SHACL shapes — reviewed but only changed if a gap is found
-- Directory structure — unchanged
-- CI workflow — unchanged unless output format changes
-- Article 6(3) derogation modeling — deferred
-- Fraud detection exception (negative path) — deferred, documented as gap
+`HighRiskSystem` bridge axiom structure is unchanged. Sentinel-ID instances are unchanged and must pass after every single TTL edit. SHACL shapes are reviewed but only changed if a gap is found. Directory structure, CI workflow, and existing SPARQL queries are unchanged. Article 6(3) derogation modeling and the fraud detection exclusion (negative gate) are deferred and documented as known gaps.
 
 ---
 
-### Hard Constraints (from `ontology_rules.md` — non-negotiable)
+### Hard Constraints
 
-- Every new class must trace to BFO 2020
-- No custom object properties — use existing BFO/RO/IAO/CCO relations only
-- No LLM in the pipeline
-- Reality-side vs. representation-side distinction must be maintained
-- Sentinel-ID demo must pass after every single change
-- Run pipeline after every TTL change — no batching
+Every new class must trace to BFO 2020. No custom object properties — only existing BFO, RO, IAO, and CCO relations. No LLM in the pipeline. Reality-side and representation-side distinction must be maintained in every new class placement. Sentinel-ID demo must pass after every single change. Pipeline runs after every TTL edit with no batching of changes.
 
 ---
 
