@@ -66,6 +66,7 @@ Detailed reference files (read when the task requires it, not by default):
 - `docs/agent/coding_rules.md` — pipeline and CI rules
 - `docs/agent/eu_ai_act_rules.md` — Annex III structure, derogation, Article 6
 - `docs/agent/writing_rules.md` — outward-facing tone and accuracy rules
+- `docs/agent/extension_protocol.md` — mandatory protocol for every new Annex III category addition
 
 ## Context Rules
 
