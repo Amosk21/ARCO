@@ -13,7 +13,7 @@ EU AI Act classification logic: `docs/agent/eu_ai_act_rules.md` — read for Ann
 - [ ] Subsumption is defensible: every instance of the subclass IS necessarily an instance of the superclass (the Barry Smith test)
 - [ ] Removed-enabling-axiom test run: if the axiom is removed, does the inference break? If not, it is not doing reasoning work — it is lookup
 - [ ] Reality/representation boundary maintained: dispositions in independent continuants; determinations/specs in ICEs
-- [ ] `AnnexIIITriggeringCapability` union not expanded without explicit scope decision
+- [ ] New Annex III capability categories extend `AnnexIIITriggeringCapability` via direct subclassing only (no union axioms); `AnnexIIITriggeringCapability` and `HighRiskSystem` live in governance extension, not core
 - [ ] Gate 2 `owl:someValuesFrom :RemoteBiometricIdentificationProcess` not relaxed to existence-only
 - [ ] Gate 3 `owl:hasValue :NaturalPersonRole` not changed to a role-bearer instance
 - [ ] Pipeline passes after change: `python 03_TECHNICAL_CORE/scripts/run_pipeline.py`

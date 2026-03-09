@@ -20,9 +20,10 @@
 #   require design-intent evidence we do not model yet. Disposition is
 #   correct; Function is a future precision upgrade.
 #
-#   HighRiskSystem axiom: capability-only (latent risk detection).
+#   HighRiskSystem and AnnexIIITriggeringCapability live in the governance
+#   extension, not here. Core contains only reality-side universals.
 #   AnnexIII1aApplicableSystem: full three-gate (capability + intent +
-#   scenario). The asymmetry is intentional — they serve different roles.
+#   scenario). Defined in governance extension.
 
 #################################################################
 # 1) REALITY-SIDE UNIVERSALS (BFO)
@@ -102,39 +103,12 @@
   rdfs:subClassOf :ComplianceDetermination .
 
 #################################################################
-# 3) INFERRED CLASSIFICATION - Bridge Axioms
+# 3) BRIDGE AXIOMS — moved to governance extension
 #
-# These axioms enable the reasoner to INFER high-risk status
-# rather than requiring it to be explicitly asserted.
-#
-# CRITICAL: Uses ro:0000091 (has_disposition) to match instance data
+# AnnexIIITriggeringCapability and HighRiskSystem are defined in
+# ARCO_governance_extension.ttl. They reference regulatory grouping
+# concepts and belong in the regulatory domain layer, not core.
 #################################################################
-
-:AnnexIIITriggeringCapability rdf:type owl:Class ;
-  rdfs:label "Annex III Triggering Capability" ;
-  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Extend the union to add new triggering capabilities." ;
-  owl:equivalentClass [
-    rdf:type owl:Class ;
-    owl:unionOf ( :BiometricIdentificationCapability )
-  ] .
-
-:HighRiskSystem rdf:type owl:Class ;
-  rdfs:label "High-Risk AI System" ;
-  rdfs:comment "A system classified as high-risk by virtue of having a component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
-  owl:equivalentClass [
-    rdf:type owl:Class ;
-    owl:intersectionOf (
-      :System
-      [ rdf:type owl:Restriction ;
-        owl:onProperty bfo:0000051 ; # has part
-        owl:someValuesFrom [
-          rdf:type owl:Restriction ;
-          owl:onProperty ro:0000091 ; # has disposition (ALIGNED WITH INSTANCES)
-          owl:someValuesFrom :AnnexIIITriggeringCapability
-        ]
-      ]
-    )
-  ] .
 
 #################################################################
 # 4) RELATION ANCHORS (labels for UI/debugging)

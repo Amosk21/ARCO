@@ -106,6 +106,54 @@ cco:Organization rdf:type owl:Class ;
   rdfs:subClassOf bfo:0000027 . # Object Aggregate
 
 #################################################################
+# 3b) REGULATORY BRIDGE AXIOMS
+#
+# AnnexIIITriggeringCapability is a REGULATORY GROUPING CLASS,
+# not a BFO natural kind. There is no mind-independent property
+# shared by all triggering capabilities in reality — what makes
+# a capability "triggering" is the legal text of Annex III.
+# It is a defined class grouping capability universals by their
+# legal relevance. It lives here (regulatory domain layer), not
+# in core.
+#
+# Direct subclassing replaces the prior one-member union:
+#   BiometricIdentificationCapability rdfs:subClassOf AnnexIIITriggeringCapability
+# This is semantically equivalent for current cases and scales
+# cleanly: each new Annex III capability category adds a subclass
+# assertion here, with no edits to core.
+#
+# HighRiskSystem is also a regulatory determination concept.
+# Its bridge axiom depends on AnnexIIITriggeringCapability and
+# belongs in this layer.
+#################################################################
+
+:AnnexIIITriggeringCapability rdf:type owl:Class ;
+  rdfs:label "Annex III Triggering Capability" ;
+  rdfs:comment "Regulatory grouping class (not a BFO natural kind). Groups capability dispositions whose presence in a system component triggers Annex III applicability under the EU AI Act. New Annex III capability categories extend this by direct subclassing, not by editing a union axiom." ;
+  rdfs:subClassOf :CapabilityDisposition .
+
+# Direct subclassing: biometric identification IS one kind of Annex III triggering capability.
+:BiometricIdentificationCapability rdfs:subClassOf :AnnexIIITriggeringCapability .
+
+:HighRiskSystem rdf:type owl:Class ;
+  rdfs:label "High-Risk AI System" ;
+  rdfs:comment "A system classified as high-risk by virtue of having a component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :System
+      [ rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000051 ;   # has part
+        owl:someValuesFrom [
+          rdf:type owl:Restriction ;
+          owl:onProperty ro:0000091 ;  # has disposition
+          owl:someValuesFrom :AnnexIIITriggeringCapability
+        ]
+      ]
+    )
+  ] .
+
+#################################################################
 # 4) INTENDED USE MODELING (CCO Directive ICE Pattern)
 #
 # Annex III: "AI systems intended to be used for [process] of
@@ -147,7 +195,7 @@ cco:Organization rdf:type owl:Class ;
 
 :RemoteBiometricIdentificationProcess rdf:type owl:Class ;
   rdfs:label "Remote Biometric Identification Process" ;
-  rdfs:comment "The process universal regulated under Annex III 1(a): remote biometric identification of natural persons." ;
+  rdfs:comment "Defined class of processes regulated under Annex III 1(a): remote biometric identification of natural persons. Has a real causal core (biometric feature extraction + matching at distance) but its type-boundary is partly constituted by regulatory fiat. Modeled as a BFO Process subclass; used as the Gate 2 type-check target." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
 :NaturalPersonRole rdf:type owl:Class ;
