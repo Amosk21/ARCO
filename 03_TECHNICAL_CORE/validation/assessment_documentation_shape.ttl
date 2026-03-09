@@ -67,14 +67,9 @@
 :PS_IntendedUse_PrescribesProcess
   a sh:PropertyShape ;
   sh:path cco:prescribes ;
-  sh:qualifiedValueShape [
-    sh:property [
-      sh:path rdfs:subClassOf ;
-      sh:hasValue bfo:0000015
-    ]
-  ] ;
+  sh:qualifiedValueShape [ sh:class bfo:0000015 ] ;
   sh:qualifiedMinCount 1 ;
-  sh:message "IntendedUseSpecification must prescribe at least one Process subclass." .
+  sh:message "IntendedUseSpecification must prescribe at least one Process instance (typed as bfo:0000015 or subclass)." .
 
 :PS_IntendedUse_IsAboutSystem
   a sh:PropertyShape ;

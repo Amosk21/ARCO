@@ -220,7 +220,12 @@ cco:Organization rdf:type owl:Class ;
 
 :AnnexIII1aApplicableSystem rdf:type owl:Class ;
   rdfs:label "Annex III 1(a) Applicable System" ;
-  rdfs:comment "System that meets Annex III 1(a) conditions via capability + intended use + affected category. Classification is OWL-entailed under owlrl; gate independence verified by regression test." ;
+  rdfs:comment """System that meets Annex III 1(a) conditions via three independently necessary gates:
+    Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
+    Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :RemoteBiometricIdentificationProcess. Uses owl:someValuesFrom for genuine type-checking; any correctly typed process token satisfies the gate.
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about :NaturalPersonRole. Uses owl:hasValue intentionally: the scenario spec is about the role CATEGORY (the universal), not a specific role-bearer token. Referencing the class IRI as concept-individual is the correct OWL 2 encoding for this regulatory pattern.
+  Classification is OWL-entailed under owlrl; gate independence verified by regression test (test_gate_removal.py).
+  SPARQL ASK queries (check_intended_use, check_regulatory_alignment) are downstream audit-layer checks that inspect declared documentary content on the reasoned graph; they do not contribute to this entailment and cannot affect it.""" ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
     rdf:type owl:Class ;
@@ -242,16 +247,44 @@ cco:Organization rdf:type owl:Class ;
         ]
       ]
 
-      # Gate 2 (representation-side): intended use spec exists about this system
+      # Gate 2 (representation-side): intended use spec is_about this system AND prescribes an
+      # instance of the regulated process class for Annex III 1(a). cco:prescribes carries the
+      # statutory prescriptive force. owl:someValuesFrom :RemoteBiometricIdentificationProcess
+      # performs genuine type-checking: any named individual typed as that class satisfies the gate.
+      # This eliminates the false-negative risk of the prior owl:hasValue pattern (which only matched
+      # the class IRI as a punned individual, not correctly-typed process tokens).
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
-        owl:someValuesFrom :IntendedUseSpecification
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :IntendedUseSpecification
+            [ rdf:type owl:Restriction ;
+              owl:onProperty cco:prescribes ;
+              owl:someValuesFrom :RemoteBiometricIdentificationProcess
+            ]
+          )
+        ]
       ]
 
-      # Gate 3 (representation-side): scenario spec exists about this system
+      # Gate 3 (representation-side): scenario spec is_about this system AND is_about the relevant
+      # affected role for Annex III 1(a). owl:hasValue is intentional here (not interim debt):
+      # the scenario spec is about the NaturalPersonRole CATEGORY (the universal), not a specific
+      # role-bearer instance (which would require a specific individual at a specific time).
+      # Referencing the class IRI as a concept-individual is the correct OWL 2 encoding for
+      # "this scenario addresses the regulated role type."
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
-        owl:someValuesFrom :UseScenarioSpecification
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :UseScenarioSpecification
+            [ rdf:type owl:Restriction ;
+              owl:onProperty iao:0000136 ;
+              owl:hasValue :NaturalPersonRole
+            ]
+          )
+        ]
       ]
     )
   ] .

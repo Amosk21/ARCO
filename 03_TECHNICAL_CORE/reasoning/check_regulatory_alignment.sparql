@@ -1,0 +1,33 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+
+# AUDIT LAYER — documentary alignment check, not classification mechanism.
+# AnnexIII1aApplicableSystem membership is OWL-entailed by gate axioms in
+# ARCO_governance_extension.ttl. This query does not produce and cannot affect
+# that entailment. It is a downstream KPMG-style auditor check:
+# "Does your declared intended use prescribe a process of the same type
+# that the law regulates?"
+#
+# The law (AnnexIII_Condition_Q1) prescribes the process CLASS as a
+# concept-individual (class IRI in object position of cco:prescribes).
+# The provider (IntendedUseSpecification) prescribes a process TOKEN
+# typed as that class (:Sentinel_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess).
+# Alignment is confirmed by checking that the token is rdf:type the regulated class.
+#
+# The rdf:type triple checked here is ASSERTED in instance data (intentional):
+# an auditor verifying documentary alignment wants to confirm explicit declaration,
+# not that the process was merely inferred to be a broader supertype.
+
+ASK WHERE {
+  # What process class the law prescribes (class IRI as concept-individual)
+  :AnnexIII_Condition_Q1 cco:prescribes ?processClass .
+
+  # What process instance the provider's documentation prescribes for this system
+  ?ius a :IntendedUseSpecification ;
+    cco:prescribes ?process ;
+    iao:0000136 :Sentinel_ID_System .
+
+  # Alignment: provider's process instance is of the regulated class (asserted type)
+  ?process a ?processClass .
+}
