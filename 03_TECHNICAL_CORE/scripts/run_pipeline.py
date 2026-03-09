@@ -14,6 +14,7 @@ Modeling relation: RO_0000091 has_disposition (per OBO Foundry / RO best practic
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 from rdflib import Graph
@@ -33,7 +34,6 @@ REASONING_DIR = REPO_ROOT / "03_TECHNICAL_CORE" / "reasoning"
 
 CORE = ONTOLOGY_DIR / "ARCO_core.ttl"
 GOV = ONTOLOGY_DIR / "ARCO_governance_extension.ttl"
-INSTANCES = ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"
 
 SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 
@@ -42,14 +42,30 @@ LATENT_RISK_QUERY = REASONING_DIR / "detect_latent_risk.sparql"
 HIGH_RISK_INFERENCE_QUERY = REASONING_DIR / "check_high_risk_inference.sparql"
 INTENDED_USE_QUERY = REASONING_DIR / "check_intended_use.sparql"
 ANNEX_III_1A_QUERY = REASONING_DIR / "check_annex_iii_1a_entailment.sparql"
+ANNEX_III_5B_QUERY = REASONING_DIR / "check_annex_iii_5b_entailment.sparql"
 OBLIGATION_QUERY = REASONING_DIR / "check_obligation_link.sparql"
 
-OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
-
-# --- System under evaluation (change this one line for a different system) ---
-SYSTEM_LOCAL = "Sentinel_ID_System"
-SYSTEM_IRI = f"https://arco.ai/ontology/core#{SYSTEM_LOCAL}"
 ARCO_NS = "https://arco.ai/ontology/core#"
+
+# --- Per-system configuration ---
+SYSTEM_CONFIGS = {
+    "sentinel": {
+        "instances": ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl",
+        "system_local": "Sentinel_ID_System",
+        "annex_category": "Annex III 1(a)",
+        "annex_query": ANNEX_III_1A_QUERY,
+        "annex_label": "ANNEX III 1(a)",
+        "output_subdir": "sentinel",
+    },
+    "creditscore": {
+        "instances": ONTOLOGY_DIR / "ARCO_instances_creditscore.ttl",
+        "system_local": "CreditScore_AI_System",
+        "annex_category": "Annex III 5(b) [positive path; fraud-detection exclusion deferred]",
+        "annex_query": ANNEX_III_5B_QUERY,
+        "annex_label": "ANNEX III 5(b)",
+        "output_subdir": "creditscore",
+    },
+}
 
 
 # ---------------------------
@@ -153,14 +169,14 @@ def run_shacl(data_graph: Graph) -> tuple[bool, str]:
 # proof / evidence extraction
 # ---------------------------
 
-def _ask_highrisk(sys: str = SYSTEM_LOCAL) -> str:
+def _ask_highrisk(sys: str) -> str:
     return f"""
 PREFIX : <{ARCO_NS}>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK WHERE {{ :{sys} rdf:type :HighRiskSystem . }}
 """
 
-def _ask_primary_path(sys: str = SYSTEM_LOCAL) -> str:
+def _ask_primary_path(sys: str) -> str:
     return f"""
 PREFIX : <{ARCO_NS}>
 PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
@@ -172,7 +188,7 @@ ASK WHERE {{
 }}
 """
 
-def _select_primary_bindings(sys: str = SYSTEM_LOCAL) -> str:
+def _select_primary_bindings(sys: str) -> str:
     return f"""
 PREFIX : <{ARCO_NS}>
 PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
@@ -189,40 +205,37 @@ def _short(iri: str) -> str:
     """Shorten an IRI to its local name for display."""
     return iri.rsplit("#", 1)[-1] if "#" in iri else iri.rsplit("/", 1)[-1]
 
-def get_primary_bindings(g: Graph) -> list[tuple[str, str]]:
+def get_primary_bindings(g: Graph, sys: str) -> list[tuple[str, str]]:
     rows = []
     try:
-        qres = g.query(_select_primary_bindings())
+        qres = g.query(_select_primary_bindings(sys))
         for r in qres:
             rows.append((str(r.component), str(r.d)))
     except Exception:
         return []
     return rows
 
-def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bool, bool, list[tuple[str, str]]]:
+def verify_high_risk_inference(reasoned: Graph, source: Graph, sys: str) -> tuple[bool, bool, bool, list[tuple[str, str]]]:
     """Returns (inference_ok, asserted_pre, entailed_post, bindings)."""
     hr("ARCO RESULT (ENTAILMENT + PROOF SKETCH)")
 
     # Before/after: was HighRiskSystem asserted in raw input?
-    asserted_pre = run_sparql_ask_inline(source, _ask_highrisk())
+    asserted_pre = run_sparql_ask_inline(source, _ask_highrisk(sys))
 
     # After reasoning: is HighRiskSystem present now?
-    if HIGH_RISK_INFERENCE_QUERY.exists():
-        entailed_post = run_sparql_ask_from_file(reasoned, HIGH_RISK_INFERENCE_QUERY)
-    else:
-        entailed_post = run_sparql_ask_inline(reasoned, _ask_highrisk())
+    entailed_post = run_sparql_ask_inline(reasoned, _ask_highrisk(sys))
 
     print(f"HighRiskSystem in source data (pre-reasoning):   {asserted_pre}")
     print(f"HighRiskSystem in reasoned graph (post-reason):  {entailed_post}")
 
-    # Evidence check (primary path only — legacy bearer_of removed)
-    primary_path = run_sparql_ask_inline(reasoned, _ask_primary_path())
+    # Evidence check (primary path only)
+    primary_path = run_sparql_ask_inline(reasoned, _ask_primary_path(sys))
 
     sub("EVIDENCE PATH CHECK")
     print(f"has_disposition path (RO:0000091): {primary_path}")
 
     # Concrete bindings
-    bindings = get_primary_bindings(reasoned)
+    bindings = get_primary_bindings(reasoned, sys)
     if bindings:
         sub("CONCRETE BINDINGS")
         for i, (comp, disp) in enumerate(bindings, 1):
@@ -233,9 +246,9 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bo
     print("Bridge axiom (ARCO_core.ttl):")
     print("  HighRiskSystem = System AND (has_part SOME (has_disposition SOME AnnexIIITriggeringCapability))")
     if not asserted_pre and entailed_post:
-        print(f"  => {SYSTEM_LOCAL} rdf:type HighRiskSystem  (INFERRED, not asserted)")
+        print(f"  => {sys} rdf:type HighRiskSystem  (INFERRED, not asserted)")
     elif entailed_post:
-        print(f"  => {SYSTEM_LOCAL} rdf:type HighRiskSystem  (ASSERTED)")
+        print(f"  => {sys} rdf:type HighRiskSystem  (ASSERTED)")
 
     # Hard enforcement: entailment must have at least one evidence path
     if entailed_post and not primary_path:
@@ -266,7 +279,25 @@ def _pf(ok: bool) -> str:
     return "PASS" if ok else "FAIL"
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="ARCO Compliance Verification Pipeline")
+    parser.add_argument(
+        "--system",
+        choices=list(SYSTEM_CONFIGS.keys()),
+        default="sentinel",
+        help="System to evaluate (default: sentinel)",
+    )
+    args = parser.parse_args()
+
+    cfg = SYSTEM_CONFIGS[args.system]
+    INSTANCES = cfg["instances"]
+    SYSTEM_LOCAL = cfg["system_local"]
+    annex_category = cfg["annex_category"]
+    annex_query = cfg["annex_query"]
+    annex_label = cfg["annex_label"]
+    OUTPUT_DIR = REPO_ROOT / "runs" / "demo" / cfg["output_subdir"]
+
     hr("ARCO COMPLIANCE VERIFICATION PIPELINE (OPERATOR VIEW)")
+    print(f"System: {SYSTEM_LOCAL}  |  Category: {annex_category}")
 
     sub("LOAD")
     print("Loading: core ontology + governance extension + instance data")
@@ -297,11 +328,11 @@ def main() -> None:
         intended_use_ok = run_sparql_ask_from_file(g, INTENDED_USE_QUERY)
         print(f"Intended use modeled: {intended_use_ok}")
 
-    annex_iii_1a_ok = None
-    if ANNEX_III_1A_QUERY.exists():
-        print("\nAnnex III 1(a) entailment (OWL-inferred, audit only)...")
-        annex_iii_1a_ok = run_sparql_ask_from_file(g, ANNEX_III_1A_QUERY)
-        print(f"Annex III 1(a) applicable: {annex_iii_1a_ok}")
+    annex_iii_category_ok = None
+    if annex_query.exists():
+        print(f"\n{annex_label} entailment (OWL-inferred, audit only)...")
+        annex_iii_category_ok = run_sparql_ask_from_file(g, annex_query)
+        print(f"{annex_label} applicable: {annex_iii_category_ok}")
 
     obligation_ok = None
     if OBLIGATION_QUERY.exists():
@@ -309,7 +340,7 @@ def main() -> None:
         obligation_ok = run_sparql_ask_from_file(g, OBLIGATION_QUERY)
         print(f"Obligation linked: {obligation_ok}")
 
-    inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
+    inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source, SYSTEM_LOCAL)
 
     # ---------------------------------------------------------------
     # SUMMARY (existing)
@@ -321,8 +352,8 @@ def main() -> None:
         print(f"Latent risk:   {_pf(latent_ok)}")
     if intended_use_ok is not None:
         print(f"Intended use:  {_pf(intended_use_ok)}")
-    if annex_iii_1a_ok is not None:
-        print(f"Annex III 1a:  {_pf(annex_iii_1a_ok)}")
+    if annex_iii_category_ok is not None:
+        print(f"{annex_label}:  {_pf(annex_iii_category_ok)}")
     if obligation_ok is not None:
         print(f"Obligation:    {_pf(obligation_ok)}")
     print(f"Entailment:    {_pf(inference_ok)}")
@@ -333,8 +364,8 @@ def main() -> None:
         all_pass = all_pass and latent_ok
     if intended_use_ok is not None:
         all_pass = all_pass and intended_use_ok
-    if annex_iii_1a_ok is not None:
-        all_pass = all_pass and annex_iii_1a_ok
+    if annex_iii_category_ok is not None:
+        all_pass = all_pass and annex_iii_category_ok
     if obligation_ok is not None:
         all_pass = all_pass and obligation_ok
 
@@ -363,6 +394,7 @@ def main() -> None:
     hr("REGULATORY DETERMINATION CERTIFICATE")
     print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     print(f"  REGIME:                  EU AI Act (Article 6 / Annex III)")
+    print(f"  ANNEX III CATEGORY:      {annex_category}")
     if classification_mode in ("INFERRED", "ASSERTED"):
         print(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -380,8 +412,8 @@ def main() -> None:
         print(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
     if intended_use_ok is not None:
         print(f"  INTENDED USE:            {_pf(intended_use_ok)}")
-    if annex_iii_1a_ok is not None:
-        print(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT VERIFIED'}")
+    if annex_iii_category_ok is not None:
+        print(f"  {annex_label}:  {'VERIFIED (ENTAILED)' if annex_iii_category_ok else 'NOT VERIFIED'}")
     if obligation_ok is not None:
         print(f"  OBLIGATION:              {_pf(obligation_ok)}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
@@ -399,6 +431,7 @@ def main() -> None:
     cert_lines.append("=" * 72)
     cert_lines.append(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     cert_lines.append(f"  REGIME:                  EU AI Act (Article 6 / Annex III)")
+    cert_lines.append(f"  ANNEX III CATEGORY:      {annex_category}")
     if classification_mode in ("INFERRED", "ASSERTED"):
         cert_lines.append(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -416,8 +449,8 @@ def main() -> None:
         cert_lines.append(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
     if intended_use_ok is not None:
         cert_lines.append(f"  INTENDED USE:            {_pf(intended_use_ok)}")
-    if annex_iii_1a_ok is not None:
-        cert_lines.append(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT VERIFIED'}")
+    if annex_iii_category_ok is not None:
+        cert_lines.append(f"  {annex_label}:  {'VERIFIED (ENTAILED)' if annex_iii_category_ok else 'NOT VERIFIED'}")
     if obligation_ok is not None:
         cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
@@ -428,12 +461,15 @@ def main() -> None:
     summary = {
         "system": SYSTEM_LOCAL,
         "regime": "EU AI Act (Article 6 / Annex III)",
+        "annex_category": annex_category,
         "classification": f"HighRiskSystem ({classification_mode})" if classification_mode in ("INFERRED", "ASSERTED") else classification_mode,
         "shacl": _pf(shacl_ok),
         "traceability": _pf(traceability_ok),
         "latent_risk": (_pf(latent_ok) if latent_ok is not None else "N/A"),
         "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "N/A"),
-        "annex_iii_1a": (_pf(annex_iii_1a_ok) if annex_iii_1a_ok is not None else "N/A"),
+        annex_label.lower().replace(" ", "_").replace("(", "").replace(")", ""): (
+            _pf(annex_iii_category_ok) if annex_iii_category_ok is not None else "N/A"
+        ),
         "obligation": (_pf(obligation_ok) if obligation_ok is not None else "N/A"),
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,

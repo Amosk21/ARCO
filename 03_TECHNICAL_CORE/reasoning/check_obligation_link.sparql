@@ -4,9 +4,11 @@ PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 # Checks that a compliance obligation links the system to a provider role.
 # This is the "who bears responsibility" foundation.
 
+# System-agnostic: checks that some obligation links any system to a provider role.
 ASK WHERE {
   ?obligation a :ComplianceObligationSpecification ;
-    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?system ;
     iao:0000136 ?role .
+  ?system a :System .
   ?role a :ProviderRole .
 }

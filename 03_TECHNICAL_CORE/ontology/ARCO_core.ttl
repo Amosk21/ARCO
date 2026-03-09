@@ -65,14 +65,21 @@
 :BiometricIdentificationCapability rdf:type owl:Class ;
   rdfs:label "Biometric Identification Capability" ;
   rdfs:comment "A capability-disposition whose realizations include identifying or verifying individuals via biometric characteristics." ;
-  rdfs:subClassOf :CapabilityDisposition .
+  rdfs:subClassOf :CapabilityDisposition ;
+  rdfs:subClassOf :AnnexIIITriggeringCapability .
+
+:CreditworthinessAssessmentCapability rdf:type owl:Class ;
+  rdfs:label "Creditworthiness Assessment Capability" ;
+  rdfs:comment "A capability-disposition whose realizations include evaluating the creditworthiness of natural persons or establishing their credit score. Aligned to EU AI Act Annex III 5(b) positive path. Fraud-detection exclusion deferred." ;
+  rdfs:subClassOf :CapabilityDisposition ;
+  rdfs:subClassOf :AnnexIIITriggeringCapability .
 
 :OperationalProcess rdf:type owl:Class ;
   rdfs:label "Operational Process" ;
   rdfs:subClassOf bfo:0000015 ; # Process
   rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,                 # has participant
-    [ a owl:Restriction ; owl:onProperty bfo:0000055 ; owl:someValuesFrom :CapabilityDisposition ] . # realizes
+    [ a owl:Restriction ; owl:onProperty bfo:0000055 ; owl:someValuesFrom :CapabilityDisposition ] . # realizes (specific capability on instances)
 
 #################################################################
 # 2) REPRESENTATION-SIDE UNIVERSALS (IAO)
@@ -112,11 +119,7 @@
 
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
   rdfs:label "Annex III Triggering Capability" ;
-  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Extend the union to add new triggering capabilities." ;
-  owl:equivalentClass [
-    rdf:type owl:Class ;
-    owl:unionOf ( :BiometricIdentificationCapability )
-  ] .
+  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Each new Annex III category subclasses this directly — no union editing required." .
 
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "High-Risk AI System" ;

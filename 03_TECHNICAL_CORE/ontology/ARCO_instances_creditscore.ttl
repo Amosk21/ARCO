@@ -1,0 +1,124 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances_creditscore> rdf:type owl:Ontology ;
+  rdfs:label "ARCO CreditScore-AI Instances — Annex III 5(b) Positive Path" ;
+  rdfs:comment "Instances demonstrating a second Annex III determination pattern, aligned to 5(b) creditworthiness / credit score language. Positive path only. Fraud-detection exclusion deferred. Article 6(3) derogation deferred." ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# 1) REGULATORY LAYER
+#################################################################
+
+:AnnexIII_Condition_5b rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III 5(b) (Creditworthiness / Credit Score)" ;
+  iao:0000136 :CreditworthinessAssessmentCapability ;
+  iao:0000136 :CreditworthinessAssessmentProcess ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
+# 2) SYSTEM LAYER (reality-side particulars)
+#################################################################
+
+:CreditScore_ProcessingModule rdf:type :HardwareComponent ;
+  rdfs:label "Credit Score Processing Module" ;
+  rdfs:comment "Hardware component hosting the creditworthiness assessment capability." ;
+  ro:0000091 :CreditScore_Disposition . # has disposition
+
+:CreditScore_AI_System rdf:type :System ;
+  rdfs:label "CreditScore-AI System" ;
+  bfo:0000051 :CreditScore_ProcessingModule . # has part
+
+:CreditScore_Disposition rdf:type :CreditworthinessAssessmentCapability ;
+  rdfs:label "Creditworthiness Assessment Disposition" .
+
+#################################################################
+# 2b) INTENDED USE + USE SCENARIO (representation-side directives)
+#
+# Three-gate Annex III 5(b) classification:
+#   Gate 1: Capability — system bears CreditworthinessAssessmentCapability
+#   Gate 2: Intended use — directive ICE prescribes the regulated process type
+#   Gate 3: Use scenario — affected entities (natural persons)
+#################################################################
+
+:CreditScore_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "CreditScore-AI Intended Use: Creditworthiness Assessment" ;
+  cco:prescribes :CreditworthinessAssessmentProcess ;
+  iao:0000136 :CreditScore_AI_System ;
+  iao:0000136 :CreditworthinessAssessmentProcess .
+
+:CreditScore_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "CreditScore-AI Use Scenario: Assessment of Natural Persons" ;
+  iao:0000136 :CreditScore_AI_System ;
+  iao:0000136 :CreditworthinessAssessmentProcess ;
+  iao:0000136 cco:Person ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
+# 3) OPERATIONAL LAYER
+#################################################################
+
+:CreditAssessment_Run_001 rdf:type :OperationalProcess ;
+  rdfs:label "Credit Assessment Run 001" ;
+  ro:0000057 :CreditScore_AI_System ;           # has participant
+  bfo:0000055 :CreditScore_Disposition ;        # realizes
+  cco:has_output :CreditReport_001 .            # has output
+
+:CreditReport_001 rdf:type :InformationOutput ;
+  rdfs:label "Credit Report 001" ;
+  iao:0000136 :CreditScore_AI_System .
+
+#################################################################
+# 4) COMPLIANCE DETERMINATION
+#
+#    The determination artifact is typed as :HighRiskDetermination.
+#    The SYSTEM's classification as :HighRiskSystem is INFERRED by
+#    the reasoner via the bridge axiom in ARCO_core.ttl.
+#    Positive path only — fraud-detection exclusion deferred.
+#################################################################
+
+:HighRisk_Determination_5b_001 rdf:type :HighRiskDetermination ;
+  rdfs:label "High-Risk Determination 5(b) 001" ;
+  iao:0000136 :CreditScore_AI_System ;
+  iao:0000136 :AnnexIII_Condition_5b ;
+  rdfs:comment "Positive-path determination artifact for Annex III 5(b). Fraud-detection exclusion and Article 6(3) derogation deferred." .
+
+#################################################################
+# 5) PROVIDER + DOCUMENTATION WORKFLOW
+#################################################################
+
+:ProviderOrg_CreditScore rdf:type :ProviderOrganization ;
+  rdfs:label "CreditScore-AI Provider Org (Example)" ;
+  ro:0000087 :ProviderRole_CreditScore .
+
+:ProviderRole_CreditScore rdf:type :ProviderRole ;
+  rdfs:label "Provider Role (bearer: ProviderOrg_CreditScore)" ;
+  ro:0000052 :ProviderOrg_CreditScore .  # inheres in
+
+:AssessmentDocProcess_CreditScore rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Assessment Documentation Process (CreditScore-AI)" ;
+  ro:0000057 :CreditScore_AI_System ;
+  ro:0000057 :ProviderOrg_CreditScore ;
+  cco:has_output :AssessmentDoc_CreditScore .
+
+:AssessmentDoc_CreditScore rdf:type :AssessmentDocumentation ;
+  rdfs:label "Assessment Documentation (CreditScore-AI)" ;
+  iao:0000136 :CreditScore_AI_System ;
+  iao:0000136 :AnnexIII_Condition_5b .
+
+#################################################################
+# 6) COMPLIANCE OBLIGATION
+#################################################################
+
+:ProviderObligation_CreditScore rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Provider Compliance Obligation for CreditScore-AI" ;
+  rdfs:comment "Specifies that the provider role-bearer has compliance obligations for the CreditScore-AI system under Annex III 5(b)." ;
+  iao:0000136 :CreditScore_AI_System ;
+  iao:0000136 :ProviderRole_CreditScore ;
+  iao:0000136 :AnnexIII_Condition_5b .

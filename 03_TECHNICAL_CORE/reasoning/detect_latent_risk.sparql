@@ -15,8 +15,11 @@ PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
 # even when the capability is not currently active/realized.
 #################################################################
 
+# System-agnostic: detects any system with a component bearing an
+# AnnexIIITriggeringCapability (covers all Annex III categories).
 ASK WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
+  ?system a :System ;
+    bfo:0000051 ?component .
   ?component ro:0000091 ?disposition .
-  ?disposition a :BiometricIdentificationCapability .
+  ?disposition a :AnnexIIITriggeringCapability .
 }

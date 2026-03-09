@@ -150,6 +150,11 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment "The process universal regulated under Annex III 1(a): remote biometric identification of natural persons." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
+:CreditworthinessAssessmentProcess rdf:type owl:Class ;
+  rdfs:label "Creditworthiness Assessment Process" ;
+  rdfs:comment "The process universal regulated under Annex III 5(b): evaluating the creditworthiness of natural persons or establishing their credit score." ;
+  rdfs:subClassOf bfo:0000015 . # Process
+
 :NaturalPersonRole rdf:type owl:Class ;
   rdfs:label "Natural Person Role" ;
   rdfs:comment "Legal designation under EU law. Not a biological kind — modeled as a BFO Role." ;
@@ -237,6 +242,57 @@ cco:Organization rdf:type owl:Class ;
             [ rdf:type owl:Restriction ;
               owl:onProperty ro:0000091 ;            # has_disposition
               owl:someValuesFrom :BiometricIdentificationCapability
+            ]
+          )
+        ]
+      ]
+
+      # Gate 2 (representation-side): intended use spec exists about this system
+      [ rdf:type owl:Restriction ;
+        owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
+        owl:someValuesFrom :IntendedUseSpecification
+      ]
+
+      # Gate 3 (representation-side): scenario spec exists about this system
+      [ rdf:type owl:Restriction ;
+        owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
+        owl:someValuesFrom :UseScenarioSpecification
+      ]
+    )
+  ] .
+
+#################################################################
+# 6) ANNEX III 5(b) ENTAILMENT CLASS
+#
+# Positive-path creditworthiness determination. Same three-gate
+# structure as 1(a) but scoped to CreditworthinessAssessmentCapability.
+#
+# DEFERRED: fraud-detection exclusion (Annex III 5(b) exception)
+# DEFERRED: Article 6(3) derogation paths
+#
+# This class demonstrates a second Annex III determination pattern.
+# It does NOT represent exhaustive legal coverage of 5(b).
+#################################################################
+
+:AnnexIII5bApplicableSystem rdf:type owl:Class ;
+  rdfs:label "Annex III 5(b) Applicable System" ;
+  rdfs:comment "System that meets Annex III 5(b) conditions via capability + intended use + affected category (positive path). Fraud-detection exclusion deferred. Article 6(3) derogation deferred." ;
+  rdfs:subClassOf :System ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :System
+
+      # Gate 1 (reality-side): creditworthiness capability via component
+      [ rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000051 ;                 # has_part
+        owl:someValuesFrom [
+          rdf:type owl:Class ;
+          owl:intersectionOf (
+            :SystemComponent
+            [ rdf:type owl:Restriction ;
+              owl:onProperty ro:0000091 ;            # has_disposition
+              owl:someValuesFrom :CreditworthinessAssessmentCapability
             ]
           )
         ]
