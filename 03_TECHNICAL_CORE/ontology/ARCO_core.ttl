@@ -20,9 +20,10 @@
 #   require design-intent evidence we do not model yet. Disposition is
 #   correct; Function is a future precision upgrade.
 #
-#   HighRiskSystem axiom: capability-only (latent risk detection).
+#   HighRiskSystem and AnnexIIITriggeringCapability live in the governance
+#   extension, not here. Core contains only reality-side universals.
 #   AnnexIII1aApplicableSystem: full three-gate (capability + intent +
-#   scenario). The asymmetry is intentional — they serve different roles.
+#   scenario). Defined in governance extension.
 
 #################################################################
 # 1) REALITY-SIDE UNIVERSALS (BFO)
@@ -64,7 +65,17 @@
 
 :BiometricIdentificationCapability rdf:type owl:Class ;
   rdfs:label "Biometric Identification Capability" ;
-  rdfs:comment "A capability-disposition whose realizations include identifying or verifying individuals via biometric characteristics." ;
+  rdfs:comment "1:N biometric identification capability. Realizations identify an unknown individual against a population database. Triggers Annex III 1(a). NOT the same as 1:1 verification (see BiometricVerificationCapability)." ;
+  rdfs:subClassOf :CapabilityDisposition .
+
+:BiometricVerificationCapability rdf:type owl:Class ;
+  rdfs:label "Biometric Verification Capability" ;
+  rdfs:comment "1:1 biometric verification capability. Realizations confirm whether a presented individual matches a claimed identity. NOT subClassOf BiometricIdentificationCapability — verification is not a species of identification. NOT in AnnexIIITriggeringCapability. Does not trigger Annex III 1(a)." ;
+  rdfs:subClassOf :CapabilityDisposition .
+
+:CreditworthinessEvaluationCapability rdf:type owl:Class ;
+  rdfs:label "Creditworthiness Evaluation Capability" ;
+  rdfs:comment "Capability to evaluate creditworthiness of natural persons or establish their credit score, for access to financial or public services. Reality-side disposition (the hardware genuinely has this capacity). Regulatory grouping (AnnexIIITriggeringCapability) is asserted in the governance extension. Triggers Annex III 5(b)." ;
   rdfs:subClassOf :CapabilityDisposition .
 
 :OperationalProcess rdf:type owl:Class ;
@@ -102,39 +113,12 @@
   rdfs:subClassOf :ComplianceDetermination .
 
 #################################################################
-# 3) INFERRED CLASSIFICATION - Bridge Axioms
+# 3) BRIDGE AXIOMS — moved to governance extension
 #
-# These axioms enable the reasoner to INFER high-risk status
-# rather than requiring it to be explicitly asserted.
-#
-# CRITICAL: Uses ro:0000091 (has_disposition) to match instance data
+# AnnexIIITriggeringCapability and HighRiskSystem are defined in
+# ARCO_governance_extension.ttl. They reference regulatory grouping
+# concepts and belong in the regulatory domain layer, not core.
 #################################################################
-
-:AnnexIIITriggeringCapability rdf:type owl:Class ;
-  rdfs:label "Annex III Triggering Capability" ;
-  rdfs:comment "A capability disposition that triggers high-risk classification under EU AI Act Annex III. Extend the union to add new triggering capabilities." ;
-  owl:equivalentClass [
-    rdf:type owl:Class ;
-    owl:unionOf ( :BiometricIdentificationCapability )
-  ] .
-
-:HighRiskSystem rdf:type owl:Class ;
-  rdfs:label "High-Risk AI System" ;
-  rdfs:comment "A system classified as high-risk by virtue of having a component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
-  owl:equivalentClass [
-    rdf:type owl:Class ;
-    owl:intersectionOf (
-      :System
-      [ rdf:type owl:Restriction ;
-        owl:onProperty bfo:0000051 ; # has part
-        owl:someValuesFrom [
-          rdf:type owl:Restriction ;
-          owl:onProperty ro:0000091 ; # has disposition (ALIGNED WITH INSTANCES)
-          owl:someValuesFrom :AnnexIIITriggeringCapability
-        ]
-      ]
-    )
-  ] .
 
 #################################################################
 # 4) RELATION ANCHORS (labels for UI/debugging)
