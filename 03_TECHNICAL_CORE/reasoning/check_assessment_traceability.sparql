@@ -1,7 +1,14 @@
 PREFIX : <https://arco.ai/ontology/core#>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 
+# Audit check: verifies that an AssessmentDocumentation exists for the system
+# and is linked to a RegulatoryContent condition.
+# Uses variables for the doc and condition IRIs so system IRI substitution
+# (via --system CLI arg) covers both sentinel and other Annex III systems.
+
 ASK WHERE {
-  :AssessmentDoc_001 iao:0000136 :Sentinel_ID_System .
-  :AssessmentDoc_001 iao:0000136 :AnnexIII_Condition_Q1 .
+  ?doc a :AssessmentDocumentation ;
+    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?condition .
+  ?condition a :RegulatoryContent .
 }

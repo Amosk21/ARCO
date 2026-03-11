@@ -5,18 +5,21 @@ PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
 #################################################################
 # detect_latent_risk.sparql
 #
-# PURPOSE: Detect latent high-risk capability via component traversal
+# PURPOSE: Detect latent Annex III regulatory risk via component traversal
 #
 # QUERY PATTERN:
-#   System → has_part → HardwareComponent → has_disposition → 
-#   BiometricIdentificationCapability
+#   System → has_part → HardwareComponent → has_disposition →
+#   AnnexIIITriggeringCapability (or any subclass thereof)
 #
-# This query detects regulatory risk at the hardware level,
-# even when the capability is not currently active/realized.
+# This query detects regulatory risk at the hardware level for any
+# Annex III category, even when the capability is not currently active.
+# AnnexIIITriggeringCapability is entailed by OWL-RL subclass reasoning
+# for all registered capability subclasses (e.g. BiometricIdentificationCapability,
+# CreditworthinessEvaluationCapability).
 #################################################################
 
 ASK WHERE {
   :Sentinel_ID_System bfo:0000051 ?component .
   ?component ro:0000091 ?disposition .
-  ?disposition a :BiometricIdentificationCapability .
+  ?disposition a :AnnexIIITriggeringCapability .
 }

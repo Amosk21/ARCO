@@ -1,0 +1,16 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# Audit check: confirms the reasoner inferred Annex III 5(b) applicability.
+# Classification itself is an OWL entailment — this just verifies it materialized.
+#
+# Cross-category isolation:
+#   Sentinel_ID_System (default): FALSE — no CreditworthinessEvaluationCapability; Gate 1 of 5(b) fails.
+#   CreditScorer_001: TRUE after reasoning — all three gates satisfied.
+#
+# The pipeline substitutes :Sentinel_ID_System with the actual system IRI when evaluating
+# a different system (e.g., CreditScorer_001 via --system CLI argument).
+
+ASK WHERE {
+  :Sentinel_ID_System rdf:type :AnnexIII5bApplicableSystem .
+}
