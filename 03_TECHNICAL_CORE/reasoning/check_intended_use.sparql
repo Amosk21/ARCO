@@ -1,36 +1,29 @@
 PREFIX : <https://arco.ai/ontology/core#>
 PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
-PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 
-# AUDIT LAYER — documentary structure check.
-# This query is NOT the classification mechanism. AnnexIII1aApplicableSystem
-# membership is OWL-entailed by the gate axioms in ARCO_governance_extension.ttl
-# and verified independently by test_gate_removal.py. Remove an enabling axiom
-# and the entailment disappears — that is the test of genuine reasoning.
+# AUDIT LAYER — documentary structure check, not classification mechanism.
+# AnnexIII applicability is OWL-entailed by gate axioms in ARCO_governance_extension.ttl.
+# This query verifies the asserted documentary structure supporting Gates 2 and 3:
 #
-# This query verifies that the asserted documentary structure matches the
-# regulatory pattern. It is an auditor-facing check that the right content is
-# explicitly declared, not merely entailed as a broader type. Auditors verify
-# declared content; OWL-RL produces the classification.
-#
-# Gate 2 audit: an IntendedUseSpecification is_about the system AND cco:prescribes
-# an individual typed as :RemoteBiometricIdentificationProcess. The rdf:type check
-# is on the ASSERTED type (intentional — auditors want explicit declaration,
-# not inference to a broader process supertype like bfo:0000015).
+# Gate 2 audit: an IntendedUseSpecification is_about the system AND prescribes
+# a process instance. The process type is enforced by the OWL gate axiom
+# (owl:someValuesFrom on the category-specific process class); this query
+# confirms the prescribed process token exists.
 #
 # Gate 3 audit: a UseScenarioSpecification is_about the system AND is_about
-# :NaturalPersonRole (the role category as concept-individual — intentional,
-# scenario specs reference the role type, not a specific role-bearer token).
+# :NaturalPersonRole (the role category — universal across current Annex III categories).
+#
+# The pipeline substitutes :Sentinel_ID_System with the actual system IRI when
+# --system is provided.
 
 ASK WHERE {
-  # Gate 2 audit: intended use — a directive ICE prescribes a regulated process instance for this system
+  # Gate 2 audit: intended use — a directive ICE prescribes a process instance for this system
   ?ius a :IntendedUseSpecification ;
     cco:prescribes ?process ;
     iao:0000136 :Sentinel_ID_System .
-  ?process a :RemoteBiometricIdentificationProcess .
 
-  # Gate 3 audit: use scenario — affected entities are specified for this system
+  # Gate 3 audit: use scenario — natural person role is declared for this system
   ?uss a :UseScenarioSpecification ;
     iao:0000136 :Sentinel_ID_System ;
     iao:0000136 :NaturalPersonRole .

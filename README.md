@@ -13,6 +13,15 @@ The output is not a score, a confidence level, or an advisory opinion. It is a d
 - Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO/CCO-grounded ontology, with no probabilistic scoring and no LLMs in the decision loop.
 - Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` to produce a regulatory determination certificate with a full evidence path from system components through capabilities to regulatory criteria.
 
+**What's modeled (current scope)**
+
+| Annex III category | Capability (Gate 1) | Prescribed process (Gate 2) | Affected role (Gate 3) |
+|--------------------|---------------------|-----------------------------|------------------------|
+| 1(a) — Remote biometric identification | `BiometricIdentificationCapability` | `RemoteBiometricIdentificationProcess` | `NaturalPersonRole` |
+| 5(b) — Creditworthiness evaluation | `CreditworthinessEvaluationCapability` | `CreditworthinessEvaluationProcess` | `NaturalPersonRole` |
+
+All three gates must be satisfied for entailment. A system bearing only a biometric capability is **not** entailed as a creditworthiness system, and vice versa — cross-category isolation is formally enforced by the ontology, not asserted by hand.
+
 ---
 
 [![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml)
@@ -47,7 +56,7 @@ REGULATORY DETERMINATION CERTIFICATE
   INTENDED USE:            PASS
   ANNEX III 1(a):          VERIFIED (ENTAILED)
   OBLIGATION:              PASS
-  ENTAILED TRIPLES ADDED:  +742
+  ENTAILED TRIPLES ADDED:  +891
 ========================================================================
 ```
 
@@ -162,7 +171,7 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 The pipeline will:
 
 1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (~324 asserted → ~1066 post-reasoning)
+2. Run OWL-RL reasoning to materialize entailments (400 asserted → 1291 post-reasoning)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
    - **Classification layer (OWL-RL):** SHACL conformance, HighRiskSystem entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs

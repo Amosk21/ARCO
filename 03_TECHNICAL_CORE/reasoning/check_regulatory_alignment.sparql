@@ -3,31 +3,41 @@ PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 
 # AUDIT LAYER — documentary alignment check, not classification mechanism.
-# AnnexIII1aApplicableSystem membership is OWL-entailed by gate axioms in
-# ARCO_governance_extension.ttl. This query does not produce and cannot affect
-# that entailment. It is a downstream KPMG-style auditor check:
-# "Does your declared intended use prescribe a process of the same type
-# that the law regulates?"
+# AnnexIII applicability is OWL-entailed by gate axioms in ARCO_governance_extension.ttl.
+# This is a KPMG-style auditor check:
+# "Does your declared intended use prescribe the same regulated process as the law?"
 #
-# The law (AnnexIII_Condition_Q1) prescribes the process CLASS as a
-# concept-individual (class IRI in object position of cco:prescribes).
-# The provider (IntendedUseSpecification) prescribes a process TOKEN
-# typed as that class (:Sentinel_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess).
-# Alignment is confirmed by checking that the token is rdf:type the regulated class.
+# Two prescription patterns exist across Annex III categories:
+#   Pattern A (Annex III 1a — sentinel): the regulatory condition prescribes the process
+#   CLASS as a concept-individual. Alignment: the IUS process token is rdf:type that class.
 #
-# The rdf:type triple checked here is ASSERTED in instance data (intentional):
-# an auditor verifying documentary alignment wants to confirm explicit declaration,
-# not that the process was merely inferred to be a broader supertype.
+#   Pattern B (Annex III 5b — credit scorer): the regulatory condition prescribes a
+#   specific process TOKEN. Alignment: the IUS prescribes the same token.
+#
+# FILTER covers both patterns using EXISTS (type check) and direct equality.
+# The rdf:type check is on asserted triples (intentional — auditors want explicit
+# declaration, not entailment to a broader supertype).
+#
+# The pipeline substitutes :Sentinel_ID_System with the actual system IRI when
+# --system is provided.
 
 ASK WHERE {
-  # What process class the law prescribes (class IRI as concept-individual)
-  :AnnexIII_Condition_Q1 cco:prescribes ?processClass .
+  # Find the regulatory condition documented for this system
+  ?doc a :AssessmentDocumentation ;
+    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?condition .
+  ?condition a :RegulatoryContent ;
+    cco:prescribes ?prescribedByLaw .
 
-  # What process instance the provider's documentation prescribes for this system
+  # What process instance the provider's IUS prescribes for this system
   ?ius a :IntendedUseSpecification ;
     cco:prescribes ?process ;
     iao:0000136 :Sentinel_ID_System .
 
-  # Alignment: provider's process instance is of the regulated class (asserted type)
-  ?process a ?processClass .
+  # Alignment: either the process is typed as the regulated class (Pattern A — sentinel),
+  # or the process IS the prescribed token (Pattern B — credit scorer).
+  FILTER (
+    EXISTS { ?process a ?prescribedByLaw } ||
+    ?process = ?prescribedByLaw
+  )
 }
