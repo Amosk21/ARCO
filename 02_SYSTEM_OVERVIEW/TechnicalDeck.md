@@ -170,8 +170,8 @@ Traditional ETL pipelines operate at the schema level, not the semantic level. P
 
 ### 3-Stage Architecture
 
-**Stage 1: Interpretation (Neuro)**
-LLM extracts capabilities from unstructured text
+**Stage 1: Extraction (Neuro)**
+LLM extracts candidate capabilities from unstructured text (linguistic extraction only — not legal interpretation)
 
 **Stage 2: Representation (Symbolic)**
 BFO grounding represents extracted claims as axioms
