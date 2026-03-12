@@ -1,6 +1,6 @@
-# ARCO: Machine-Verifiable EU AI Act Risk Classification
+# ARCO: Machine-Verifiable Regulatory Risk Classification
 
-**For compliance officers and legal counsel deploying AI in Annex III-adjacent use cases.**
+**Current implementation: EU AI Act Annex III. For compliance officers and legal counsel deploying AI in Annex III-adjacent use cases.**
 
 ---
 
