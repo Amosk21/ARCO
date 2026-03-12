@@ -2,14 +2,14 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-Companies are building AI systems without knowing whether those systems will be classified as high-risk under the EU AI Act and other regulatory framewworks. When that determination happens after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
+Companies are building AI systems without knowing whether those systems will be classified as high-risk under the EU AI Act and other regulatory frameworks. When that determination happens after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
 
 ARCO moves that risk decision upstream. It is a pre-deployment regulatory classification engine that tells organizations — before deployment, before sunk costs, before regulatory exposure — whether a system triggers high-risk conditions and exactly why.
 
 The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable regulatory determination backed by formal logic.
 
 **TL;DR**
-- ARCO is a pre-deployment EU AI Act classification engine that tells you — before you build — whether your AI system is high-risk and exactly why.
+- ARCO is a deterministic regulatory classification framework grounded in BFO/CCO realist ontology. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you — before you build — whether your system is high-risk and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
 - Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO/CCO-grounded ontology, with no probabilistic scoring and no LLMs in the decision loop.
 - Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` to produce a regulatory determination certificate with a full evidence path from system components through capabilities to regulatory criteria.
 

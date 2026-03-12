@@ -30,7 +30,7 @@ Large Language Models are used only at the boundary between text and structure. 
 
 Crucially, these outputs are treated as proposals, not conclusions. Whether a proposed capability is accepted and asserted in the ontology remains a human decision. Classification evaluation operates only on explicitly asserted facts.
 
-This design reflects a clear epistemic boundary: language models assist with interpretation, while symbolic structures and deterministic queries govern validation.
+This design reflects a clear epistemic boundary: language models assist with textual extraction, while symbolic structures and deterministic reasoning govern classification.
 
 ## Ontological Grounding
 
