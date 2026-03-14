@@ -289,6 +289,7 @@ def write_html_view(
     bindings: list,
     shacl_ok: bool,
     traceability_ok: bool,
+    inference_ok: bool,
     latent_ok,
     intended_use_ok,
     annex_iii_1a_ok,
@@ -337,7 +338,7 @@ def write_html_view(
     # ── audit rows (check | layer | result) ───────────────────────
     audit_rows = [
         ("SHACL conformance",       "classification / structure", _b(shacl_ok)),
-        ("HighRiskSystem entailment","classification / OWL-RL",   _b(shacl_ok and all_pass)),
+        ("HighRiskSystem entailment","classification / OWL-RL",   _b(inference_ok)),
         ("Annex III 1(a)",          "classification / OWL-RL",   _annex(annex_iii_1a_ok)),
         ("Annex III 5(b)",          "classification / OWL-RL",   _annex(annex_iii_5b_ok)),
         ("Traceability",            "audit / SPARQL",             _b(traceability_ok)),
@@ -743,6 +744,7 @@ def main() -> None:
         bindings=bindings,
         shacl_ok=shacl_ok,
         traceability_ok=traceability_ok,
+        inference_ok=inference_ok,
         latent_ok=latent_ok,
         intended_use_ok=intended_use_ok,
         annex_iii_1a_ok=annex_iii_1a_ok,
