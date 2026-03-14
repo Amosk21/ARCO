@@ -301,7 +301,17 @@ def write_html_view(
     summary_raw: str,
     evidence_raw: str,
 ) -> None:
-    """Write a self-contained static HTML determination view to output_dir."""
+    """Write a self-contained static HTML determination view to output_dir.
+
+    Viewer invariant:
+    This HTML artifact is an explanatory surface over pipeline outputs, not a
+    reasoning engine. Any visual compression is acceptable only if it:
+      1. preserves the direction of reasoning,
+      2. does not reverse asserted vs entailed status,
+      3. does not invent evidence not present in pipeline outputs,
+      4. explicitly discloses any collapsed inferential step where that collapse
+         matters (e.g. subclass-mediated type propagation shown as a bridge edge).
+    """
 
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
