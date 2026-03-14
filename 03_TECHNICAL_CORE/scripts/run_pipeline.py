@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from rdflib import Graph
 from pyshacl import validate
@@ -278,6 +279,235 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bo
 
 
 # ---------------------------
+# HTML view
+# ---------------------------
+
+def write_html_view(
+    output_dir: Path,
+    system_local: str,
+    classification_mode: str,
+    bindings: list,
+    shacl_ok: bool,
+    traceability_ok: bool,
+    inference_ok: bool,
+    latent_ok,
+    intended_use_ok,
+    annex_iii_1a_ok,
+    annex_iii_5b_ok,
+    obligation_ok,
+    reg_alignment_ok,
+    inferred_added: int,
+    all_pass: bool,
+    summary_raw: str,
+    evidence_raw: str,
+) -> None:
+    """Write a self-contained static HTML determination view to output_dir.
+
+    Viewer invariant:
+    This HTML artifact is an explanatory surface over pipeline outputs, not a
+    reasoning engine. Any visual compression is acceptable only if it:
+      1. preserves the direction of reasoning,
+      2. does not reverse asserted vs entailed status,
+      3. does not invent evidence not present in pipeline outputs,
+      4. explicitly discloses any collapsed inferential step where that collapse
+         matters (e.g. subclass-mediated type propagation shown as a bridge edge).
+    """
+
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    # ── strip node labels ──────────────────────────────────────────
+    comp_label = _short(bindings[0][0]) if bindings else "—"
+    disp_label = _short(bindings[0][1]) if bindings else "—"
+    comp_iri   = bindings[0][0] if bindings else ""
+    disp_iri   = bindings[0][1] if bindings else ""
+
+    # ── badges ─────────────────────────────────────────────────────
+    if classification_mode == "INFERRED":
+        mode_badge = '<span class="badge bi">INFERRED</span>'
+        result_node_cls = "nr-high"
+        result_label = "HighRiskSystem"
+    elif classification_mode == "ASSERTED":
+        mode_badge = '<span class="badge ba">ASSERTED</span>'
+        result_node_cls = "nr-high"
+        result_label = "HighRiskSystem"
+    else:
+        mode_badge = '<span class="badge bn">NOT PRESENT</span>'
+        result_node_cls = "nr-none"
+        result_label = "NOT PRESENT"
+
+    overall_badge = '<span class="badge bp">ALL PASS</span>' if all_pass else '<span class="badge bf">SOME FAIL</span>'
+
+    def _b(val, t="PASS", f="FAIL"):
+        if val is None: return '<span class="badge bn">N/A</span>'
+        return f'<span class="badge {"bp" if val else "bf"}">{t if val else f}</span>'
+
+    def _annex(val):
+        if val is None: return '<span class="badge bn">N/A</span>'
+        return '<span class="badge bp">VERIFIED (ENTAILED)</span>' if val else '<span class="badge bn">NOT APPLICABLE</span>'
+
+    # ── audit rows (check | layer | result) ───────────────────────
+    audit_rows = [
+        ("SHACL conformance",       "classification / structure", _b(shacl_ok)),
+        ("HighRiskSystem entailment","classification / OWL-RL",   _b(inference_ok)),
+        ("Annex III 1(a)",          "classification / OWL-RL",   _annex(annex_iii_1a_ok)),
+        ("Annex III 5(b)",          "classification / OWL-RL",   _annex(annex_iii_5b_ok)),
+        ("Traceability",            "audit / SPARQL",             _b(traceability_ok)),
+        ("Latent risk",             "audit / SPARQL",             _b(latent_ok, "DETECTED", "NOT DETECTED") if latent_ok is not None else '<span class="badge bn">N/A</span>'),
+        ("Intended use modelled",   "audit / SPARQL",             _b(intended_use_ok)),
+        ("Obligation linked",       "audit / SPARQL",             _b(obligation_ok)),
+        ("Regulatory alignment",    "audit / SPARQL",             _b(reg_alignment_ok)),
+    ]
+    audit_html = "\n".join(
+        f'      <tr><td>{chk}</td><td class="layer">{layer}</td><td>{badge}</td></tr>'
+        for chk, layer, badge in audit_rows
+    )
+
+    # ── strip node helper ─────────────────────────────────────────
+    def node(cls, type_label, label, iri=""):
+        iri_attr = f' title="{iri}"' if iri else ""
+        return f'<div class="node {cls}"{iri_attr}><span class="ntype">{type_label}</span><span class="nlabel">{label}</span></div>'
+
+    def edge(rel, iri_label=""):
+        sub_span = f'<span class="eiri">{iri_label}</span>' if iri_label else ""
+        return f'<div class="edge"><span class="earrow">→</span><span class="erel">{rel}</span>{sub_span}</div>'
+
+    # Strip nodes — AnnexIIITriggeringCapability is a structural presentation
+    # assumption: the disposition is classified as this type by the bridge axiom
+    # in ARCO_core.ttl. Not directly readable from evidence.json.
+    strip_html = (
+        node("ns", "System", system_local)
+        + edge("has_part", "bfo:0000051")
+        + node("nc", "SystemComponent", comp_label, comp_iri)
+        + edge("has_disposition", "ro:0000091")
+        + node("nd", "Disposition", disp_label, disp_iri)
+        + edge("rdf:type ⊆")
+        + node("nt", "AnnexIIITriggeringCapability", "(bridge axiom) ‡")
+        + edge("OWL-RL ⊢")
+        + node(result_node_cls, "Classification", result_label)
+    )
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARCO — {system_local} — Determination View</title>
+<style>
+:root {{
+  --bg:#0f1117; --sf:#1a1d27; --bd:#2a2d3d; --tx:#e0e4f0; --mu:#6b7280;
+  --pass:#22c55e; --fail:#ef4444; --inf:#818cf8; --ass:#f59e0b;
+}}
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:'Courier New',monospace;background:var(--bg);color:var(--tx);padding:2rem;max-width:1100px;margin:0 auto;line-height:1.5}}
+h1{{font-size:1.3rem;font-weight:700;margin-bottom:.3rem}}
+h2{{font-size:.75rem;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;margin:1.6rem 0 .6rem}}
+.meta{{color:var(--mu);font-size:.8rem;margin-bottom:1.6rem}}
+/* badges */
+.badge{{font-size:.65rem;padding:.18rem .45rem;border-radius:3px;font-weight:700;letter-spacing:.04em;white-space:nowrap}}
+.bi{{background:#312e81;color:var(--inf)}} .ba{{background:#451a03;color:var(--ass)}}
+.bn{{background:#1f2937;color:var(--mu)}}  .bp{{background:#14532d;color:var(--pass)}}
+.bf{{background:#450a0a;color:var(--fail)}}
+/* banner */
+.banner{{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem;background:var(--sf);border:1px solid var(--bd);padding:.7rem 1.1rem;border-radius:6px;margin-bottom:1.6rem;font-size:1rem;font-weight:600}}
+/* strip */
+.strip{{display:flex;align-items:center;flex-wrap:wrap;gap:0;background:var(--sf);border:1px solid var(--bd);padding:1.2rem 1rem;border-radius:8px;overflow-x:auto}}
+.node{{display:flex;flex-direction:column;align-items:center;padding:.6rem .85rem;border-radius:6px;min-width:120px;text-align:center;gap:.25rem}}
+.ntype{{color:var(--mu);font-size:.6rem;text-transform:uppercase;letter-spacing:.05em}}
+.nlabel{{font-weight:600;font-size:.75rem;word-break:break-word}}
+.ns{{background:#1e3a5f;border:1px solid #2563eb}}
+.nc{{background:#134e4a;border:1px solid #0d9488}}
+.nd{{background:#431407;border:1px solid #b45309}}
+.nt{{background:#2e1065;border:1px solid #7c3aed}}
+.nr-high{{background:#450a0a;border:1px solid #dc2626}}
+.nr-none{{background:#1f2937;border:1px solid #374151}}
+.edge{{display:flex;flex-direction:column;align-items:center;padding:0 .4rem;min-width:72px;text-align:center;gap:.15rem}}
+.earrow{{font-size:1.1rem;color:#4b5563}}
+.erel{{font-size:.6rem;color:var(--mu)}}
+.eiri{{font-size:.55rem;color:#374151}}
+/* audit table */
+table{{width:100%;border-collapse:collapse;font-size:.82rem}}
+th{{text-align:left;padding:.45rem .7rem;border-bottom:1px solid var(--bd);color:var(--mu);font-size:.7rem;text-transform:uppercase;letter-spacing:.04em}}
+td{{padding:.45rem .7rem;border-bottom:1px solid var(--bd)}}
+tr:last-child td{{border-bottom:none}}
+.layer{{color:var(--mu);font-size:.75rem}}
+/* triples counter */
+.triples{{display:inline-block;background:var(--sf);border:1px solid var(--bd);padding:.5rem 1rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem}}
+.triples span{{color:var(--inf);font-weight:700}}
+/* not-yet */
+.notyet{{background:var(--sf);border:1px solid var(--bd);border-left:3px solid #374151;padding:.9rem 1.1rem;border-radius:6px}}
+.notyet ul{{list-style:none;color:var(--mu);font-size:.82rem;margin-top:.4rem}}
+.notyet li::before{{content:"— "}}
+.notyet li{{padding:.15rem 0}}
+/* footnote */
+.fn{{font-size:.72rem;color:var(--mu);margin-top:.5rem}}
+/* raw json */
+details{{margin-top:1.2rem}}
+summary{{cursor:pointer;color:var(--mu);font-size:.82rem;padding:.4rem 0;user-select:none}}
+summary:hover{{color:var(--tx)}}
+pre{{background:var(--sf);border:1px solid var(--bd);padding:.9rem;border-radius:6px;font-size:.72rem;overflow-x:auto;margin-top:.5rem;white-space:pre-wrap;word-break:break-all;line-height:1.5}}
+/* footer */
+footer{{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--bd);color:var(--mu);font-size:.72rem}}
+</style>
+</head>
+<body>
+
+<h1>ARCO — Regulatory Determination View</h1>
+<p class="meta">System: <strong>{system_local}</strong> &nbsp;|&nbsp; Regime: EU AI Act Article 6 / Annex III &nbsp;|&nbsp; Generated: {ts}</p>
+
+<div class="banner">
+  Classification: <strong>{result_label}</strong>
+  {mode_badge}
+  {overall_badge}
+</div>
+
+<h2>Determination Path</h2>
+<section class="strip">
+{strip_html}
+</section>
+<p class="fn">‡ AnnexIIITriggeringCapability is a structural presentation assumption derived from the bridge axiom in ARCO_core.ttl. It is not directly readable from evidence.json — it is the type the disposition must satisfy for HighRiskSystem entailment to fire.</p>
+
+<h2>Audit &amp; Classification Results</h2>
+<table>
+  <thead><tr><th>Check</th><th>Layer</th><th>Result</th></tr></thead>
+  <tbody>
+{audit_html}
+  </tbody>
+</table>
+
+<div class="triples" style="margin-top:1rem">OWL-RL entailed triples added: <span>+{inferred_added}</span></div>
+
+<h2>Not Yet Available (Option B)</h2>
+<div class="notyet">
+  <ul>
+    <li>Gate-level status (Gate 1 / 2 / 3 individual pass/fail)</li>
+    <li>Per-node provenance: which triples were asserted vs. entailed</li>
+    <li>Full inference sub-graph for this determination path</li>
+    <li>Regulatory alignment detail (which axiom produced each step)</li>
+  </ul>
+</div>
+
+<h2>Raw Outputs</h2>
+<details>
+  <summary>summary.json</summary>
+  <pre>{summary_raw}</pre>
+</details>
+<details>
+  <summary>evidence.json</summary>
+  <pre>{evidence_raw}</pre>
+</details>
+
+<footer>
+  ARCO Compliance Verification Pipeline &nbsp;|&nbsp; OWL-RL + SHACL + SPARQL &nbsp;|&nbsp; {ts}<br>
+  Classification is authoritative from OWL-RL entailment only. SPARQL rows are audit/documentation layer.
+</footer>
+
+</body>
+</html>
+"""
+    (output_dir / "determination_view.html").write_text(html, encoding="utf-8")
+
+
+# ---------------------------
 # main
 # ---------------------------
 
@@ -515,6 +745,27 @@ def main() -> None:
         for comp, disp in bindings
     ]
     (OUTPUT_DIR / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+
+    # determination_view.html
+    write_html_view(
+        output_dir=OUTPUT_DIR,
+        system_local=SYSTEM_LOCAL,
+        classification_mode=classification_mode,
+        bindings=bindings,
+        shacl_ok=shacl_ok,
+        traceability_ok=traceability_ok,
+        inference_ok=inference_ok,
+        latent_ok=latent_ok,
+        intended_use_ok=intended_use_ok,
+        annex_iii_1a_ok=annex_iii_1a_ok,
+        annex_iii_5b_ok=annex_iii_5b_ok,
+        obligation_ok=obligation_ok,
+        reg_alignment_ok=reg_alignment_ok,
+        inferred_added=inferred_added,
+        all_pass=all_pass,
+        summary_raw=json.dumps(summary, indent=2),
+        evidence_raw=json.dumps(evidence, indent=2),
+    )
 
     # shacl_report.txt
     shacl_out = f"conforms: {shacl_ok}\n"

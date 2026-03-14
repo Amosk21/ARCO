@@ -8,6 +8,11 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   arco-demo:
     runs-on: ubuntu-latest
@@ -51,7 +56,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for f in certificate.txt summary.json evidence.json shacl_report.txt; do
+          for f in certificate.txt summary.json evidence.json shacl_report.txt determination_view.html; do
             if [ ! -f "runs/demo/$f" ]; then
               echo "FAIL: runs/demo/$f not found."
               exit 1
@@ -81,6 +86,8 @@ jobs:
             for f in runs/demo/*; do
               echo "- \`$(basename $f)\`" >> "$GITHUB_STEP_SUMMARY"
             done
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**[View determination →](https://amosk21.github.io/ARCO/determination_view.html)**" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "**Overall:** (no demo.log found)" >> "$GITHUB_STEP_SUMMARY"
           fi
@@ -92,3 +99,21 @@ jobs:
           name: arco-demo-artifacts
           path: runs/demo/
           if-no-files-found: error
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: runs/demo/
+
+  deploy-pages:
+    needs: arco-demo
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
