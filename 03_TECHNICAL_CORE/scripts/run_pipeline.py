@@ -219,6 +219,113 @@ def get_primary_bindings(g: Graph, system_local: str = "Sentinel_ID_System") -> 
         return []
     return rows
 
+
+# ---------------------------
+# determination packet
+# ---------------------------
+
+def _select_cap_type_label(sys: str = SYSTEM_LOCAL) -> str:
+    """SELECT the most specific ARCO capability class (direct subclass of AnnexIIITriggeringCapability)
+    that the disposition is typed as, plus its rdfs:label."""
+    return f"""
+PREFIX : <{ARCO_NS}>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?capType ?capLabel WHERE {{
+  :{sys} bfo:0000051 ?comp .
+  ?comp ro:0000091 ?disp .
+  ?disp rdf:type ?capType .
+  ?capType rdfs:subClassOf :AnnexIIITriggeringCapability .
+  OPTIONAL {{ ?capType rdfs:label ?capLabel }}
+}}
+LIMIT 1
+"""
+
+def _select_gate2_process(sys: str = SYSTEM_LOCAL) -> str:
+    """SELECT the prescribed process instance and its type + rdfs:label from the IntendedUseSpecification."""
+    return f"""
+PREFIX : <{ARCO_NS}>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?ius ?process ?processType ?processLabel WHERE {{
+  ?ius a :IntendedUseSpecification ;
+    cco:prescribes ?process ;
+    iao:0000136 :{sys} .
+  ?process rdf:type ?processType .
+  OPTIONAL {{ ?processType rdfs:label ?processLabel }}
+  FILTER(STRSTARTS(STR(?processType), "{ARCO_NS}"))
+  FILTER(!isBlank(?processType))
+}}
+LIMIT 1
+"""
+
+def _select_gate3_role(sys: str = SYSTEM_LOCAL) -> str:
+    """SELECT the UseScenarioSpecification linked to the system via NaturalPersonRole,
+    plus the rdfs:label of NaturalPersonRole."""
+    return f"""
+PREFIX : <{ARCO_NS}>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?uss ?roleLabel WHERE {{
+  ?uss a :UseScenarioSpecification ;
+    iao:0000136 :{sys} ;
+    iao:0000136 :NaturalPersonRole .
+  OPTIONAL {{ :NaturalPersonRole rdfs:label ?roleLabel }}
+}}
+LIMIT 1
+"""
+
+def select_gate_evidence(g: Graph, system_local: str = SYSTEM_LOCAL) -> dict:
+    """Run SELECT queries over the reasoned graph to extract gate evidence labels.
+
+    Returns a compact determination packet dict.  All labels come from rdfs:label
+    annotations in the graph; falls back to shortened IRI local names if absent.
+    This is the intermediate representation the HTML view renders from — it must
+    not invent content not present in the post-reasoning graph.
+    """
+    packet: dict = {
+        "gate1": {"cap_type_uri": "", "cap_type_label": ""},
+        "gate2": {"ius_uri": "", "process_uri": "", "process_type_uri": "", "process_type_label": ""},
+        "gate3": {"uss_uri": "", "role_uri": f"{ARCO_NS}NaturalPersonRole", "role_label": ""},
+    }
+
+    try:
+        rows = list(g.query(_select_cap_type_label(system_local)))
+        if rows:
+            r = rows[0]
+            cap_uri = str(r[0]) if r[0] else ""
+            packet["gate1"]["cap_type_uri"] = cap_uri
+            packet["gate1"]["cap_type_label"] = str(r[1]) if r[1] else _short(cap_uri)
+    except Exception:
+        pass
+
+    try:
+        rows = list(g.query(_select_gate2_process(system_local)))
+        if rows:
+            r = rows[0]
+            packet["gate2"]["ius_uri"] = str(r[0]) if r[0] else ""
+            packet["gate2"]["process_uri"] = str(r[1]) if r[1] else ""
+            ptype_uri = str(r[2]) if r[2] else ""
+            packet["gate2"]["process_type_uri"] = ptype_uri
+            packet["gate2"]["process_type_label"] = str(r[3]) if r[3] else _short(ptype_uri)
+    except Exception:
+        pass
+
+    try:
+        rows = list(g.query(_select_gate3_role(system_local)))
+        if rows:
+            r = rows[0]
+            packet["gate3"]["uss_uri"] = str(r[0]) if r[0] else ""
+            packet["gate3"]["role_label"] = str(r[1]) if r[1] else "Natural Person Role"
+    except Exception:
+        pass
+
+    return packet
+
 def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bool, bool, list[tuple[str, str]]]:
     """Returns (inference_ok, asserted_pre, entailed_post, bindings)."""
     hr("ARCO RESULT (ENTAILMENT + PROOF SKETCH)")
@@ -300,6 +407,7 @@ def write_html_view(
     all_pass: bool,
     summary_raw: str,
     evidence_raw: str,
+    gate_evidence: dict | None = None,
 ) -> None:
     """Write a self-contained static HTML determination view to output_dir.
 
@@ -312,6 +420,11 @@ def write_html_view(
       4. explicitly discloses any collapsed inferential step where that collapse
          matters (e.g. subclass-mediated type propagation shown as a bridge edge).
     """
+
+    if gate_evidence is None:
+        gate_evidence = {"gate1": {"cap_type_uri": "", "cap_type_label": ""},
+                         "gate2": {"ius_uri": "", "process_uri": "", "process_type_uri": "", "process_type_label": ""},
+                         "gate3": {"uss_uri": "", "role_uri": "", "role_label": ""}}
 
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
@@ -333,9 +446,9 @@ def write_html_view(
             "label": "Annex III, Category 1(a)",
             "title": "Biometric identification of natural persons",
             "article_ref": "Article 6(2), Annex III point 1(a)",
-            "capability": "Biometric identification",
-            "process": "Remote biometric identification",
-            "role": "Natural persons",
+            "capability": gate_evidence["gate1"]["cap_type_label"] or "Biometric identification",
+            "process": gate_evidence["gate2"]["process_type_label"] or "Remote biometric identification",
+            "role": gate_evidence["gate3"]["role_label"] or "Natural persons",
         })
     if annex_iii_5b_ok:
         triggered_categories.append({
@@ -481,7 +594,7 @@ def write_html_view(
           </div>
           <div class="gate-question">Does the system contain a component with a regulated capability?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> The system contains <em>" + comp_label + "</em>, which bears a <em>biometric identification</em> capability (<em>" + disp_label + "</em>). This capability falls within the scope of Annex III." if gate1_ok and bindings else "<strong>No triggering capability detected</strong> in the current system assertions."}
+            {"<strong>Yes.</strong> The system contains <em>" + comp_label + "</em>, which bears a <em>" + (gate_evidence["gate1"]["cap_type_label"].lower() or "triggering") + "</em> capability (<em>" + disp_label + "</em>). This capability falls within the scope of Annex III." if gate1_ok and bindings else "<strong>No triggering capability detected</strong> in the current system assertions."}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
@@ -502,7 +615,7 @@ def write_html_view(
           </div>
           <div class="gate-question">Is the system intended for a regulated process type?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> An Intended Use Specification declares that the system is prescribed for <em>remote biometric identification</em> &mdash; the specific process type that Annex III 1(a) regulates. This is not merely &ldquo;any use&rdquo; but the particular kind of deployment the Act targets." if gate2_ok else "<strong>No matching prescribed process type</strong> found in the intended use documentation."}
+            {"<strong>Yes.</strong> An Intended Use Specification declares that the system is prescribed for <em>" + (gate_evidence["gate2"]["process_type_label"].lower() or "a regulated process type") + "</em> &mdash; the specific process type that Annex III 1(a) regulates. This is not merely &ldquo;any use&rdquo; but the particular kind of deployment the Act targets." if gate2_ok else "<strong>No matching prescribed process type</strong> found in the intended use documentation."}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
@@ -522,7 +635,7 @@ def write_html_view(
           </div>
           <div class="gate-question">Does the system's use scenario affect the regulated category of persons?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> A Use Scenario Specification declares that the system&rsquo;s operation concerns <em>natural persons</em> &mdash; the category of affected individuals that the EU AI Act is designed to protect. This is about the role <em>category</em> (the universal), not any specific individual." if gate3_ok else "<strong>No matching affected role category</strong> found in the use scenario documentation."}
+            {"<strong>Yes.</strong> A Use Scenario Specification declares that the system&rsquo;s operation concerns <em>" + (gate_evidence["gate3"]["role_label"].lower() or "the regulated role category") + "</em> &mdash; the category of affected individuals that the EU AI Act is designed to protect. This is about the role <em>category</em> (the universal), not any specific individual." if gate3_ok else "<strong>No matching affected role category</strong> found in the use scenario documentation."}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
@@ -560,6 +673,13 @@ def write_html_view(
     # ── obligations text (Layer 3) ─────────────────────────────────
     if is_high_risk:
         obligations_html = """
+        <p class="fn" style="margin-bottom:0.9rem">
+          <strong>Static regulatory reference</strong> &mdash; the obligation categories
+          below are fixed text drawn from EU AI Act Articles&nbsp;9&ndash;15, 43, Annex&nbsp;IV.
+          They are <em>not</em> derived from this run&rsquo;s reasoning and will not
+          automatically update if the regulation changes.
+          For the authoritative determination see the Classification Gates above.
+        </p>
         <div class="obl-grid">
           <div class="obl-card">
             <div class="obl-icon">1</div>
@@ -1223,6 +1343,12 @@ def main() -> None:
 
     inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
+    sub("DETERMINATION PACKET (gate evidence extraction)")
+    gate_evidence = select_gate_evidence(g, SYSTEM_LOCAL)
+    print(f"Gate 1 capability type:  {gate_evidence['gate1']['cap_type_label'] or '(none)'}")
+    print(f"Gate 2 process type:     {gate_evidence['gate2']['process_type_label'] or '(none)'}")
+    print(f"Gate 3 role:             {gate_evidence['gate3']['role_label'] or '(none)'}")
+
     # ---------------------------------------------------------------
     # SUMMARY
     # Two-layer architecture: classification (OWL-RL) vs. audit (SPARQL).
@@ -1380,6 +1506,62 @@ def main() -> None:
     ]
     (OUTPUT_DIR / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
 
+    # determination_packet.json — compact intermediate representation;
+    # the HTML view is rendered from this, not from scattered Python logic.
+    determination_packet = {
+        "schema_version": "1.0",
+        "system_uri": SYSTEM_IRI,
+        "system_label": SYSTEM_LOCAL.replace("_", " "),
+        "run_id": datetime.now(timezone.utc).isoformat(),
+        "classification": "HIGH_RISK" if classification_mode in ("INFERRED", "ASSERTED") else "NOT_HIGH_RISK",
+        "classification_mode": classification_mode,
+        "annex_categories": [
+            c for c in (
+                "AnnexIII_1a" if annex_iii_1a_ok else None,
+                "AnnexIII_5b" if annex_iii_5b_ok else None,
+            ) if c is not None
+        ],
+        "gates": [
+            {
+                "id": "gate_1",
+                "label": "Capability",
+                "status": "SATISFIED" if inference_ok else "NOT_SATISFIED",
+                "evidence": {
+                    "cap_type_uri": gate_evidence["gate1"]["cap_type_uri"],
+                    "cap_type_label": gate_evidence["gate1"]["cap_type_label"],
+                    "component_uri": bindings[0][0] if bindings else "",
+                    "disposition_uri": bindings[0][1] if bindings else "",
+                },
+            },
+            {
+                "id": "gate_2",
+                "label": "Prescribed Process Type",
+                "status": "SATISFIED" if intended_use_ok else "NOT_SATISFIED",
+                "evidence": {
+                    "ius_uri": gate_evidence["gate2"]["ius_uri"],
+                    "process_uri": gate_evidence["gate2"]["process_uri"],
+                    "process_type_uri": gate_evidence["gate2"]["process_type_uri"],
+                    "process_type_label": gate_evidence["gate2"]["process_type_label"],
+                },
+            },
+            {
+                "id": "gate_3",
+                "label": "Affected Role Category",
+                "status": "SATISFIED" if reg_alignment_ok else "NOT_SATISFIED",
+                "evidence": {
+                    "uss_uri": gate_evidence["gate3"]["uss_uri"],
+                    "role_uri": gate_evidence["gate3"]["role_uri"],
+                    "role_label": gate_evidence["gate3"]["role_label"],
+                },
+            },
+        ],
+        "determination_node_uri": f"{ARCO_NS}HighRisk_Determination_001",
+        "inferred_triples_added": inferred_added,
+    }
+    (OUTPUT_DIR / "determination_packet.json").write_text(
+        json.dumps(determination_packet, indent=2) + "\n", encoding="utf-8"
+    )
+
     # determination_view.html
     write_html_view(
         output_dir=OUTPUT_DIR,
@@ -1399,6 +1581,7 @@ def main() -> None:
         all_pass=all_pass,
         summary_raw=json.dumps(summary, indent=2),
         evidence_raw=json.dumps(evidence, indent=2),
+        gate_evidence=gate_evidence,
     )
 
     # shacl_report.txt
