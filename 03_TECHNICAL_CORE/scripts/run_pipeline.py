@@ -607,10 +607,9 @@ def write_html_view(
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
-              <p><strong>Axiom pattern:</strong> System <code>bfo:0000051</code> some (SystemComponent and <code>ro:0000091</code> some {_cap_label})</p>
+              <p><strong>Axiom pattern:</strong> System <code>bfo:0000051</code> <span class="prop-label">(has part)</span> some (SystemComponent and <code>ro:0000091</code> <span class="prop-label">(has disposition)</span> some {_cap_label})</p>
               <p><strong>Matched:</strong> {system_local} &rarr; {comp_label} &rarr; {disp_label}</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
-              <p><strong>Relations:</strong> <code>bfo:0000051</code> (has_part), <code>ro:0000091</code> (has_disposition)</p>
             </div>
           </details>
         </div>
@@ -628,7 +627,7 @@ def write_html_view(
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
-              <p><strong>Axiom pattern:</strong> IntendedUseSpecification <code>iao:0000136</code> System and <code>cco:prescribes</code> some {_process_label}</p>
+              <p><strong>Axiom pattern:</strong> IntendedUseSpecification <code>iao:0000136</code> <span class="prop-label">(is about)</span> System and <code>cco:prescribes</code> <span class="prop-label">(prescribes)</span> some {_process_label}</p>
               <p><strong>Gate mechanism:</strong> <code>owl:someValuesFrom</code> performs genuine type-checking &mdash; the prescribed process token must be an instance of the regulated process class, not a bare IRI reference</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
@@ -648,7 +647,7 @@ def write_html_view(
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
-              <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>iao:0000136</code> System and <code>iao:0000136</code> :{_role_local}</p>
+              <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>iao:0000136</code> <span class="prop-label">(is about)</span> System and <code>iao:0000136</code> <span class="prop-label">(is about)</span> :{_role_local}</p>
               <p><strong>Gate mechanism:</strong> <code>owl:hasValue</code> is intentional &mdash; the specification must reference the role <em>category</em> ({_role_label} as universal), not a role-bearer instance. This is a check on the role type, not on any particular person.</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
@@ -891,6 +890,7 @@ p {{ color: var(--tx2); font-size: 0.85rem }}
 }}
 .gate-tech strong {{ color: var(--tx2); font-weight: 600 }}
 .gate-tech p {{ margin-bottom: 0.3rem; color: var(--mu) }}
+.prop-label {{ color: var(--mu); font-style: italic; font-size: 0.72rem; opacity: 0.8 }}
 
 /* ── Gate result strip ────────────────────────────────────── */
 .gate-result {{
