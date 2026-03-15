@@ -467,10 +467,10 @@ def write_html_view(
     # ── build executive summary text ───────────────────────────────
     if is_high_risk and triggered_categories:
         cat_list = ", ".join(c["label"] for c in triggered_categories)
-        cap_list = ", ".join(c["capability"].lower() for c in triggered_categories)
+        cap_list = ", ".join(c["capability"] for c in triggered_categories)
         summary_text = (
             f"{sys_display} is classified as <strong>High Risk</strong> under the "
-            f"EU AI Act. The system possesses {cap_list} capability, triggering "
+            f"EU AI Act. The system possesses a {cap_list}, triggering "
             f"{cat_list}. All three regulatory gates are satisfied for each applicable "
             f"category, and the classification was {classification_mode.lower()} by "
             f"OWL-RL formal reasoning over {inferred_added:,} entailed triples."
@@ -585,6 +585,14 @@ def write_html_view(
     # Gate 3 satisfied if use scenario references NaturalPersonRole
     gate3_ok = reg_alignment_ok
 
+    # Pre-compute gate display labels from the determination packet.
+    # These are used in axiom pattern text, gate answers, and counterfactuals.
+    # Using the full rdfs:label so text tracks ontology changes automatically.
+    _cap_label      = gate_evidence["gate1"]["cap_type_label"] or "BiometricIdentificationCapability"
+    _process_label  = gate_evidence["gate2"]["process_type_label"] or "RemoteBiometricIdentificationProcess"
+    _role_label     = gate_evidence["gate3"]["role_label"] or "Natural Person Role"
+    _role_local     = _short(gate_evidence["gate3"]["role_uri"]) if gate_evidence["gate3"]["role_uri"] else "NaturalPersonRole"
+
     gate_cards_html = f"""
         <div class="gate-card {_gate_status_class(gate1_ok)}">
           <div class="gate-header">
@@ -594,12 +602,12 @@ def write_html_view(
           </div>
           <div class="gate-question">Does the system contain a component with a regulated capability?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> The system contains <em>" + comp_label + "</em>, which bears a <em>" + (gate_evidence["gate1"]["cap_type_label"].lower() or "triggering") + "</em> capability (<em>" + disp_label + "</em>). This capability falls within the scope of Annex III." if gate1_ok and bindings else "<strong>No triggering capability detected</strong> in the current system assertions."}
+            {"<strong>Yes.</strong> The system contains <em>" + comp_label + "</em>, which has a disposition typed as <em>" + _cap_label + "</em> (<em>" + disp_label + "</em>). This disposition falls within the regulated capability scope of Annex III." if gate1_ok and bindings else "<strong>No triggering capability detected</strong> in the current system assertions."}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
-              <p><strong>Axiom pattern:</strong> System <code>has_part</code> some (SystemComponent and <code>has_disposition</code> some BiometricIdentificationCapability)</p>
+              <p><strong>Axiom pattern:</strong> System <code>bfo:0000051</code> some (SystemComponent and <code>ro:0000091</code> some {_cap_label})</p>
               <p><strong>Matched:</strong> {system_local} &rarr; {comp_label} &rarr; {disp_label}</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
               <p><strong>Relations:</strong> <code>bfo:0000051</code> (has_part), <code>ro:0000091</code> (has_disposition)</p>
@@ -613,15 +621,15 @@ def write_html_view(
             <span class="gate-title">Prescribed Process Type</span>
             <span class="gate-badge {'gbp' if gate2_ok else 'gbf'}">{_gate_status_label(gate2_ok)}</span>
           </div>
-          <div class="gate-question">Is the system intended for a regulated process type?</div>
+          <div class="gate-question">Is the system prescribed for a regulated process type?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> An Intended Use Specification declares that the system is prescribed for <em>" + (gate_evidence["gate2"]["process_type_label"].lower() or "a regulated process type") + "</em> &mdash; the specific process type that Annex III 1(a) regulates. This is not merely &ldquo;any use&rdquo; but the particular kind of deployment the Act targets." if gate2_ok else "<strong>No matching prescribed process type</strong> found in the intended use documentation."}
+            {"<strong>Yes.</strong> An Intended Use Specification prescribes the system for <em>" + _process_label + "</em>. This is not merely any use &mdash; the process token must be typed as the regulated process class for this gate to be satisfied." if gate2_ok else "<strong>No matching prescribed process type</strong> found in the intended use documentation."}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
-              <p><strong>Axiom pattern:</strong> IntendedUseSpecification <code>is_about</code> System and <code>cco:prescribes</code> some RemoteBiometricIdentificationProcess</p>
-              <p><strong>Gate mechanism:</strong> <code>owl:someValuesFrom</code> performs genuine type-checking &mdash; the process token must be an instance of the regulated process class</p>
+              <p><strong>Axiom pattern:</strong> IntendedUseSpecification <code>iao:0000136</code> System and <code>cco:prescribes</code> some {_process_label}</p>
+              <p><strong>Gate mechanism:</strong> <code>owl:someValuesFrom</code> performs genuine type-checking &mdash; the prescribed process token must be an instance of the regulated process class, not a bare IRI reference</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
           </details>
@@ -633,15 +641,15 @@ def write_html_view(
             <span class="gate-title">Affected Role Category</span>
             <span class="gate-badge {'gbp' if gate3_ok else 'gbf'}">{_gate_status_label(gate3_ok)}</span>
           </div>
-          <div class="gate-question">Does the system's use scenario affect the regulated category of persons?</div>
+          <div class="gate-question">Does the use scenario reference the regulated role category?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> A Use Scenario Specification declares that the system&rsquo;s operation concerns <em>" + (gate_evidence["gate3"]["role_label"].lower() or "the regulated role category") + "</em> &mdash; the category of affected individuals that the EU AI Act is designed to protect. This is about the role <em>category</em> (the universal), not any specific individual." if gate3_ok else "<strong>No matching affected role category</strong> found in the use scenario documentation."}
+            {"<strong>Yes.</strong> A Use Scenario Specification references <em>" + _role_label + "</em> as a role category &mdash; the universal, not any specific individual. This satisfies the <code>owl:hasValue</code> restriction in the gate axiom, which checks for the role category itself rather than any particular role-bearer." if gate3_ok else "<strong>No matching role category</strong> found in the use scenario documentation."}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
-              <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>is_about</code> System and <code>iao:is_about</code> <code>owl:hasValue</code> NaturalPersonRole</p>
-              <p><strong>Gate mechanism:</strong> <code>owl:hasValue</code> is intentional &mdash; the specification is about the role <em>category</em> (NaturalPersonRole as universal), not a role-bearer instance</p>
+              <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>iao:0000136</code> System and <code>iao:0000136</code> :{_role_local}</p>
+              <p><strong>Gate mechanism:</strong> <code>owl:hasValue</code> is intentional &mdash; the specification must reference the role <em>category</em> ({_role_label} as universal), not a role-bearer instance. This is a check on the role type, not on any particular person.</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
           </details>
@@ -655,9 +663,9 @@ def write_html_view(
                 f'<div class="cf-item">'
                 f'<div class="cf-label">{cat["label"]}</div>'
                 f'<ul>'
-                f'<li>If the system did not possess <strong>{cat["capability"].lower()}</strong> capability, Gate 1 would not be satisfied and this category would not apply.</li>'
-                f'<li>If the intended use did not prescribe <strong>{cat["process"].lower()}</strong>, Gate 2 would not be satisfied. A system with the capability but used for a different purpose would not trigger this category.</li>'
-                f'<li>If the use scenario did not concern <strong>{cat["role"].lower()}</strong>, Gate 3 would not be satisfied.</li>'
+                f'<li>If the system did not possess a <strong>{cat["capability"]}</strong>, Gate 1 would not be satisfied and this category would not apply.</li>'
+                f'<li>If the intended use did not prescribe a <strong>{cat["process"]}</strong>, Gate 2 would not be satisfied. A system with the capability but prescribed for a different process type would not trigger this category.</li>'
+                f'<li>If the use scenario did not reference the <strong>{cat["role"]}</strong> category, Gate 3 would not be satisfied.</li>'
                 f'<li>Each gate is independently necessary. Removing any single condition changes the classification.</li>'
                 f'</ul></div>'
             )
