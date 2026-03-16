@@ -1,5 +1,7 @@
 # EU AI Act Rules
 
+> **Scope of this file:** Regulatory background and accuracy reference only. Do not act on anything here unless a task explicitly calls for it. Do not add ontology classes, instances, SHACL shapes, or SPARQL queries based solely on content in this file. Current implemented scope is Annex III 1(a) (biometrics/Sentinel-ID) and Annex III 5(b) (creditworthiness). Everything else is context.
+
 ## Annex III Structure
 Every item follows: "AI systems **intended to be used** for [capability/process] **of** [affected entities] in [domain context]".
 
@@ -8,10 +10,10 @@ Full classification requires:
 - Intended use specification prescribes the regulated process type (directive ICE)
 - Use scenario specification constrains realization context to affected entities (directive ICE)
 
-## Article 6(1) — Separate High-Risk Pathway (Not Currently in ARCO Scope)
-AI systems that are safety components of products governed by EU harmonised legislation listed in Annex I (medical devices, machinery, vehicles, aviation, etc.) are classified as high-risk under Article 6(1). This pathway is distinct from Annex III and is not currently modelled in ARCO. Any extension to safety-component classification must track this separately.
+## Article 6(1) — Background only, not in scope
+AI systems that are safety components of products governed by EU harmonised legislation listed in Annex I (medical devices, machinery, vehicles, aviation, etc.) are classified as high-risk under Article 6(1). Distinct from Annex III. Not modelled in ARCO. Recorded here so the boundary is explicit — do not build toward this without a deliberate scoping decision.
 
-## Article 6(2) — Annex III Pathway (Current ARCO Scope)
+## Article 6(2) — Current ARCO scope
 AI systems listed in Annex III are high-risk by default, subject to the Article 6(3) derogation below.
 
 ## Article 6(3) Derogation
@@ -23,8 +25,8 @@ An Annex III system is NOT high-risk if it does not pose a significant risk of h
 
 **Exception**: an Annex III system that performs profiling of natural persons is ALWAYS high-risk, regardless of the above.
 
-## Article 6(4) — Documentation Obligation for Derogation Claims
-A provider who considers their Annex III system is NOT high-risk must **document that assessment before placing the system on the market or putting it into service**. Model derogation claims as ICE artifacts (descriptive, asserting non-significance) that can be queried. The pre-market timing of the documentation obligation is legally significant — post-hoc derogation claims are not compliant.
+## Article 6(4) — Background only, not yet modelled
+A provider who considers their Annex III system is NOT high-risk must document that assessment before placing the system on the market or putting it into service. Pre-market timing is legally significant. Recorded here for accuracy — derogation modelling is not currently in scope and should not be built unless explicitly tasked.
 
 ## Annex III Category 1 — Biometrics (Current Focus)
 - 1(a): Remote biometric identification (NOT verification-only)
