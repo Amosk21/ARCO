@@ -46,7 +46,9 @@ ARCO explicitly distinguishes between:
 - **Realized Functions**: what the system is currently configured to do
 - **Dispositions (Capabilities)**: what the system is capable of doing by virtue of its structure
 
-Regulatory classification under the EU AI Act depends on capability, not intent or configuration.
+**Latent risk** (`HighRiskSystem`) is inferred from capability alone — current configuration is irrelevant. A hardware component bearing a biometric identification disposition creates exposure regardless of whether the feature is enabled.
+
+**Full Annex III applicability** (`AnnexIII1aApplicableSystem`) additionally requires documented intended use (Gate 2) and scoped use scenario (Gate 3). The EU AI Act uses "intended to be used for" throughout Annex III — intent is a required condition for full classification, not an optional factor. Capability without documented intent yields latent risk detection, not a complete Annex III determination.
 
 ---
 

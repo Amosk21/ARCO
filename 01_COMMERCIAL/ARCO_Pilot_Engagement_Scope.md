@@ -191,7 +191,7 @@ From this, it follows that:
 
 > Sentinel-ID is classified as a High-Risk AI System under Article 6 and as Annex III 1(a) applicable under the EU AI Act.
 
-This conclusion is invariant under configuration, deployment, or intent. Each gate is independently necessary.
+This conclusion is invariant under current deployment configuration and operational state — the determination reflects encoded system structure and documented intended use, not runtime behaviour. Each gate is independently necessary; modifying any gate's content (e.g., removing the intended use specification prescribing remote biometric identification) would remove the Annex III 1(a) entailment.
 
 ---
 
