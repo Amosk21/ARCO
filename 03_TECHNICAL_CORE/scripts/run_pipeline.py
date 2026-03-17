@@ -36,6 +36,7 @@ REASONING_DIR = REPO_ROOT / "03_TECHNICAL_CORE" / "reasoning"
 CORE = ONTOLOGY_DIR / "ARCO_core.ttl"
 GOV = ONTOLOGY_DIR / "ARCO_governance_extension.ttl"
 INSTANCES = ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"
+BFO_2020 = ONTOLOGY_DIR / "imports" / "bfo-2020.owl"
 
 SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 
@@ -75,7 +76,8 @@ def load_union_graph(*paths: Path) -> Graph:
     for p in paths:
         if not p.exists():
             raise FileNotFoundError(f"Missing file: {p}")
-        g.parse(p.as_posix(), format="turtle")
+        fmt = "xml" if p.suffix == ".owl" else "turtle"
+        g.parse(p.as_posix(), format=fmt)
     return g
 
 def clone_graph(g: Graph) -> Graph:
@@ -1298,7 +1300,7 @@ def main() -> None:
 
     sub("LOAD")
     print("Loading: core ontology + governance extension + instance data")
-    g_source = load_union_graph(CORE, GOV, INSTANCES)
+    g_source = load_union_graph(BFO_2020, CORE, GOV, INSTANCES)
     print(f"Triples loaded (asserted): {len(g_source)}")
 
     # clone -> reason over the copy so we can compare pre vs post
