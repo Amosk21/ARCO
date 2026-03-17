@@ -67,10 +67,12 @@ Detailed reference files (read when the task requires it, not by default):
 - `docs/agent/eu_ai_act_rules.md` — Annex III structure, derogation, Article 6
 - `docs/agent/writing_rules.md` — outward-facing tone and accuracy rules
 - `docs/agent/extension_protocol.md` — mandatory protocol for every new Annex III category addition
+- `docs/agent/bfo_cco_alignment_audit.md` — current alignment status, known gaps, and import risks (versioned; read before any BFO/CCO/RO/IAO work)
 
 ## Context Rules
 
 - Use Architectural Memory above before reading TTL files. Do not re-derive architecture.
+- **Before doing a full codebase audit**: read `docs/agent/bfo_cco_alignment_audit.md` first. Check the version/date. Only re-audit files changed since that date — do not re-scan the full repo if the audit is current.
 - Grep within `03_TECHNICAL_CORE/` only. No repo-wide scanning.
 - Minimal patches. No full rewrites unless requested.
 - **NEVER autoload**: `runs/demo/*`, `03_TECHNICAL_CORE/.venv/`, generated artifacts, logs, `ONTOLOGY_REVIEW.md`, `DESIGN_REVIEW_BRIEF.md`

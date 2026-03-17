@@ -11,6 +11,7 @@
 a owl:Ontology ;
 rdfs:label "ARCO Governance Extension — Entailment-First Regulatory Classification" ;
 rdfs:comment "Governance, intended use, and regulatory classification layer. AnnexIII1aApplicableSystem is OWL-entailed from three gates: capability + intended use + use scenario. Demonstrated under owlrl." ;
+owl:versionInfo "Foundational ontology alignment: BFO 2020 (ISO/IEC 21838-2:2021) via OBO namespace http://purl.obolibrary.org/obo/BFO_. CCO terms (Organization, DirectiveInformationContentEntity, DescriptiveInformationContentEntity, prescribes, has_output, Person) declared as local stubs using IRI namespace http://www.ontologyrepository.com/CommonCoreOntologies/ (CCO 1.3-era, pre-integrated-release). Full CCO import is not required; only the specific terms used are declared." ;
 owl:imports <https://arco.ai/ontology/core> .
 
 # Design Decisions (frozen — do not change without explicit justification):
