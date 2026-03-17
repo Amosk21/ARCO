@@ -1,9 +1,10 @@
 # BFO/CCO Alignment Audit
-_Version: 2 · Date: 2026-03-17 · Audited by: full subagent codebase scan (all TTL, SHACL, SPARQL, pipeline)_
+_Version: 3 · Date: 2026-03-17 · Audited by: full subagent codebase scan + adversarial design review_
 
 <!-- Update version + date each time a full audit is run. Do not edit content without re-running the scan. -->
 <!-- v1: 2026-03-17 — initial audit after BFO 2020 import -->
 <!-- v2: 2026-03-17 — confirmed by deep subagent scan of all files; corrected Surveillance_Run_001 false-positive; confirmed RO and IAO also stubs -->
+<!-- v3: 2026-03-17 — adversarial review of proposed hardening plan; recorded strategic open questions, unresolved design decisions, work items with dependencies, and product claim distinction -->
 
 ## Context
 
@@ -215,3 +216,85 @@ Ordered by risk (lowest first):
 | `ARCO_instances_verification.ttl` | Same `is_about` pattern check needed |
 | `ARCO_instances_creditscoring.ttl` | Same `is_about` pattern check needed |
 | `03_TECHNICAL_CORE/ontology/imports/` | Needs RO and pinned IAO/CCO files added |
+
+---
+
+## v3: Strategic Open Questions and Unresolved Design Decisions
+
+_Added 2026-03-17 after adversarial review of a proposed four-phase hardening plan. This section records what was identified but NOT implemented. Nothing below has been built. Read this entire section before proposing or implementing any alignment work._
+
+### Open Question 1: End State — Full Import vs. Permanent Local Declarations
+
+There are two coherent end states for ARCO's property layer. They have not been chosen between.
+
+**End state A (full import):** ARCO imports BFO (done), then RO, then IAO, then CCO after punning fixes. Every layer — classes, properties, instances — is governed by source ontology axioms with real machine enforcement. This is the strongest alignment claim. The v2 "What Full Grounding Would Require" section describes the staged path to get there.
+
+**End state B (permanent local declarations):** ARCO imports BFO (done) and stops there. RO, IAO, and CCO properties are declared locally with ARCO-scoped domain and range. This is simpler but is a permanent retreat from full alignment. The claim becomes: "ARCO uses BFO/RO/IAO/CCO vocabulary with BFO class axioms enforced and property usage approximated locally."
+
+**Why this matters:** Every piece of work below — property audit, punning fix, test suite, ADR, extension protocol updates — is designed differently depending on which end state is the target. ARCO-local declarations that are permanent architecture require different documentation, different product claims, and different extension protocols than ARCO-local declarations that are temporary scaffolding for a staged import plan.
+
+**MANDATORY:** This question must be answered before implementing any property-layer work. Do not default to either end state implicitly.
+
+### Open Question 2: Product Claim Distinction
+
+ARCO determines whether a system description satisfies ARCO's formal encoding of Annex III categories. It does NOT determine whether a system is legally high-risk under the EU AI Act. These are different claims.
+
+The first is verifiable by inspecting the axioms. The second requires legal authority ARCO does not have.
+
+The three-gate equivalentClass definition is ARCO's engineering interpretation of Article 6 and Annex III. That interpretation has never been validated against the actual legal text by a lawyer. Internal consistency (OWL entailment is correct) proves nothing about external correctness (the axioms correctly encode the law).
+
+**Required actions before any product or commercial documentation is finalized:**
+1. Certificate output must say "classified per ARCO ontology encoding of Annex III 1(a)" — not "classified as high-risk under the EU AI Act"
+2. README and commercial documentation must distinguish between the two claims
+3. The three-gate interpretation is flagged as an open assumption, not a verified legal determination
+
+### Unresolved Design Decision: The cco:prescribes Punning Fix
+
+The current triples use class IRIs as the object of `cco:prescribes`:
+```turtle
+:AnnexIII_Condition_Q1 cco:prescribes :RemoteBiometricIdentificationProcess
+```
+where `:RemoteBiometricIdentificationProcess` is a class.
+
+The fix requires creating token individuals, but their typing is a design decision:
+
+- **Option A:** Type them as instances of the process class (`arco:RemoteBiometricIdentificationProcess_prescribed rdf:type :RemoteBiometricIdentificationProcess`). This means "there exists a process of this type that is being prescribed." Standard OWL practice but philosophically says a specific process exists rather than a process type being prescribed.
+- **Option B:** Create a new class like `ProcessTypeSpecification` to hold regulatory references. This is a new design commitment and a new class that needs BFO placement.
+- **Option C:** Leave them untyped as bare individuals. Valid OWL but philosophically unsatisfying.
+
+**MANDATORY:** Choose an option before implementing the fix. The choice affects Gate 2's `owl:someValuesFrom` restriction behavior.
+
+### Unresolved Engineering Problem: Negative Test Infrastructure
+
+The current pipeline loads all TTL files into a single graph before reasoning. A deliberately miscategorized instance in a negative test file contaminates the reasoning graph for all positive cases.
+
+Negative testing requires one of:
+- Parameterized pipeline runs (accept a specific instance file as argument, run reasoning against only that file + core ontology)
+- A test harness that invokes the pipeline multiple times with different input sets
+- Named graph isolation (owlrl support uncertain)
+
+**None of these mechanisms exist.** The negative test suite cannot be written until a test isolation mechanism is built.
+
+### Identified Work Items (Ordered by Dependency)
+
+These items were identified during adversarial review. They are listed in dependency order. None have been implemented.
+
+**Step 0 — Property audit.** Enumerate every property triple across all TTL files. For each property, record current usage, correct ARCO-scoped domain and range, and whether the domain/range decision requires new judgment. This audit must be complete before property declarations or negative tests can be designed. _Depends on: Open Question 1 (end state) being resolved, because the audit produces different outputs for permanent vs. temporary declarations._
+
+**Step 1 — Fix cco:prescribes punning.** Replace class-as-individual usage with proper typed individuals. _Depends on: Unresolved Design Decision above being resolved._
+
+**Step 2 — Build negative test harness + write tests.** Build the parameterized pipeline mechanism first. Then write negative test cases for: Gate 1 fail, Gate 2 fail with Gate 1 pass, Gate 3 fail with Gates 1-2 pass, disjointness violation caught, domain/range violation caught. _Depends on: Step 0 (need to know what declarations will exist to test against them) and Step 1 (punning fix changes what valid/invalid triples look like)._
+
+**Step 3 — Architectural Decision Record.** Document every load-bearing design choice with its justification. Must include three consequence commitments: (a) every new property usage requires an explicit declaration following a documented process, (b) the extension protocol gets a mandatory property declaration step and a mandatory disjointness analysis step, (c) all outward-facing text distinguishes between imported BFO class enforcement and the property layer's actual status. _Depends on: Open Question 1 (the ADR records a different decision depending on end state)._
+
+**Step 4 — Implement property declarations and disjointness.** Phase 1 (ARCO-local property domain/range), Phase 2 (ARCO-specific disjointness: BiometricIdentificationCapability disjoint BiometricVerificationCapability; process type AllDisjointClasses), Phase 4 (pipeline hardening: cross-category type check SPARQL query, disjointness axiom presence guard). _Depends on: Steps 0-3 all being complete._
+
+**Deferred — has_part transitivity.** Adding transitivity to has_part is a classification decision, not a neutral engineering choice. It expands Gate 1 scope: a system whose sub-component (not direct component) has a triggering capability would satisfy Gate 1 through the transitive chain. This may be correct behavior but it is a substantive regulatory decision that must be explicitly verified, not assumed safe. Deferred until someone confirms sub-component capability propagation is intended. Inverse declaration (has_part / part_of) is safe and can proceed independently.
+
+### Known Gaps Not Addressed by Any Work Item Above
+
+1. **Extension protocol lacks disjointness analysis.** `docs/agent/extension_protocol.md` governs adding new Annex III categories but does not require analyzing whether a new class needs disjointness declarations against existing classes. Must be updated when Step 3 is implemented.
+
+2. **No single traceability artifact.** There is no document connecting regulatory text (specific Articles, Recitals, Annex paragraphs) to specific ontological commitments (which axiom encodes which legal requirement). CLAUDE.md and inline comments carry this information but it is scattered.
+
+3. **Surveillance_Run_001 is_about pattern.** `Surveillance_Run_001` (an OperationalProcess / Occurrent) is the subject of `iao:0000136` (is_about). If IAO is ever imported with domain InformationContentEntity, this triple creates a Continuant/Occurrent disjointness violation. Identified in v2 but not yet fixed.
