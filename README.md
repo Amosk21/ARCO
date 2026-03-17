@@ -98,6 +98,21 @@ This makes ARCO fundamentally different from post-hoc tools that observe behavio
 
 ---
 
+## Foundational ontology versions
+
+| Ontology | Version / release | IRI namespace used |
+|----------|------------------|--------------------|
+| **BFO** | BFO 2020 (ISO/IEC 21838-2:2021) | `http://purl.obolibrary.org/obo/BFO_` |
+| **RO** | OBO Relation Ontology (current OBO release) | `http://purl.obolibrary.org/obo/RO_` |
+| **IAO** | Information Artifact Ontology (current OBO release) | `http://purl.obolibrary.org/obo/IAO_` |
+| **CCO** | CCO 1.3-era terms (pre-integrated release, local stubs) | `http://www.ontologyrepository.com/CommonCoreOntologies/` |
+
+**BFO 2020** is the second edition of Basic Formal Ontology, standardized as ISO/IEC 21838-2:2021. ARCO uses the OBO Foundry numeric-ID namespace (`BFO_0000015`, `BFO_0000016`, etc.) that is definitive of this release. The earlier BFO 1.1 used a different IRI scheme (`http://www.ifomis.org/bfo/1.1/snap#`, `span#`) and is not used here.
+
+**CCO** terms are declared as local stubs rather than via a full `owl:imports` of the CCO modules. This means only the specific CCO classes and properties ARCO requires are declared in-file (`cco:Organization`, `cco:DirectiveInformationContentEntity`, `cco:prescribes`, `cco:has_output`, etc.), using the pre-integrated-release IRI namespace. The pipeline does not depend on fetching external CCO files at runtime.
+
+---
+
 ## Beyond a single regulation
 
 While this repository demonstrates ARCO against the EU AI Act, the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
