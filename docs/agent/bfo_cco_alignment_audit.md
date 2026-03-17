@@ -1,5 +1,9 @@
 # BFO/CCO Alignment Audit
-_Date: 2026-03-17_
+_Version: 2 · Date: 2026-03-17 · Audited by: full subagent codebase scan (all TTL, SHACL, SPARQL, pipeline)_
+
+<!-- Update version + date each time a full audit is run. Do not edit content without re-running the scan. -->
+<!-- v1: 2026-03-17 — initial audit after BFO 2020 import -->
+<!-- v2: 2026-03-17 — confirmed by deep subagent scan of all files; corrected Surveillance_Run_001 false-positive; confirmed RO and IAO also stubs -->
 
 ## Context
 
