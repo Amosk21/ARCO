@@ -136,10 +136,27 @@ def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
 
     initial = len(data_graph)
     print("Running OWL-RL closure (materializing entailments)...")
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(data_graph)
+    closure = owlrl.OWLRL_Semantics(data_graph, False, False, False)
+    closure.closure()
+    closure.post_process()
     final = len(data_graph)
     added = final - initial
     print(f"Triples: {initial} -> {final}   (+{added} entailed)")
+
+    # BFO disjointness enforcement: owlrl detects violations of
+    # owl:disjointWith and owl:AllDisjointClasses but stores them
+    # as error messages rather than entailing owl:Nothing.
+    # Fail the pipeline if any category errors are found.
+    if closure.error_messages:
+        print(f"\nBFO DISJOINTNESS VIOLATIONS DETECTED ({len(closure.error_messages)}):")
+        for msg in closure.error_messages:
+            print(f"  ERROR: {msg}")
+        raise RuntimeError(
+            f"OWL-RL reasoning found {len(closure.error_messages)} disjointness "
+            f"violation(s). This indicates a BFO category error in the ontology."
+        )
+    print("BFO disjointness check: CLEAN (0 violations)")
+
     return data_graph, initial, added
 
 def run_shacl(data_graph: Graph) -> tuple[bool, str]:
