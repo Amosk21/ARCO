@@ -31,13 +31,13 @@
 ## Regression Testing
 Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` after every coherent unit of change.
 
-Pass criteria:
-- OWL-RL reasoning runs
-- All SPARQL queries return True
-- SHACL conforms
-- Certificate emits
-- "ALL CHECKS PASSED" prints
-- Exit 0
+Pass criteria (two-layer):
+- **Classification layer** (OWL-RL + SHACL): OWL-RL reasoning runs without exception, SHACL conforms, HighRiskSystem entailment succeeds
+- **Audit layer** (SPARQL ASK on reasoned graph): all SPARQL audit queries return True
+- Certificate emits with correct field values
+- Both layers report PASS, "ALL CHECKS PASSED" prints, exit 0
+
+SPARQL audit queries inspect documentary completeness on the reasoned graph. They do not produce or affect the classification result. An audit failure means incomplete documentation, not a wrong classification.
 
 Do not batch changes that touch existing triples, restrictions, or shapes — test immediately.
 

@@ -50,13 +50,23 @@ REGULATORY DETERMINATION CERTIFICATE
   TRIGGERING CAPABILITY:   Sentinel_FaceID_Disposition
   EVIDENCE PATH:
   Sentinel_ID_System -> Sentinel_FaceID_Module -> Sentinel_FaceID_Disposition
+
+  [classification layer — OWL-RL entailment]
   SHACL:                   PASS
+  ENTAILMENT:              PASS
+  ANNEX III 1(a):          VERIFIED (ENTAILED)
+
+  [audit documentation layer — SPARQL ASK on reasoned graph]
   TRACEABILITY:            PASS
   LATENT RISK:             DETECTED
   INTENDED USE:            PASS
-  ANNEX III 1(a):          VERIFIED (ENTAILED)
   OBLIGATION:              PASS
+  REG. ALIGNED:            PASS
+
   ENTAILED TRIPLES ADDED:  +891
+
+  Classification layer: PASS
+  Audit layer:          PASS
 ========================================================================
 ```
 

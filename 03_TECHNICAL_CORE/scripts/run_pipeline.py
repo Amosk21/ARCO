@@ -608,7 +608,9 @@ def write_html_view(
     # Gate 2 satisfied if intended_use is modelled with correct process type
     gate2_ok = intended_use_ok
     # Gate 3 satisfied if use scenario references NaturalPersonRole
-    gate3_ok = reg_alignment_ok
+    # Derived from gate evidence (parallel to gate2_ok = intended_use_ok),
+    # NOT from reg_alignment_ok which is a separate audit-layer SPARQL result.
+    gate3_ok = bool(gate_evidence["gate3"]["uss_uri"])
 
     # Pre-compute gate display labels from the determination packet.
     # These are used in axiom pattern text, gate answers, and counterfactuals.
@@ -1410,20 +1412,28 @@ def main() -> None:
         print(f"Reg. aligned:  {_pf(reg_alignment_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
-    # Annex III category checks (1a, 5b) are informational cross-category audit lines.
-    # HighRiskSystem entailment (inference_ok) already covers the classification result.
-    # Neither category check is included in all_pass: a system entailed as 5(b) but not
-    # 1(a) (or vice versa) is not a failure — it reflects correct cross-category isolation.
-    all_pass = shacl_ok and traceability_ok and inference_ok
-    if latent_ok is not None:
-        all_pass = all_pass and latent_ok
-    if intended_use_ok is not None:
-        all_pass = all_pass and intended_use_ok
-    if obligation_ok is not None:
-        all_pass = all_pass and obligation_ok
-    if reg_alignment_ok is not None:
-        all_pass = all_pass and reg_alignment_ok
+    # ── Two-layer pass computation ──────────────────────────────────
+    # Classification layer: OWL-RL entailment + SHACL structural validation.
+    # Annex III category checks (1a, 5b) are informational cross-category
+    # audit lines — a system entailed as 5(b) but not 1(a) is not a failure.
+    classification_pass = shacl_ok and inference_ok
 
+    # Audit layer: SPARQL ASK queries on the reasoned graph.
+    # These inspect declared documentary content; they do not produce
+    # and cannot affect the classification result.
+    audit_pass = traceability_ok
+    if latent_ok is not None:
+        audit_pass = audit_pass and latent_ok
+    if intended_use_ok is not None:
+        audit_pass = audit_pass and intended_use_ok
+    if obligation_ok is not None:
+        audit_pass = audit_pass and obligation_ok
+    if reg_alignment_ok is not None:
+        audit_pass = audit_pass and reg_alignment_ok
+
+    all_pass = classification_pass and audit_pass
+    print(f"\n  Classification layer: {'PASS' if classification_pass else 'FAIL'}")
+    print(f"  Audit layer:          {'PASS' if audit_pass else 'FAIL'}")
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
 
     # ---------------------------------------------------------------
@@ -1580,7 +1590,7 @@ def main() -> None:
             {
                 "id": "gate_3",
                 "label": "Affected Role Category",
-                "status": "SATISFIED" if reg_alignment_ok else "NOT_SATISFIED",
+                "status": "SATISFIED" if bool(gate_evidence["gate3"]["uss_uri"]) else "NOT_SATISFIED",
                 "evidence": {
                     "uss_uri": gate_evidence["gate3"]["uss_uri"],
                     "role_uri": gate_evidence["gate3"]["role_uri"],

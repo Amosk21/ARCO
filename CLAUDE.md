@@ -8,7 +8,7 @@ ARCO = BFO/CCO-aligned OWL ontology for deterministic EU AI Act risk classificat
 python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 ```
 
-Must print "ALL CHECKS PASSED" and exit 0. Run after each coherent unit of change. Do not batch changes to triples, shapes, or queries.
+Must print "ALL CHECKS PASSED" (both classification and audit layers PASS) and exit 0. Run after each coherent unit of change. Do not batch changes to triples, shapes, or queries.
 
 ## Global Invariants (never violate regardless of task)
 
