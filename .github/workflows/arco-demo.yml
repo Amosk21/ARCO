@@ -52,6 +52,18 @@ jobs:
             exit 1
           fi
 
+      - name: Run gate-removal regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u 03_TECHNICAL_CORE/scripts/test_gate_removal.py
+
+      - name: Run multi-scenario regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u 03_TECHNICAL_CORE/scripts/test_scenarios.py
+
       - name: Verify artifact files exist
         shell: bash
         run: |
