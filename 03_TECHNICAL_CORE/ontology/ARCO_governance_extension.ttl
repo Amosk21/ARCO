@@ -155,7 +155,7 @@ cco:Organization rdf:type owl:Class ;
 
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "High-Risk AI System" ;
-  rdfs:comment "A system classified as high-risk by virtue of having a component that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner." ;
+  rdfs:comment "A system classified as high-risk by virtue of having a part that bears a disposition triggering Annex III. NOTE: This axiom requires only has_part some (has_disposition some AnnexIIITriggeringCapability) — it does NOT require the part to be a SystemComponent. The AnnexIII category-specific classes (AnnexIII1aApplicableSystem, AnnexIII5bApplicableSystem) additionally require SystemComponent in Gate 1. This means a System whose part is a bare bfo:Object with a triggering capability is entailed as HighRiskSystem but NOT as any specific Annex III category. This asymmetry is intentional: HighRiskSystem is a coarse screening gate; category-specific classes enforce the full three-gate test." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:intersectionOf (

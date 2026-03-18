@@ -302,7 +302,13 @@ These items were identified during adversarial review. They are listed in depend
 
 2. **No single traceability artifact.** There is no document connecting regulatory text (specific Articles, Recitals, Annex paragraphs) to specific ontological commitments (which axiom encodes which legal requirement). CLAUDE.md and inline comments carry this information but it is scattered.
 
-3. **Surveillance_Run_001 is_about pattern.** `Surveillance_Run_001` (an OperationalProcess / Occurrent) is the subject of `iao:0000136` (is_about). If IAO is ever imported with domain InformationContentEntity, this triple creates a Continuant/Occurrent disjointness violation. Identified in v2 but not yet fixed.
+3. **~~Surveillance_Run_001 is_about pattern.~~ OBSOLETE.** Empirically verified: `Surveillance_Run_001` has NO `iao:0000136` triples in current TTL. The warning referenced an older version of the instance file. No action needed.
+
+7. **HighRiskSystem vs AnnexIII category gate asymmetry.** `HighRiskSystem` requires `has_part some (has_disposition some AnnexIIITriggeringCapability)` — no `SystemComponent` requirement. `AnnexIII1aApplicableSystem` and `AnnexIII5bApplicableSystem` Gate 1 additionally requires the part to be a `SystemComponent`. A System whose part is a bare `bfo:Object` with a triggering capability is entailed as `HighRiskSystem` but NOT as any specific Annex III category. The pipeline's primary determination (INFERRED/NOT PRESENT) is gated on `HighRiskSystem`. Empirically confirmed. Now documented in the `HighRiskSystem` rdfs:comment as intentional: `HighRiskSystem` is a coarse screening gate; category-specific classes enforce the full three-gate test.
+
+8. **Pipeline exit code on failure.** `run_pipeline.py` had no `sys.exit(1)` — negative cases and partial failures exited 0 while printing "SOME CHECKS FAILED". **Fixed in this branch** — `sys.exit(1)` added when `all_pass` is False.
+
+9. **SHACL PS_UseScenario_IsAboutRole punning dependency.** The shape checks `sh:path rdfs:subClassOf; sh:hasValue bfo:0000023` to verify the UseScenarioSpecification's `iao:0000136` target is a Role subclass. This works because `:NaturalPersonRole` has a class-side `rdfs:subClassOf bfo:0000023` triple. But `:NaturalPersonRole` has no `rdf:type bfo:0000023` triple as an individual — if the shape were changed to `sh:class bfo:0000023` it would immediately fail. The shape is correct for the current design but the punning dependency is not obvious.
 
 4. **owlrl unpinned.** `requirements.txt` had `owlrl` with no version pin. **Fixed in this branch** — pinned to `owlrl==7.1.4`. The pin prevents silent reasoning regressions if future owlrl versions change entailment behavior.
 

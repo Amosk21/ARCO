@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from rdflib import Graph
@@ -1625,6 +1626,9 @@ def main() -> None:
     sub("OUTPUT FILES")
     for f in sorted(OUTPUT_DIR.iterdir()):
         print(f"  {f.relative_to(REPO_ROOT)}")
+
+    if not all_pass:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
