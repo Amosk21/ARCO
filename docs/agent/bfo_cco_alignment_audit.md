@@ -223,9 +223,15 @@ Ordered by risk (lowest first):
 
 _Added 2026-03-17 after adversarial review of a proposed four-phase hardening plan. This section records what was identified but NOT implemented. Nothing below has been built. Read this entire section before proposing or implementing any alignment work._
 
-### Open Question 1: End State — Full Import vs. Permanent Local Declarations
+### RESOLVED — Open Question 1: End State — Full Import vs. Permanent Local Declarations
 
-There are two coherent end states for ARCO's property layer. They have not been chosen between.
+**Decision: End State A (full staged import). See `docs/agent/adr_001_alignment_end_state.md`.**
+
+End state A accepted: staged RO → IAO → CCO import with documented blockers per step. Local property declarations are temporary scaffolding, not permanent architecture. Scaffold comments and extension protocol updates are consequence commitments tracked in the ADR.
+
+<details><summary>Original analysis (preserved for context)</summary>
+
+There are two coherent end states for ARCO's property layer.
 
 **End state A (full import):** ARCO imports BFO (done), then RO, then IAO, then CCO after punning fixes. Every layer — classes, properties, instances — is governed by source ontology axioms with real machine enforcement. This is the strongest alignment claim. The v2 "What Full Grounding Would Require" section describes the staged path to get there.
 
@@ -233,7 +239,7 @@ There are two coherent end states for ARCO's property layer. They have not been 
 
 **Why this matters:** Every piece of work below — property audit, punning fix, test suite, ADR, extension protocol updates — is designed differently depending on which end state is the target. ARCO-local declarations that are permanent architecture require different documentation, different product claims, and different extension protocols than ARCO-local declarations that are temporary scaffolding for a staged import plan.
 
-**MANDATORY:** This question must be answered before implementing any property-layer work. Do not default to either end state implicitly.
+</details>
 
 ### Open Question 2: Product Claim Distinction
 
