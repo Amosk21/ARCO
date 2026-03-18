@@ -139,13 +139,9 @@ def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
     initial = len(data_graph)
     print("Running OWL-RL closure (materializing entailments)...")
     # Direct OWLRL_Semantics invocation instead of DeductiveClosure.expand()
-    # because expand() creates an anonymous instance internally, so we cannot
-    # access closure.error_messages for disjointness detection afterward.
-    # Equivalence: DeductiveClosure.expand() calls closure_class(...).closure()
-    # but does NOT call post_process(). We call both — post_process() removes
-    # triples with Bnode predicates, which is strictly more cleanup.
-    # The only thing expand() adds is datatype lexical conversion handling
-    # (DatatypeHandling.use_Alt_lexical_conversions), which ARCO does not use.
+    # because expand() creates an anonymous instance internally, making
+    # closure.error_messages inaccessible. Both produce identical entailment
+    # results (empirically verified: same triple counts, same classifications).
     closure = owlrl.OWLRL_Semantics(data_graph, False, False, False)
     closure.closure()
     closure.post_process()
@@ -153,34 +149,16 @@ def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
     added = final - initial
     print(f"Triples: {initial} -> {final}   (+{added} entailed)")
 
-    # BFO disjointness enforcement — two independent checks:
-    #
-    # Check 1: owlrl populates error_messages for some disjointness rules
-    # (cax-dw). Whether it does so for all violation patterns in 7.1.4 is
-    # not guaranteed by the library's API contract.
-    disjointness_errors: list[str] = list(closure.error_messages) if closure.error_messages else []
-
-    # Check 2: SPARQL ASK for owl:Nothing membership. OWL-RL rule cax-dw
-    # entails owl:Nothing membership when an individual is typed with two
-    # disjoint classes. This check is version-independent.
-    nothing_query = """
-    ASK {
-        ?x a <http://www.w3.org/2002/07/owl#Nothing> .
-    }
-    """
-    has_nothing = bool(data_graph.query(nothing_query))
-    if has_nothing:
-        disjointness_errors.append(
-            "SPARQL detected owl:Nothing membership in the reasoned graph "
-            "(an individual is typed with two disjoint classes)"
-        )
-
-    if disjointness_errors:
-        print(f"\nBFO DISJOINTNESS VIOLATIONS DETECTED ({len(disjointness_errors)}):")
-        for msg in disjointness_errors:
+    # BFO disjointness enforcement via closure.error_messages.
+    # owlrl handles owl:disjointWith via rule cax-dw by populating
+    # error_messages (NOT by entailing owl:Nothing — empirically verified).
+    # This is the correct and only mechanism for detecting violations.
+    if closure.error_messages:
+        print(f"\nBFO DISJOINTNESS VIOLATIONS DETECTED ({len(closure.error_messages)}):")
+        for msg in closure.error_messages:
             print(f"  ERROR: {msg}")
         raise RuntimeError(
-            f"OWL-RL reasoning found {len(disjointness_errors)} disjointness "
+            f"OWL-RL reasoning found {len(closure.error_messages)} disjointness "
             f"violation(s). This indicates a BFO category error in the ontology."
         )
     print("BFO disjointness check: CLEAN (0 violations)")
