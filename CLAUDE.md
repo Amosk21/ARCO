@@ -38,7 +38,7 @@ Must print "ALL CHECKS PASSED" (both classification and audit layers PASS) and e
 - `AnnexIII1aApplicableSystem` ≡ 3-gate equivalentClass (capability + prescribed process type + role category)
 
 ### Bridge Axioms
-- `AnnexIIITriggeringCapability` ≡ union(BiometricIdentificationCapability) — biometrics only
+- `AnnexIIITriggeringCapability` ≡ union(BiometricIdentificationCapability) — governance-layer regulatory grouping; currently biometrics only. This union class is an engineering compromise that groups capability types sharing a regulatory trigger boundary. It is not a BFO/CCO class — it is ARCO's own regulatory taxonomy layer.
 - `HighRiskSystem` ≡ System ∩ has_part some (SystemComponent ∩ has_disposition some AnnexIIITriggeringCapability)
 - Gate 2: `owl:someValuesFrom :RemoteBiometricIdentificationProcess` — type-checks the prescribed process token
 - Gate 3: `owl:hasValue :NaturalPersonRole` — checks role category (universal), not a role-bearer instance

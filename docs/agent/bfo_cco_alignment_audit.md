@@ -280,6 +280,10 @@ Negative testing requires one of:
 
 **None of these mechanisms exist.** The negative test suite cannot be written until a test isolation mechanism is built.
 
+### Import Status: DEFERRED
+
+**RO, IAO, and CCO imports are deferred.** Do not attempt any import in this branch or any branch without first resolving the blockers documented below and in `docs/agent/adr_001_alignment_end_state.md`. The current stubs are sufficient for the classification pipeline. Import work is gated on: (1) property audit (Step 0), (2) negative test infrastructure (Step 2), and (3) punning cleanup for CCO compatibility.
+
 ### Identified Work Items (Ordered by Dependency)
 
 These items were identified during adversarial review. They are listed in dependency order. None have been implemented.
