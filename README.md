@@ -45,7 +45,7 @@ All three gates must be satisfied for entailment. A system bearing only a biomet
 REGULATORY DETERMINATION CERTIFICATE
 ========================================================================
   SYSTEM:                  Sentinel_ID_System
-  REGIME:                  EU AI Act (Article 6 / Annex III)
+  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)
   CLASSIFICATION:          HighRiskSystem (INFERRED)
   TRIGGERING CAPABILITY:   Sentinel_FaceID_Disposition
   EVIDENCE PATH:
@@ -55,6 +55,7 @@ REGULATORY DETERMINATION CERTIFICATE
   SHACL:                   PASS
   ENTAILMENT:              PASS
   ANNEX III 1(a):          VERIFIED (ENTAILED)
+  ANNEX III 5(b):          NOT APPLICABLE
 
   [audit documentation layer — SPARQL ASK on reasoned graph]
   TRACEABILITY:            PASS
@@ -63,7 +64,7 @@ REGULATORY DETERMINATION CERTIFICATE
   OBLIGATION:              PASS
   REG. ALIGNED:            PASS
 
-  ENTAILED TRIPLES ADDED:  +891
+  ENTAILED TRIPLES ADDED:  +3442
 
   Classification layer: PASS
   Audit layer:          PASS
@@ -196,7 +197,7 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 The pipeline will:
 
 1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (400 asserted → 1291 post-reasoning)
+2. Run OWL-RL reasoning to materialize entailments (1423 asserted → 4865 post-reasoning)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
    - **Classification layer (OWL-RL):** SHACL conformance, HighRiskSystem entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs

@@ -382,7 +382,7 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bo
 
     sub("WHY THIS ENTAILS HighRiskSystem")
     print("Bridge axiom (ARCO_core.ttl):")
-    print("  HighRiskSystem = System AND (has_part SOME (has_disposition SOME AnnexIIITriggeringCapability))")
+    print("  HighRiskSystem = System AND (has_part SOME (SystemComponent AND has_disposition SOME AnnexIIITriggeringCapability))")
     if not asserted_pre and entailed_post:
         print(f"  => {SYSTEM_LOCAL} rdf:type HighRiskSystem  (INFERRED, not asserted)")
     elif entailed_post:
