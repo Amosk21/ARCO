@@ -84,6 +84,13 @@
   rdfs:comment "Capability to evaluate creditworthiness of natural persons or establish their credit score, for access to financial or public services. Reality-side disposition (the hardware genuinely has this capacity). Regulatory grouping (AnnexIIITriggeringCapability) is asserted in the governance extension. Triggers Annex III 5(b)." ;
   rdfs:subClassOf :CapabilityDisposition .
 
+# Pairwise disjointness: these are genuinely different capability kinds.
+# A component cannot simultaneously bear biometric identification AND
+# creditworthiness evaluation as the SAME disposition. Prevents mis-typing.
+:BiometricIdentificationCapability owl:disjointWith :BiometricVerificationCapability .
+:BiometricIdentificationCapability owl:disjointWith :CreditworthinessEvaluationCapability .
+:BiometricVerificationCapability owl:disjointWith :CreditworthinessEvaluationCapability .
+
 :OperationalProcess rdf:type owl:Class ;
   rdfs:label "Operational Process" ;
   rdfs:subClassOf bfo:0000015 ; # Process
