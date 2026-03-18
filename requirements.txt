@@ -1,3 +1,3 @@
 rdflib
 pyshacl
-owlrl
+owlrl==7.1.4

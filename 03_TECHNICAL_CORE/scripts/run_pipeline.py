@@ -488,23 +488,24 @@ def write_html_view(
         cat_list = ", ".join(c["label"] for c in triggered_categories)
         cap_list = ", ".join(c["capability"] for c in triggered_categories)
         summary_text = (
-            f"{sys_display} is classified as <strong>High Risk</strong> under the "
-            f"EU AI Act. The system possesses a {cap_list}, triggering "
-            f"{cat_list}. All three regulatory gates are satisfied for each applicable "
-            f"category, and the classification was {classification_mode.lower()} by "
-            f"OWL-RL formal reasoning over {inferred_added:,} entailed triples."
+            f"{sys_display} is classified as <strong>High Risk</strong> per "
+            f"ARCO's ontology encoding of EU AI Act Annex III. The system possesses "
+            f"a {cap_list}, triggering {cat_list}. All three regulatory gates are "
+            f"satisfied for each applicable category, and the classification was "
+            f"{classification_mode.lower()} by OWL-RL formal reasoning over "
+            f"{inferred_added:,} entailed triples."
         )
     elif is_high_risk:
         summary_text = (
-            f"{sys_display} is classified as <strong>High Risk</strong> under the "
-            f"EU AI Act. Classification was {classification_mode.lower()} by OWL-RL "
-            f"formal reasoning."
+            f"{sys_display} is classified as <strong>High Risk</strong> per "
+            f"ARCO's ontology encoding of EU AI Act Annex III. Classification was "
+            f"{classification_mode.lower()} by OWL-RL formal reasoning."
         )
     else:
         summary_text = (
-            f"{sys_display} was <strong>not classified as High Risk</strong> under "
-            f"the EU AI Act based on current assertions. The OWL-RL reasoner did not "
-            f"entail HighRiskSystem membership."
+            f"{sys_display} was <strong>not classified as High Risk</strong> per "
+            f"ARCO's ontology encoding of EU AI Act Annex III based on current "
+            f"assertions. The OWL-RL reasoner did not entail HighRiskSystem membership."
         )
 
     if all_pass:
@@ -1127,7 +1128,7 @@ section {{ scroll-margin-top: 1rem }}
   </div>
   <div class="header-meta">
     <span>System: <strong>{sys_display}</strong></span>
-    <span>Regime: EU AI Act Article 6 / Annex III</span>
+    <span>Regime: ARCO ontology encoding of EU AI Act Article 6 / Annex III</span>
     <span>Generated: {ts}</span>
   </div>
 </header>
@@ -1173,7 +1174,7 @@ section {{ scroll-margin-top: 1rem }}
 <section id="gates">
   <h2>Classification Gates</h2>
   <p class="gate-intro">
-    The EU AI Act classifies AI systems as high-risk through a three-gate test.
+    ARCO encodes the EU AI Act's high-risk classification as a three-gate test.
     Each gate is independently necessary &mdash; all three must be satisfied for
     a given Annex III category to apply. The classification is determined by
     OWL-RL formal reasoning, not by pattern matching or heuristics.
@@ -1442,7 +1443,7 @@ def main() -> None:
 
     hr("REGULATORY DETERMINATION CERTIFICATE")
     print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
-    print(f"  REGIME:                  EU AI Act (Article 6 / Annex III)")
+    print(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
     if classification_mode in ("INFERRED", "ASSERTED"):
         print(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -1480,7 +1481,7 @@ def main() -> None:
     cert_lines.append("REGULATORY DETERMINATION CERTIFICATE")
     cert_lines.append("=" * 72)
     cert_lines.append(f"  SYSTEM:                  {SYSTEM_LOCAL}")
-    cert_lines.append(f"  REGIME:                  EU AI Act (Article 6 / Annex III)")
+    cert_lines.append(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
     if classification_mode in ("INFERRED", "ASSERTED"):
         cert_lines.append(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -1511,7 +1512,7 @@ def main() -> None:
     # summary.json
     summary = {
         "system": SYSTEM_LOCAL,
-        "regime": "EU AI Act (Article 6 / Annex III)",
+        "regime": "ARCO ontology encoding of EU AI Act (Article 6 / Annex III)",
         "classification": f"HighRiskSystem ({classification_mode})" if classification_mode in ("INFERRED", "ASSERTED") else classification_mode,
         "shacl": _pf(shacl_ok),
         "traceability": _pf(traceability_ok),

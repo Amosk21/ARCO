@@ -68,6 +68,7 @@ Detailed reference files (read when the task requires it, not by default):
 - `docs/agent/writing_rules.md` — outward-facing tone and accuracy rules
 - `docs/agent/extension_protocol.md` — mandatory protocol for every new Annex III category addition
 - `docs/agent/bfo_cco_alignment_audit.md` — current alignment status, known gaps, and import risks (versioned; read before any BFO/CCO/RO/IAO work)
+- `docs/agent/adr_001_alignment_end_state.md` — accepted decision: full import (end state A), staged RO → IAO → CCO with blockers
 
 ## Context Rules
 

@@ -248,21 +248,20 @@ The three-gate equivalentClass definition is ARCO's engineering interpretation o
 2. README and commercial documentation must distinguish between the two claims
 3. The three-gate interpretation is flagged as an open assumption, not a verified legal determination
 
-### Unresolved Design Decision: The cco:prescribes Punning Fix
+### RESOLVED: The cco:prescribes Punning Fix (Gate 2)
 
-The current triples use class IRIs as the object of `cco:prescribes`:
+**Status: Already implemented.** The Gate 2 punning fix (Option A — typed process individuals) was already applied before this audit. The instance data contains:
+```turtle
+:Sentinel_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess .
+:Sentinel_IntendedUse_001 cco:prescribes :Sentinel_RBIP_Process .
+```
+Gate 2 uses `owl:someValuesFrom :RemoteBiometricIdentificationProcess`, which correctly fires against the typed individual. The v3 planning discussion about Option A vs B vs C was solving an already-solved problem.
+
+**Remaining latent issue:** `ARCO_instances_sentinel.ttl` line 25 still contains:
 ```turtle
 :AnnexIII_Condition_Q1 cco:prescribes :RemoteBiometricIdentificationProcess
 ```
-where `:RemoteBiometricIdentificationProcess` is a class.
-
-The fix requires creating token individuals, but their typing is a design decision:
-
-- **Option A:** Type them as instances of the process class (`arco:RemoteBiometricIdentificationProcess_prescribed rdf:type :RemoteBiometricIdentificationProcess`). This means "there exists a process of this type that is being prescribed." Standard OWL practice but philosophically says a specific process exists rather than a process type being prescribed.
-- **Option B:** Create a new class like `ProcessTypeSpecification` to hold regulatory references. This is a new design commitment and a new class that needs BFO placement.
-- **Option C:** Leave them untyped as bare individuals. Valid OWL but philosophically unsatisfying.
-
-**MANDATORY:** Choose an option before implementing the fix. The choice affects Gate 2's `owl:someValuesFrom` restriction behavior.
+This uses the class IRI as an individual for "regulatory traceability." It does not affect current classification (Gate 2 fires via `Sentinel_IntendedUse_001`, not `AnnexIII_Condition_Q1`). However, if CCO is imported with `cco:prescribes rdfs:range bfo:Process`, the reasoner will infer `:RemoteBiometricIdentificationProcess rdf:type bfo:Process` (as an individual) — a false typing. This is a known CCO-import blocker, not a current bug.
 
 ### Unresolved Engineering Problem: Negative Test Infrastructure
 
@@ -281,7 +280,7 @@ These items were identified during adversarial review. They are listed in depend
 
 **Step 0 — Property audit.** Enumerate every property triple across all TTL files. For each property, record current usage, correct ARCO-scoped domain and range, and whether the domain/range decision requires new judgment. This audit must be complete before property declarations or negative tests can be designed. _Depends on: Open Question 1 (end state) being resolved, because the audit produces different outputs for permanent vs. temporary declarations._
 
-**Step 1 — Fix cco:prescribes punning.** Replace class-as-individual usage with proper typed individuals. _Depends on: Unresolved Design Decision above being resolved._
+**Step 1 — ~~Fix cco:prescribes punning.~~ DONE.** Gate 2 typed process individuals already exist (`Sentinel_RBIP_Process`, `Kiosk_VerificationProcess_Token`, `CreditScorer_EvalProcess_Token`). The `AnnexIII_Condition_Q1` line 25 class-as-individual triple is a known CCO-import blocker documented above, not a current bug.
 
 **Step 2 — Build negative test harness + write tests.** Build the parameterized pipeline mechanism first. Then write negative test cases for: Gate 1 fail, Gate 2 fail with Gate 1 pass, Gate 3 fail with Gates 1-2 pass, disjointness violation caught, domain/range violation caught. _Depends on: Step 0 (need to know what declarations will exist to test against them) and Step 1 (punning fix changes what valid/invalid triples look like)._
 
@@ -298,3 +297,7 @@ These items were identified during adversarial review. They are listed in depend
 2. **No single traceability artifact.** There is no document connecting regulatory text (specific Articles, Recitals, Annex paragraphs) to specific ontological commitments (which axiom encodes which legal requirement). CLAUDE.md and inline comments carry this information but it is scattered.
 
 3. **Surveillance_Run_001 is_about pattern.** `Surveillance_Run_001` (an OperationalProcess / Occurrent) is the subject of `iao:0000136` (is_about). If IAO is ever imported with domain InformationContentEntity, this triple creates a Continuant/Occurrent disjointness violation. Identified in v2 but not yet fixed.
+
+4. **owlrl unpinned.** `requirements.txt` had `owlrl` with no version pin. **Fixed in this branch** — pinned to `owlrl==7.1.4`. OWL-RL behavior for anonymous inverse property expressions in complex class axioms (used in Gate 2) can differ across versions. The pin prevents silent reasoning regressions.
+
+5. **Anonymous inverse property in equivalentClass.** Gate 2's axiom structure uses `[ owl:inverseOf iao:0000136 ]` as an anonymous property expression. OWL-RL handles `owl:inverseOf` but anonymous inverse expressions in nested restrictions (inverse + intersection + someValuesFrom) are at the edge of OWL-RL completeness guarantees. The pipeline passes empirically with owlrl 7.1.4. This is not a bug but a fragility that the version pin mitigates.
