@@ -1,15 +1,18 @@
 """
 Multi-scenario regression test for ARCO classification pipeline.
 
-Runs three systems through OWL-RL reasoning and verifies expected outcomes:
+Runs five systems through OWL-RL reasoning and verifies expected outcomes:
   1. Sentinel_ID_System     — HighRisk YES, 1(a) YES, 5(b) NO   (biometric identification)
   2. CreditScorer_001       — HighRisk YES, 1(a) NO,  5(b) YES  (creditworthiness evaluation)
   3. VerificationKiosk_001  — HighRisk NO,  1(a) NO,  5(b) NO   (verification only — negative case)
+  4. DecoySystem_001        — HighRisk YES, 1(a) YES, 5(b) NO   (equivalency decoy — anti-pattern-matching)
+  5. GhostSystem_001        — HighRisk YES, 1(a) YES, 5(b) NO   (blank node ghost — anonymous disposition)
 
-This proves:
-  - Positive entailment works for two distinct Annex III categories
-  - Cross-category isolation: biometric system is NOT creditworthiness, and vice versa
-  - Negative case: a system with a non-triggering capability is NOT classified as high-risk
+Adversarial tests (4-5) prove the pipeline does real OWL reasoning:
+  - Test 4: Disposition typed only as :WeirdScanner (owl:equivalentClass BiometricIdentificationCapability).
+    If the reasoner does real equivalence, Gate 1 fires. Pattern matching on IRI names would fail.
+  - Test 5: Disposition is a blank node (anonymous individual). owl:someValuesFrom requires only
+    existence, not a named IRI. Entailment must still fire.
 """
 
 from __future__ import annotations
@@ -67,6 +70,29 @@ SCENARIOS = [
         "expected": {
             "HighRiskSystem": False,
             "AnnexIII1aApplicableSystem": False,
+            "AnnexIII5bApplicableSystem": False,
+        },
+    },
+    # ── Adversarial tests ──────────────────────────────────────────────
+    {
+        "name": "DecoySystem_001",
+        "label": "ADVERSARIAL: Equivalency Decoy (WeirdScanner ≡ BiometricIdentificationCapability)",
+        "instances": ONTOLOGY_DIR / "ARCO_instances_adversarial_decoy.ttl",
+        "system": ARCO["DecoySystem_001"],
+        "expected": {
+            "HighRiskSystem": True,           # equivalence must propagate
+            "AnnexIII1aApplicableSystem": True,  # all 3 gates satisfied via equivalence
+            "AnnexIII5bApplicableSystem": False,
+        },
+    },
+    {
+        "name": "GhostSystem_001",
+        "label": "ADVERSARIAL: Blank Node Ghost (anonymous disposition)",
+        "instances": ONTOLOGY_DIR / "ARCO_instances_adversarial_blanknode.ttl",
+        "system": ARCO["GhostSystem_001"],
+        "expected": {
+            "HighRiskSystem": True,           # someValuesFrom satisfied by blank node
+            "AnnexIII1aApplicableSystem": True,  # all 3 gates satisfied
             "AnnexIII5bApplicableSystem": False,
         },
     },

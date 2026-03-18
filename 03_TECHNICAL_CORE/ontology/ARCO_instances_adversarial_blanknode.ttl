@@ -1,0 +1,78 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances/adversarial_blanknode> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Adversarial Test: Blank Node Ghost" ;
+  rdfs:comment """Tests that owl:someValuesFrom works with anonymous individuals.
+
+  The disposition is a blank node (no IRI) typed as BiometricIdentificationCapability.
+  OWL existential quantification (someValuesFrom) only requires that SOME thing exists
+  satisfying the restriction — it does not require a named individual.
+
+  If the reasoner is real: HighRiskSystem and AnnexIII1aApplicableSystem entail.
+  If the pipeline is doing SPARQL pattern matching on named IRIs: entailment may fail.""" ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# SYSTEM — disposition is a BLANK NODE (anonymous individual)
+#################################################################
+
+:Ghost_Module rdf:type :HardwareComponent ;
+  rdfs:label "Ghost Hardware Module" ;
+  ro:0000091 [ a :BiometricIdentificationCapability ] .
+
+:GhostSystem_001 rdf:type :System ;
+  rdfs:label "Ghost System 001" ;
+  bfo:0000051 :Ghost_Module .
+
+#################################################################
+# DOCUMENTARY ARTIFACTS (gates 2 + 3)
+#################################################################
+
+:Ghost_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess ;
+  rdfs:label "Ghost RBIP Process Token" .
+
+:Ghost_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "Ghost Intended Use" ;
+  cco:prescribes :Ghost_RBIP_Process ;
+  iao:0000136 :GhostSystem_001 .
+
+:Ghost_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "Ghost Use Scenario" ;
+  iao:0000136 :GhostSystem_001 ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
+# DOCUMENTARY INFRASTRUCTURE
+#################################################################
+
+:GhostProviderOrg_001 rdf:type :ProviderOrganization ;
+  rdfs:label "Ghost Provider Org" ;
+  ro:0000087 :GhostProviderRole_001 .
+
+:GhostProviderRole_001 rdf:type :ProviderRole ;
+  rdfs:label "Ghost Provider Role" ;
+  ro:0000052 :GhostProviderOrg_001 .
+
+:GhostAssessmentDocProcess_001 rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Ghost Assessment Doc Process" ;
+  ro:0000057 :GhostSystem_001 ;
+  ro:0000057 :GhostProviderOrg_001 ;
+  cco:has_output :GhostAssessmentDoc_001 .
+
+:GhostAssessmentDoc_001 rdf:type :AssessmentDocumentation ;
+  rdfs:label "Ghost Assessment Documentation" ;
+  iao:0000136 :GhostSystem_001 ;
+  iao:0000136 :AnnexIII_Condition_Q1 .
+
+:GhostObligation_001 rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Ghost Compliance Obligation" ;
+  iao:0000136 :GhostSystem_001 ;
+  iao:0000136 :GhostProviderRole_001 ;
+  iao:0000136 :AnnexIII_Condition_Q1 .
