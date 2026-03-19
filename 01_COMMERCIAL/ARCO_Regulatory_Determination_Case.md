@@ -46,7 +46,7 @@ ARCO explicitly distinguishes between:
 - **Realized Functions**: what the system is currently configured to do
 - **Dispositions (Capabilities)**: what the system is capable of doing by virtue of its structure
 
-Regulatory classification under the EU AI Act depends on capability, not intent or configuration.
+HighRiskSystem classification (latent risk detection) depends on capability alone — if a system's components bear a regulated disposition, that structural exposure persists regardless of runtime configuration. Full Annex III applicability additionally requires documented intended use (Gate 2) and affected role (Gate 3).
 
 ---
 

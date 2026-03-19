@@ -239,8 +239,12 @@ OWL axioms define class relationships. Systems have material components that bea
     :System
     [ owl:onProperty bfo:0000051 ;   # has part
       owl:someValuesFrom [
-        owl:onProperty ro:0000091 ;  # has disposition
-        owl:someValuesFrom :AnnexIIITriggeringCapability
+        owl:intersectionOf (
+          :SystemComponent
+          [ owl:onProperty ro:0000091 ;  # has disposition
+            owl:someValuesFrom :AnnexIIITriggeringCapability
+          ]
+        )
       ]
     ]
   )

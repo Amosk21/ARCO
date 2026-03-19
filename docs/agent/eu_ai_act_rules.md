@@ -17,7 +17,7 @@ An Annex III system may NOT be high-risk if it "does not pose a significant risk
 
 **Exception**: profiling of natural persons ALWAYS triggers high-risk.
 
-Model derogation claims as ICE artifacts (descriptive, asserting non-significance) that can be queried.
+**Known limitation — not yet modeled.** ARCO currently has no mechanism to represent or evaluate a derogation claim. A system that meets all three gates but qualifies for derogation under 6(3) will be classified as Annex III applicable regardless. This means ARCO over-classifies in those cases. The derogation is the exception (not the rule), and its evaluation requires substantial contextual judgment. Planned approach: model derogation claims as Descriptive ICE artifacts that can be queried via SPARQL as a post-classification audit flag. Not a v1 implementation priority, but must be acknowledged as a scope boundary in any external communication.
 
 ## Annex III Category 1 — Biometrics
 - 1(a): Remote biometric identification (NOT verification-only) — **implemented**
@@ -30,6 +30,8 @@ Sentinel-ID demo covers 1(a). The verification-only exclusion is modeled (Biomet
 - 5(b): Creditworthiness evaluation of natural persons — **implemented**
 
 CreditScorer demo covers 5(b). Cross-category isolation is enforced by the ontology: a biometric system is NOT entailed as 5(b), and a credit scorer is NOT entailed as 1(a).
+
+**Known limitation — 5(b) fraud exclusion:** The legal text reads "with the exception of AI systems used for the purpose of detecting financial fraud." This exclusion is NOT modeled. A fraud-detection system that also evaluates creditworthiness would currently be classified as `AnnexIII5bApplicableSystem`, which is a false positive under the law. Modeling exclusions requires either a negation gate (not expressible in OWL-RL) or a post-classification SPARQL/SHACL check. Deferred for v1; document as a known scope boundary in any external communication.
 
 ## Current State
 
