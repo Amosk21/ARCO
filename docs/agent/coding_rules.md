@@ -26,6 +26,7 @@
   scripts/
     run_pipeline.py            — Main execution pipeline
     test_gate_removal.py       — Gate-removal regression test
+    test_scenarios.py          — Multi-scenario classification regression test
 ```
 
 ## Regression Testing

@@ -197,7 +197,7 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 The pipeline will:
 
 1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (1423 asserted → 4865 post-reasoning)
+2. Run OWL-RL reasoning to materialize entailments (1426 asserted → 4868 post-reasoning)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
    - **Classification layer (OWL-RL):** SHACL conformance, HighRiskSystem entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs

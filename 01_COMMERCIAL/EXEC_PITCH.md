@@ -37,7 +37,7 @@ ARCO operationalizes a defensible interpretation of Article 6 and Annex III by m
 
 ### Structural Validation and Classification
 
-The proposed AI system is mapped into that structure. OWL-RL reasoning infers classifications from bridge axioms, SHACL enforces structural completeness, and SPARQL audit queries confirm the results. Together, they produce an auditable regulatory classification.
+The proposed AI system is mapped into that structure. OWL-RL reasoning infers classifications from bridge axioms — this is the authoritative classification mechanism. SHACL enforces documentary completeness. SPARQL ASK queries then confirm that the expected entailments materialized, serving as an audit layer over the reasoned graph. Together, they produce an auditable regulatory determination.
 
 ### The Output
 

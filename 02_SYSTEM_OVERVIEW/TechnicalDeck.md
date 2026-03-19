@@ -140,7 +140,7 @@ Article 6 specifies how systems are evaluated, not outcomes → Referenced by a 
 
 ### Constraint Role
 
-Regulation governs classification. High-risk determinations occur only when asserted system facts satisfy Annex III conditions
+Regulation governs classification. High-risk determinations occur only when OWL-RL reasoning over asserted system facts and bridge axioms entails that Annex III conditions are satisfied
 
 > This regulatory model is referenced by the ARCO ontology to enable deterministic high-risk classification without embedding legal text into code.
 

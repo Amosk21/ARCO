@@ -9,7 +9,7 @@
 | Regulatory Regime | EU Artificial Intelligence Act |
 | Relevant Provisions | Article 6, Annex III |
 | Assessment Type | Formal Ontological Determination |
-| Assessment Date | [Insert Date] |
+| Assessment Date | Per engagement |
 
 ---
 
@@ -125,7 +125,7 @@ SPARQL audit queries confirm both entailments materialized: `TRUE`.
 
 > **Sentinel-ID is classified as a High-Risk AI System under Article 6 and as Annex III 1(a) applicable under the EU AI Act.**
 
-This conclusion is invariant under deployment configuration. Each gate is independently necessary — removing any one prevents the Annex III 1(a) classification from being inferred.
+This conclusion is invariant under runtime configuration — the system's structural capability persists regardless of software state. Each gate is independently necessary — removing any one prevents the Annex III 1(a) classification from being inferred.
 
 ---
 
@@ -143,11 +143,12 @@ This determination is:
 
 ### 6.2 Triggering Conditions
 
-The classification is triggered by:
-- Latent biometric identification capability (hardware component bears BiometricIdentificationCapability)
-- Intended use prescribing the regulated process type (remote biometric identification)
-- Use scenario constraining affected entities (natural persons)
-- Compliance obligation linking the system to the responsible provider role
+The classification is triggered by three independently necessary gates:
+- **Gate 1:** Latent biometric identification capability (hardware component bears BiometricIdentificationCapability)
+- **Gate 2:** Intended use prescribing the regulated process type (remote biometric identification)
+- **Gate 3:** Use scenario constraining affected entities (natural persons)
+
+A compliance obligation specification links the classified system to the responsible provider role, providing governance traceability after classification.
 
 ---
 
@@ -186,6 +187,6 @@ This determination:
 
 This Determination Case demonstrates that ARCO produces regulatory classifications that are traceable to explicit system structure and regulatory criteria.
 
-The result is grounded in ontological commitments, evaluated through deterministic queries, and auditable at every step.
+The result is grounded in ontological commitments, classified through deterministic OWL-RL entailment, and auditable at every step via SPARQL queries over the reasoned graph.
 
 This document serves as the reference determination against which all supporting ARCO artifacts derive their purpose.

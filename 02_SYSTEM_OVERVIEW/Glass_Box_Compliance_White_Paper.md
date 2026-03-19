@@ -1,6 +1,6 @@
 # Glass-Box Classification: Ontological Reasoning for Regulatory Risk Classification
 
-This project explores how ontological modeling and deterministic evaluation can be used to support regulatory risk classification for AI systems, using Article 6 and Annex III of the EU AI Act as a motivating domain. Rather than treating classification as a probabilistic labeling problem, the project reframes it as a traceable reasoning task grounded in realist ontology.
+This project demonstrates how ontological modeling and deterministic evaluation produce regulatory risk classifications for AI systems, using Article 6 and Annex III of the EU AI Act as a motivating domain. Rather than treating classification as a probabilistic labeling problem, it reframes classification as a traceable reasoning task grounded in realist ontology.
 
 The central question is not "Can we predict whether a system is high-risk?" but rather "Can we make explicit why a system would qualify as high-risk, and under what assumptions?"
 
@@ -10,7 +10,7 @@ Regulatory frameworks are written in natural language, while AI systems are desc
 
 Many existing approaches attempt to bridge this gap using keyword search, similarity scoring, or embedding-based classification. While these methods are useful for discovery, they struggle to provide deterministic guarantees or clear justification, which are essential in regulatory and audit contexts.
 
-The motivation for this project is to explore whether a semantic pipeline grounded in ontology and logic can help structure this problem in a way that is inspectable, explainable, and reusable across domains.
+This project demonstrates that a semantic pipeline grounded in ontology and logic structures this problem in a way that is inspectable, explainable, and reusable across domains.
 
 ## Conceptual Approach
 
@@ -22,11 +22,11 @@ The project implements a glass-box classification pipeline that separates three 
 
 This separation is deliberate. It avoids collapsing interpretation, representation, and evaluation into a single opaque step, and instead makes each stage explicit and reviewable.
 
-The result is not an automated classification engine, but a framework for making assumptions visible and evaluation steps explicit.
+The result is a deterministic classification framework where assumptions are visible, evaluation steps are explicit, and human judgment governs what facts are asserted — while classification itself follows deterministically from OWL-RL reasoning.
 
 ## Role of Language Models
 
-Large Language Models are used only at the boundary between text and structure. Their role is limited to candidate extraction from unstructured documents, such as identifying language that suggests the presence of a particular capability (for example, biometric identification).
+Large Language Models are used only at the boundary between text and structure. Their role is limited to candidate extraction from unstructured documents, such as identifying language that indicates the potential presence of a particular capability (for example, biometric identification).
 
 Crucially, these outputs are treated as proposals, not conclusions. Whether a proposed capability is accepted and asserted in the ontology remains a human decision. Classification evaluation operates only on explicitly asserted facts.
 
@@ -50,7 +50,7 @@ For example, Annex III 1(a) applicability requires three conditions to hold simu
 - an intended use specification prescribes the regulated process type (representation-side), and
 - a use scenario specification constrains the affected entities (representation-side).
 
-When all three gates are present, the classification follows as a logical consequence. Removing any one gate prevents the classification from being inferred — a property verified by regression testing.
+When all three gates are satisfied — each performing content-specific checks on capability type, prescribed process type, and affected role category — the classification follows as a logical consequence. Removing any one gate prevents the classification from being inferred — a property verified by regression testing.
 
 Because the evaluation is logical rather than statistical, it is reproducible and inspectable. If the outcome is disputed, the disagreement can be traced to specific premises rather than hidden model behavior.
 

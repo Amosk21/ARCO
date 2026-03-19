@@ -230,7 +230,17 @@ LIMIT 5
 """
 
 def _short(iri: str) -> str:
-    """Shorten an IRI to its local name for display."""
+    """Shorten an IRI to its local name for display.
+
+    Blank-node identifiers (no '://' scheme) are rendered as a readable
+    placeholder in user-facing output.  Raw IDs are preserved in the
+    *_iri fields of machine-readable JSON artifacts.
+    """
+    if not iri:
+        return iri
+    if "://" not in iri:
+        # Blank-node identifier — not a resolvable IRI
+        return "Anonymous Entity (Blank Node)"
     return iri.rsplit("#", 1)[-1] if "#" in iri else iri.rsplit("/", 1)[-1]
 
 def get_primary_bindings(g: Graph, system_local: str = "Sentinel_ID_System") -> list[tuple[str, str]]:

@@ -38,7 +38,7 @@ This ordering matters. Monitoring, XAI, and governance platforms add value only 
 
 ARCO's core logic is deliberately deterministic.
 
-Probabilistic tools are useful for extraction and summarization, but regulatory decisions require stability. ARCO separates candidate generation from classification: probabilistic inputs may propose facts, but final classifications are produced through formal ontological encoding, structural validation, and deterministic query evaluation.
+Probabilistic tools are useful for extraction and summarization, but regulatory decisions require stability. ARCO separates candidate generation from classification: probabilistic inputs may propose facts, but final classifications are entailed through OWL-RL reasoning over formally encoded system representations, validated by SHACL for documentary completeness, and audited by deterministic SPARQL queries.
 
 This produces outputs that are legible to auditors, defensible to regulators, and usable by risk and compliance teams. It also preserves human accountability. Judgment does not disappear; it is constrained, documented, and made explicit rather than implicit.
 

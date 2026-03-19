@@ -44,12 +44,12 @@ Structured candidates produced in Phase A.
 
 **Process**
 
-Candidates are mapped into the NCOR/ARCO ontology stack, grounded in Basic Formal Ontology (BFO).
+Candidates are mapped into the ARCO ontology stack, grounded in Basic Formal Ontology (BFO) and Common Core Ontologies (CCO).
 
 Three deterministic mechanisms are applied in sequence:
 
 - **OWL-RL reasoning** infers classifications from bridge axioms. If a system's structure satisfies the conditions defined in an equivalentClass axiom, the reasoner derives class membership automatically. Classifications like `HighRiskSystem` and `AnnexIII1aApplicableSystem` are entailed, not asserted.
-- **SHACL validation** enforces structural completeness and coherence over the reasoned graph, blocking hallucinated or underspecified claims.
+- **SHACL validation** enforces documentary completeness and structural coherence over the graph, ensuring required relationships and documentation artifacts are present.
 - **SPARQL ASK queries** confirm that the expected entailments materialized. They serve as audit instruments — the classification itself is an OWL entailment, and the queries verify it.
 
 **Design Principle**
@@ -80,7 +80,7 @@ This artifact is suitable for internal governance, external audits, regulators, 
 | Tech Consultants | RAG / LLM analysis | Probabilistic, hallucinates classification | Deterministic logic, not prediction |
 | SaaS Checklists | Self-attestation | Garbage in, garbage out | Ontological rigor, enforced structure |
 
-Sentinel does not "advise" on classification. It produces deterministic classifications.
+ARCO does not "advise" on classification. It produces deterministic classifications.
 
 ---
 

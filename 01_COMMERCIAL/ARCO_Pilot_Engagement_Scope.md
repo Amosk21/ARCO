@@ -10,7 +10,7 @@
 
 ARCO will perform a deterministic regulatory classification of one (1) AI-enabled system designated by the Client.
 
-The classification is conducted exclusively through formal ontological representation, structural validation, and deterministic query evaluation using the ARCO Assurance Framework.
+The classification is conducted exclusively through formal ontological representation, structural validation, and deterministic OWL-RL reasoning, with SPARQL audit queries providing traceability, using the ARCO Assurance Framework.
 
 The assessment is:
 
@@ -69,7 +69,7 @@ The system boundary is fixed. No implicit assumptions are introduced.
 
 ### Week 2 — Structural Admissibility (SHACL)
 
-SHACL constraints enforce documentation completeness and prohibit inferred or assumed capabilities.
+SHACL constraints enforce documentation completeness, ensuring that required structural relationships are explicitly asserted.
 
 ### Week 3 — Deterministic Classification (OWL-RL Reasoning + SPARQL Audit)
 
@@ -191,7 +191,7 @@ From this, it follows that:
 
 > Sentinel-ID is classified as a High-Risk AI System under Article 6 and as Annex III 1(a) applicable under the EU AI Act.
 
-This conclusion is invariant under configuration, deployment, or intent. Each gate is independently necessary.
+This conclusion is invariant under runtime configuration — the system's structural capability persists regardless of software state. Each gate is independently necessary.
 
 ---
 

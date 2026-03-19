@@ -13,6 +13,19 @@ Adversarial tests (4-5) prove the pipeline does real OWL reasoning:
     If the reasoner does real equivalence, Gate 1 fires. Pattern matching on IRI names would fail.
   - Test 5: Disposition is a blank node (anonymous individual). owl:someValuesFrom requires only
     existence, not a named IRI. Entailment must still fire.
+
+SCOPE NOTE — Adversarial scenarios (4-5):
+  These are classification-core entailment tests only.  They verify that the
+  OWL-RL reasoner produces the correct rdf:type entailments (HighRiskSystem,
+  AnnexIII1aApplicableSystem) under non-trivial conditions.  Their TTL files
+  are intentionally minimal: they carry enough structure for the reasoner to
+  fire the three-gate equivalentClass axiom, but they do NOT include the full
+  documentary infrastructure (provider roles, assessment documentation, etc.)
+  required by the audit layer (SPARQL ASK queries in run_pipeline.py).
+
+  Running the full pipeline on these scenarios will show classification PASS
+  but audit FAIL — this is expected and correct.  Do not bloat these TTLs with
+  paperwork triples; the purpose is to isolate and test reasoning behavior.
 """
 
 from __future__ import annotations
@@ -76,7 +89,7 @@ SCENARIOS = [
     # ── Adversarial tests ──────────────────────────────────────────────
     {
         "name": "DecoySystem_001",
-        "label": "ADVERSARIAL: Equivalency Decoy (WeirdScanner ≡ BiometricIdentificationCapability)",
+        "label": "ADVERSARIAL: Equivalency Decoy (WeirdScanner EQUIV BiometricIdentificationCapability)",
         "instances": ONTOLOGY_DIR / "ARCO_instances_adversarial_decoy.ttl",
         "system": ARCO["DecoySystem_001"],
         "expected": {
