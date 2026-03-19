@@ -6,12 +6,13 @@ Full coding rules: `docs/agent/coding_rules.md`
 
 ## Pass Criteria
 
-Every pipeline run must satisfy all of:
-- OWL-RL reasoning executes without exception
-- All SPARQL ASK queries return True
-- SHACL conforms (zero violations)
+Every pipeline run must satisfy both layers:
+- **Classification layer**: OWL-RL reasoning executes without exception, SHACL conforms (zero violations), HighRiskSystem entailment succeeds
+- **Audit layer**: All SPARQL ASK queries return True (documentary completeness on the reasoned graph)
 - Certificate emits with correct field values
-- "ALL CHECKS PASSED" prints, exit 0
+- Both layers report PASS, "ALL CHECKS PASSED" prints, exit 0
+
+SPARQL audit queries do not produce or affect the classification result. An audit failure indicates incomplete documentation, not a wrong classification.
 
 ## Pre-Edit Checklist
 

@@ -1,0 +1,91 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances/adversarial_decoy> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Adversarial Test: Equivalency Decoy" ;
+  rdfs:comment """Tests that OWL-RL performs real equivalence reasoning, not IRI pattern matching.
+
+  :WeirdScanner is declared owl:equivalentClass to :BiometricIdentificationCapability.
+  The disposition is typed ONLY as :WeirdScanner — the string 'BiometricIdentification'
+  never appears in any instance assertion. If the reasoner is real, it infers
+  BiometricIdentificationCapability membership and Gate 1 fires.
+
+  If the pipeline were doing string matching or SPARQL pattern matching on specific
+  IRIs, this would fail — proving the classification is fake.""" ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# ADVERSARIAL SETUP: equivalence decoy class
+#################################################################
+
+:WeirdScanner rdf:type owl:Class ;
+  rdfs:label "Weird Scanner (decoy name)" ;
+  rdfs:comment "Equivalent to BiometricIdentificationCapability but with an unrelated name. Tests that the reasoner uses equivalence, not string matching." ;
+  owl:equivalentClass :BiometricIdentificationCapability .
+
+#################################################################
+# SYSTEM — typed using ONLY the decoy class name
+#################################################################
+
+:Decoy_Disposition rdf:type :WeirdScanner ;
+  rdfs:label "Decoy Disposition (typed as WeirdScanner only)" .
+
+:Decoy_Module rdf:type :HardwareComponent ;
+  rdfs:label "Decoy Hardware Module" ;
+  ro:0000091 :Decoy_Disposition .
+
+:DecoySystem_001 rdf:type :System ;
+  rdfs:label "Decoy System 001" ;
+  bfo:0000051 :Decoy_Module .
+
+#################################################################
+# DOCUMENTARY ARTIFACTS (gates 2 + 3)
+#################################################################
+
+:Decoy_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess ;
+  rdfs:label "Decoy RBIP Process Token" .
+
+:Decoy_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "Decoy Intended Use" ;
+  cco:prescribes :Decoy_RBIP_Process ;
+  iao:0000136 :DecoySystem_001 .
+
+:Decoy_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "Decoy Use Scenario" ;
+  iao:0000136 :DecoySystem_001 ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
+# DOCUMENTARY INFRASTRUCTURE (traceability, obligation)
+#################################################################
+
+:DecoyProviderOrg_001 rdf:type :ProviderOrganization ;
+  rdfs:label "Decoy Provider Org" ;
+  ro:0000087 :DecoyProviderRole_001 .
+
+:DecoyProviderRole_001 rdf:type :ProviderRole ;
+  rdfs:label "Decoy Provider Role" ;
+  ro:0000052 :DecoyProviderOrg_001 .
+
+:DecoyAssessmentDocProcess_001 rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Decoy Assessment Doc Process" ;
+  ro:0000057 :DecoySystem_001 ;
+  ro:0000057 :DecoyProviderOrg_001 ;
+  cco:has_output :DecoyAssessmentDoc_001 .
+
+:DecoyAssessmentDoc_001 rdf:type :AssessmentDocumentation ;
+  rdfs:label "Decoy Assessment Documentation" ;
+  iao:0000136 :DecoySystem_001 ;
+  iao:0000136 :AnnexIII_Condition_Q1 .
+
+:DecoyObligation_001 rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Decoy Compliance Obligation" ;
+  iao:0000136 :DecoySystem_001 ;
+  iao:0000136 :DecoyProviderRole_001 ;
+  iao:0000136 :AnnexIII_Condition_Q1 .

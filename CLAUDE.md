@@ -8,7 +8,7 @@ ARCO = BFO/CCO-aligned OWL ontology for deterministic EU AI Act risk classificat
 python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 ```
 
-Must print "ALL CHECKS PASSED" and exit 0. Run after each coherent unit of change. Do not batch changes to triples, shapes, or queries.
+Must print "ALL CHECKS PASSED" (both classification and audit layers PASS) and exit 0. Run after each coherent unit of change. Do not batch changes to triples, shapes, or queries.
 
 ## Global Invariants (never violate regardless of task)
 
@@ -34,11 +34,12 @@ Must print "ALL CHECKS PASSED" and exit 0. Run after each coherent unit of chang
 ### Classes — Governance (`ARCO_governance_extension.ttl`)
 - `IntendedUseSpecification`, `UseScenarioSpecification`, `ComplianceObligationSpecification` ⊑ DirectiveICE
 - `ProviderOrganization` ⊑ Organization; `ProviderRole`, `DeployerRole` ⊑ Role
-- `NaturalPersonRole` ⊑ Role; `RemoteBiometricIdentificationProcess` ⊑ Process
-- `AnnexIII1aApplicableSystem` ≡ 3-gate equivalentClass (capability + prescribed process type + role category)
+- `NaturalPersonRole` ⊑ Role; `RemoteBiometricIdentificationProcess`, `CreditworthinessEvaluationProcess` ⊑ Process
+- `AnnexIII1aApplicableSystem` ≡ 3-gate equivalentClass (BiometricIdentificationCapability + RemoteBiometricIdentificationProcess + NaturalPersonRole)
+- `AnnexIII5bApplicableSystem` ≡ 3-gate equivalentClass (CreditworthinessEvaluationCapability + CreditworthinessEvaluationProcess + NaturalPersonRole)
 
 ### Bridge Axioms
-- `AnnexIIITriggeringCapability` ≡ union(BiometricIdentificationCapability) — biometrics only
+- `AnnexIIITriggeringCapability` ⊑ CapabilityDisposition — governance-layer regulatory grouping. `BiometricIdentificationCapability` and `CreditworthinessEvaluationCapability` are direct subclasses. New categories extend via `rdfs:subClassOf`, not union axioms. It is not a BFO/CCO natural kind — it is ARCO's own regulatory taxonomy layer, constituted by legal text.
 - `HighRiskSystem` ≡ System ∩ has_part some (SystemComponent ∩ has_disposition some AnnexIIITriggeringCapability)
 - Gate 2: `owl:someValuesFrom :RemoteBiometricIdentificationProcess` — type-checks the prescribed process token
 - Gate 3: `owl:hasValue :NaturalPersonRole` — checks role category (universal), not a role-bearer instance
@@ -67,10 +68,13 @@ Detailed reference files (read when the task requires it, not by default):
 - `docs/agent/eu_ai_act_rules.md` — Annex III structure, derogation, Article 6
 - `docs/agent/writing_rules.md` — outward-facing tone and accuracy rules
 - `docs/agent/extension_protocol.md` — mandatory protocol for every new Annex III category addition
+- `docs/agent/bfo_cco_alignment_audit.md` — current alignment status, known gaps, and import risks (versioned; read before any BFO/CCO/RO/IAO work)
+- `docs/agent/adr_001_alignment_end_state.md` — accepted decision: full import (end state A), staged RO → IAO → CCO with blockers
 
 ## Context Rules
 
 - Use Architectural Memory above before reading TTL files. Do not re-derive architecture.
+- **Before doing a full codebase audit**: read `docs/agent/bfo_cco_alignment_audit.md` first. Check the version/date. Only re-audit files changed since that date — do not re-scan the full repo if the audit is current.
 - Grep within `03_TECHNICAL_CORE/` only. No repo-wide scanning.
 - Minimal patches. No full rewrites unless requested.
 - **NEVER autoload**: `runs/demo/*`, `03_TECHNICAL_CORE/.venv/`, generated artifacts, logs, `ONTOLOGY_REVIEW.md`, `DESIGN_REVIEW_BRIEF.md`

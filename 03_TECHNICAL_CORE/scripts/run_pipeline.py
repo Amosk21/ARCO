@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from rdflib import Graph
@@ -36,6 +37,7 @@ REASONING_DIR = REPO_ROOT / "03_TECHNICAL_CORE" / "reasoning"
 CORE = ONTOLOGY_DIR / "ARCO_core.ttl"
 GOV = ONTOLOGY_DIR / "ARCO_governance_extension.ttl"
 INSTANCES = ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"
+BFO_2020 = ONTOLOGY_DIR / "imports" / "bfo-2020.owl"
 
 SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 
@@ -75,7 +77,8 @@ def load_union_graph(*paths: Path) -> Graph:
     for p in paths:
         if not p.exists():
             raise FileNotFoundError(f"Missing file: {p}")
-        g.parse(p.as_posix(), format="turtle")
+        fmt = "xml" if p.suffix == ".owl" else "turtle"
+        g.parse(p.as_posix(), format=fmt)
     return g
 
 def clone_graph(g: Graph) -> Graph:
@@ -136,10 +139,31 @@ def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
 
     initial = len(data_graph)
     print("Running OWL-RL closure (materializing entailments)...")
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(data_graph)
+    # Direct OWLRL_Semantics invocation instead of DeductiveClosure.expand()
+    # because expand() creates an anonymous instance internally, making
+    # closure.error_messages inaccessible. Both produce identical entailment
+    # results (empirically verified: same triple counts, same classifications).
+    closure = owlrl.OWLRL_Semantics(data_graph, False, False, False)
+    closure.closure()
+    closure.post_process()
     final = len(data_graph)
     added = final - initial
     print(f"Triples: {initial} -> {final}   (+{added} entailed)")
+
+    # BFO disjointness enforcement via closure.error_messages.
+    # owlrl handles owl:disjointWith via rule cax-dw by populating
+    # error_messages (NOT by entailing owl:Nothing — empirically verified).
+    # This is the correct and only mechanism for detecting violations.
+    if closure.error_messages:
+        print(f"\nBFO DISJOINTNESS VIOLATIONS DETECTED ({len(closure.error_messages)}):")
+        for msg in closure.error_messages:
+            print(f"  ERROR: {msg}")
+        raise RuntimeError(
+            f"OWL-RL reasoning found {len(closure.error_messages)} disjointness "
+            f"violation(s). This indicates a BFO category error in the ontology."
+        )
+    print("BFO disjointness check: CLEAN (0 violations)")
+
     return data_graph, initial, added
 
 def run_shacl(data_graph: Graph) -> tuple[bool, str]:
@@ -206,7 +230,17 @@ LIMIT 5
 """
 
 def _short(iri: str) -> str:
-    """Shorten an IRI to its local name for display."""
+    """Shorten an IRI to its local name for display.
+
+    Blank-node identifiers (no '://' scheme) are rendered as a readable
+    placeholder in user-facing output.  Raw IDs are preserved in the
+    *_iri fields of machine-readable JSON artifacts.
+    """
+    if not iri:
+        return iri
+    if "://" not in iri:
+        # Blank-node identifier — not a resolvable IRI
+        return "Anonymous Entity (Blank Node)"
     return iri.rsplit("#", 1)[-1] if "#" in iri else iri.rsplit("/", 1)[-1]
 
 def get_primary_bindings(g: Graph, system_local: str = "Sentinel_ID_System") -> list[tuple[str, str]]:
@@ -358,7 +392,7 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bo
 
     sub("WHY THIS ENTAILS HighRiskSystem")
     print("Bridge axiom (ARCO_core.ttl):")
-    print("  HighRiskSystem = System AND (has_part SOME (has_disposition SOME AnnexIIITriggeringCapability))")
+    print("  HighRiskSystem = System AND (has_part SOME (SystemComponent AND has_disposition SOME AnnexIIITriggeringCapability))")
     if not asserted_pre and entailed_post:
         print(f"  => {SYSTEM_LOCAL} rdf:type HighRiskSystem  (INFERRED, not asserted)")
     elif entailed_post:
@@ -469,23 +503,24 @@ def write_html_view(
         cat_list = ", ".join(c["label"] for c in triggered_categories)
         cap_list = ", ".join(c["capability"] for c in triggered_categories)
         summary_text = (
-            f"{sys_display} is classified as <strong>High Risk</strong> under the "
-            f"EU AI Act. The system possesses a {cap_list}, triggering "
-            f"{cat_list}. All three regulatory gates are satisfied for each applicable "
-            f"category, and the classification was {classification_mode.lower()} by "
-            f"OWL-RL formal reasoning over {inferred_added:,} entailed triples."
+            f"{sys_display} is classified as <strong>High Risk</strong> per "
+            f"ARCO's ontology encoding of EU AI Act Annex III. The system possesses "
+            f"a {cap_list}, triggering {cat_list}. All three regulatory gates are "
+            f"satisfied for each applicable category, and the classification was "
+            f"{classification_mode.lower()} by OWL-RL formal reasoning over "
+            f"{inferred_added:,} entailed triples."
         )
     elif is_high_risk:
         summary_text = (
-            f"{sys_display} is classified as <strong>High Risk</strong> under the "
-            f"EU AI Act. Classification was {classification_mode.lower()} by OWL-RL "
-            f"formal reasoning."
+            f"{sys_display} is classified as <strong>High Risk</strong> per "
+            f"ARCO's ontology encoding of EU AI Act Annex III. Classification was "
+            f"{classification_mode.lower()} by OWL-RL formal reasoning."
         )
     else:
         summary_text = (
-            f"{sys_display} was <strong>not classified as High Risk</strong> under "
-            f"the EU AI Act based on current assertions. The OWL-RL reasoner did not "
-            f"entail HighRiskSystem membership."
+            f"{sys_display} was <strong>not classified as High Risk</strong> per "
+            f"ARCO's ontology encoding of EU AI Act Annex III based on current "
+            f"assertions. The OWL-RL reasoner did not entail HighRiskSystem membership."
         )
 
     if all_pass:
@@ -583,7 +618,9 @@ def write_html_view(
     # Gate 2 satisfied if intended_use is modelled with correct process type
     gate2_ok = intended_use_ok
     # Gate 3 satisfied if use scenario references NaturalPersonRole
-    gate3_ok = reg_alignment_ok
+    # Derived from gate evidence (parallel to gate2_ok = intended_use_ok),
+    # NOT from reg_alignment_ok which is a separate audit-layer SPARQL result.
+    gate3_ok = bool(gate_evidence["gate3"]["uss_uri"])
 
     # Pre-compute gate display labels from the determination packet.
     # These are used in axiom pattern text, gate answers, and counterfactuals.
@@ -1108,7 +1145,7 @@ section {{ scroll-margin-top: 1rem }}
   </div>
   <div class="header-meta">
     <span>System: <strong>{sys_display}</strong></span>
-    <span>Regime: EU AI Act Article 6 / Annex III</span>
+    <span>Regime: ARCO ontology encoding of EU AI Act Article 6 / Annex III</span>
     <span>Generated: {ts}</span>
   </div>
 </header>
@@ -1154,7 +1191,7 @@ section {{ scroll-margin-top: 1rem }}
 <section id="gates">
   <h2>Classification Gates</h2>
   <p class="gate-intro">
-    The EU AI Act classifies AI systems as high-risk through a three-gate test.
+    ARCO encodes the EU AI Act's high-risk classification as a three-gate test.
     Each gate is independently necessary &mdash; all three must be satisfied for
     a given Annex III category to apply. The classification is determined by
     OWL-RL formal reasoning, not by pattern matching or heuristics.
@@ -1298,7 +1335,7 @@ def main() -> None:
 
     sub("LOAD")
     print("Loading: core ontology + governance extension + instance data")
-    g_source = load_union_graph(CORE, GOV, INSTANCES)
+    g_source = load_union_graph(BFO_2020, CORE, GOV, INSTANCES)
     print(f"Triples loaded (asserted): {len(g_source)}")
 
     # clone -> reason over the copy so we can compare pre vs post
@@ -1385,20 +1422,28 @@ def main() -> None:
         print(f"Reg. aligned:  {_pf(reg_alignment_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
-    # Annex III category checks (1a, 5b) are informational cross-category audit lines.
-    # HighRiskSystem entailment (inference_ok) already covers the classification result.
-    # Neither category check is included in all_pass: a system entailed as 5(b) but not
-    # 1(a) (or vice versa) is not a failure — it reflects correct cross-category isolation.
-    all_pass = shacl_ok and traceability_ok and inference_ok
-    if latent_ok is not None:
-        all_pass = all_pass and latent_ok
-    if intended_use_ok is not None:
-        all_pass = all_pass and intended_use_ok
-    if obligation_ok is not None:
-        all_pass = all_pass and obligation_ok
-    if reg_alignment_ok is not None:
-        all_pass = all_pass and reg_alignment_ok
+    # ── Two-layer pass computation ──────────────────────────────────
+    # Classification layer: OWL-RL entailment + SHACL structural validation.
+    # Annex III category checks (1a, 5b) are informational cross-category
+    # audit lines — a system entailed as 5(b) but not 1(a) is not a failure.
+    classification_pass = shacl_ok and inference_ok
 
+    # Audit layer: SPARQL ASK queries on the reasoned graph.
+    # These inspect declared documentary content; they do not produce
+    # and cannot affect the classification result.
+    audit_pass = traceability_ok
+    if latent_ok is not None:
+        audit_pass = audit_pass and latent_ok
+    if intended_use_ok is not None:
+        audit_pass = audit_pass and intended_use_ok
+    if obligation_ok is not None:
+        audit_pass = audit_pass and obligation_ok
+    if reg_alignment_ok is not None:
+        audit_pass = audit_pass and reg_alignment_ok
+
+    all_pass = classification_pass and audit_pass
+    print(f"\n  Classification layer: {'PASS' if classification_pass else 'FAIL'}")
+    print(f"  Audit layer:          {'PASS' if audit_pass else 'FAIL'}")
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
 
     # ---------------------------------------------------------------
@@ -1423,7 +1468,7 @@ def main() -> None:
 
     hr("REGULATORY DETERMINATION CERTIFICATE")
     print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
-    print(f"  REGIME:                  EU AI Act (Article 6 / Annex III)")
+    print(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
     if classification_mode in ("INFERRED", "ASSERTED"):
         print(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -1461,7 +1506,7 @@ def main() -> None:
     cert_lines.append("REGULATORY DETERMINATION CERTIFICATE")
     cert_lines.append("=" * 72)
     cert_lines.append(f"  SYSTEM:                  {SYSTEM_LOCAL}")
-    cert_lines.append(f"  REGIME:                  EU AI Act (Article 6 / Annex III)")
+    cert_lines.append(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
     if classification_mode in ("INFERRED", "ASSERTED"):
         cert_lines.append(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -1492,7 +1537,7 @@ def main() -> None:
     # summary.json
     summary = {
         "system": SYSTEM_LOCAL,
-        "regime": "EU AI Act (Article 6 / Annex III)",
+        "regime": "ARCO ontology encoding of EU AI Act (Article 6 / Annex III)",
         "classification": f"HighRiskSystem ({classification_mode})" if classification_mode in ("INFERRED", "ASSERTED") else classification_mode,
         "shacl": _pf(shacl_ok),
         "traceability": _pf(traceability_ok),
@@ -1555,7 +1600,7 @@ def main() -> None:
             {
                 "id": "gate_3",
                 "label": "Affected Role Category",
-                "status": "SATISFIED" if reg_alignment_ok else "NOT_SATISFIED",
+                "status": "SATISFIED" if bool(gate_evidence["gate3"]["uss_uri"]) else "NOT_SATISFIED",
                 "evidence": {
                     "uss_uri": gate_evidence["gate3"]["uss_uri"],
                     "role_uri": gate_evidence["gate3"]["role_uri"],
@@ -1601,6 +1646,9 @@ def main() -> None:
     sub("OUTPUT FILES")
     for f in sorted(OUTPUT_DIR.iterdir()):
         print(f"  {f.relative_to(REPO_ROOT)}")
+
+    if not all_pass:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ System-level narrative, positioning, and technical overview content. Bridges tec
 - SPARQL queries are the audit/documentation layer; they are not the classification engine. Any description of "how classification works" must reflect the OWL-RL entailment as the source of the determination
 - Gate content-checking (Gate 2 requires specific process type, Gate 3 requires role category) must be represented accurately — these are meaningful distinctions from existence-only checking and are part of what makes ARCO's determinations defensible
 - ARCO sits upstream of deployment — do not describe it as a monitoring tool, a behavioral analysis tool, or a post-hoc audit artifact
-- Do not overstate current scope: Annex III 1(a) (remote biometric identification) is the covered domain. Do not claim coverage of other Annex III categories.
+- Do not overstate current scope: Annex III 1(a) (remote biometric identification) and Annex III 5(b) (creditworthiness evaluation) are the covered categories. Do not claim coverage of other Annex III categories.
 
 ## Tone
 

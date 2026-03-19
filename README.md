@@ -9,8 +9,8 @@ ARCO moves that risk decision upstream. It is a pre-deployment regulatory classi
 The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable regulatory determination backed by formal logic.
 
 **TL;DR**
-- ARCO is a deterministic regulatory classification framework grounded in BFO/CCO realist ontology. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you — before you build — whether your system is high-risk and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
-- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO/CCO-grounded ontology, with no probabilistic scoring and no LLMs in the decision loop.
+- ARCO is a deterministic regulatory classification framework aligned with BFO realist ontology and using local CCO stubs for governance vocabulary. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you — before you build — whether your system is high-risk and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
+- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology (CCO terms as local stubs), with no probabilistic scoring and no LLMs in the decision loop.
 - Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` to produce a regulatory determination certificate with a full evidence path from system components through capabilities to regulatory criteria.
 
 **What's modeled (current scope)**
@@ -45,18 +45,29 @@ All three gates must be satisfied for entailment. A system bearing only a biomet
 REGULATORY DETERMINATION CERTIFICATE
 ========================================================================
   SYSTEM:                  Sentinel_ID_System
-  REGIME:                  EU AI Act (Article 6 / Annex III)
+  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)
   CLASSIFICATION:          HighRiskSystem (INFERRED)
   TRIGGERING CAPABILITY:   Sentinel_FaceID_Disposition
   EVIDENCE PATH:
   Sentinel_ID_System -> Sentinel_FaceID_Module -> Sentinel_FaceID_Disposition
+
+  [classification layer — OWL-RL entailment]
   SHACL:                   PASS
+  ENTAILMENT:              PASS
+  ANNEX III 1(a):          VERIFIED (ENTAILED)
+  ANNEX III 5(b):          NOT APPLICABLE
+
+  [audit documentation layer — SPARQL ASK on reasoned graph]
   TRACEABILITY:            PASS
   LATENT RISK:             DETECTED
   INTENDED USE:            PASS
-  ANNEX III 1(a):          VERIFIED (ENTAILED)
   OBLIGATION:              PASS
-  ENTAILED TRIPLES ADDED:  +891
+  REG. ALIGNED:            PASS
+
+  ENTAILED TRIPLES ADDED:  +3442
+
+  Classification layer: PASS
+  Audit layer:          PASS
 ========================================================================
 ```
 
@@ -98,6 +109,21 @@ This makes ARCO fundamentally different from post-hoc tools that observe behavio
 
 ---
 
+## Foundational ontology versions
+
+| Ontology | Version / release | IRI namespace used |
+|----------|------------------|--------------------|
+| **BFO** | BFO 2020 (ISO/IEC 21838-2:2021) | `http://purl.obolibrary.org/obo/BFO_` |
+| **RO** | OBO Relation Ontology (current OBO release) | `http://purl.obolibrary.org/obo/RO_` |
+| **IAO** | Information Artifact Ontology (current OBO release) | `http://purl.obolibrary.org/obo/IAO_` |
+| **CCO** | CCO pre-integrated release (exact version unverified; local stubs) | `http://www.ontologyrepository.com/CommonCoreOntologies/` |
+
+**BFO 2020** is the second edition of Basic Formal Ontology, standardized as ISO/IEC 21838-2:2021. ARCO uses the OBO Foundry numeric-ID namespace (`BFO_0000015`, `BFO_0000016`, etc.) that is definitive of this release. The earlier BFO 1.1 used a different IRI scheme (`http://www.ifomis.org/bfo/1.1/snap#`, `span#`) and is not used here.
+
+**CCO** terms are declared as local stubs rather than via a full `owl:imports` of the CCO modules. This means only the specific CCO classes and properties ARCO requires are declared in-file (`cco:Organization`, `cco:DirectiveInformationContentEntity`, `cco:prescribes`, `cco:has_output`, etc.), using the pre-integrated-release IRI namespace. The pipeline does not depend on fetching external CCO files at runtime.
+
+---
+
 ## Beyond a single regulation
 
 While this repository demonstrates ARCO against the EU AI Act, the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
@@ -116,37 +142,31 @@ A concise, business-facing overview of ARCO's purpose, economic value, and posit
 A one-page diagram showing how ARCO functions as a formal regulatory decision point before model deployment.
 → [`arco_deployment_gate.png`](04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png)
 
-**2. Where ARCO sits in the governance ecosystem**
-A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.
-→ [`arco_positioning.md`](02_SYSTEM_OVERVIEW/arco_positioning.md)
-
-**3. EU AI Act classification models (reference diagrams)**
+**2. EU AI Act classification models (reference diagrams)**
 Visual models showing how Article 6 and Annex III classification criteria are represented and evaluated within ARCO.
 → [`EUAI_mmd_1.png`](04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png)
 → [`EUAI_mmd_2.png`](04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png)
 
 ---
 
-## Where to start
+## Canonical documents
 
-This repository supports both high-level review and hands-on technical validation. Three entry paths depending on your role.
+| Document | Purpose |
+|----------|---------|
+| [`EXEC_PITCH.md`](01_COMMERCIAL/EXEC_PITCH.md) | Why ARCO matters — business-facing overview |
+| [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md) | Concrete proof artifact — full worked determination |
+| [`TechnicalDeck.md`](02_SYSTEM_OVERVIEW/TechnicalDeck.md) | Technical architecture and system explanation |
+| [`run_pipeline.py`](03_TECHNICAL_CORE/scripts/run_pipeline.py) | Run the classification pipeline yourself |
 
-### Phase 1: Methodology (Strategic View)
+## Archived background documents
 
-- [`ARCO_Assurance_Engine.md`](01_COMMERCIAL/ARCO_Assurance_Engine.md)
-- [`Command_Center.md`](01_COMMERCIAL/Command_Center.md)
-- [`Glass_Box_Compliance_White_Paper.md`](01_COMMERCIAL/Glass_Box_Compliance_White_Paper.md)
+Earlier narrative drafts and positioning documents are preserved in [`90_ARCHIVE/NARRATIVE_DRAFTS/`](90_ARCHIVE/NARRATIVE_DRAFTS/). These were useful during initial development but are not maintained as canonical references.
 
-### Phase 2: Technical Deep-Dive
-
-- [`TechnicalDeck.md`](02_SYSTEM_OVERVIEW/TechnicalDeck.md)
-- [`ARCO_Technical_Implementation.md`](02_SYSTEM_OVERVIEW/ARCO_Technical_Implementation.md)
-
-### Phase 3: Execution (Operational View)
-
-- [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
-- [`ARCO_Pilot_Engagement_Scope.md`](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.md)
-- [`run_pipeline.py`](03_TECHNICAL_CORE/scripts/run_pipeline.py)
+- [`ARCO_Assurance_Engine.md`](90_ARCHIVE/NARRATIVE_DRAFTS/ARCO_Assurance_Engine.md)
+- [`ARCO_Pilot_Engagement_Scope.md`](90_ARCHIVE/NARRATIVE_DRAFTS/ARCO_Pilot_Engagement_Scope.md)
+- [`arco_positioning.md`](90_ARCHIVE/NARRATIVE_DRAFTS/arco_positioning.md)
+- [`Command_Center.md`](90_ARCHIVE/NARRATIVE_DRAFTS/Command_Center.md)
+- [`Glass_Box_Compliance_White_Paper.md`](90_ARCHIVE/NARRATIVE_DRAFTS/Glass_Box_Compliance_White_Paper.md)
 
 ---
 
@@ -171,7 +191,7 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 The pipeline will:
 
 1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (400 asserted → 1291 post-reasoning)
+2. Run OWL-RL reasoning to materialize entailments (1426 asserted → 4868 post-reasoning)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
    - **Classification layer (OWL-RL):** SHACL conformance, HighRiskSystem entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs

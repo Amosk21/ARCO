@@ -8,7 +8,13 @@
 
 <https://arco.ai/ontology/core> rdf:type owl:Ontology ;
   rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned" ;
-  rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Uses ro:0000091 (has_disposition) per RO best practices." .
+  rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Uses ro:0000091 (has_disposition) per RO best practices." ;
+  owl:versionInfo "Foundational ontology alignment: BFO 2020 (ISO/IEC 21838-2:2021), bfo-core.owl loaded locally from 03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl. OBO Relation Ontology (RO) via http://purl.obolibrary.org/obo/RO_; Information Artifact Ontology (IAO) via http://purl.obolibrary.org/obo/IAO_. CCO terms declared as local stubs in ARCO_governance_extension.ttl." ;
+  owl:imports <../ontology/imports/bfo-2020.owl> .
+# NOTE: owl:imports uses a filesystem-relative path. rdflib does not follow
+# owl:imports automatically; BFO is loaded explicitly by load_union_graph().
+# Protégé and similar tools will resolve this correctly provided the repo
+# directory structure is intact. If the file is moved, this path breaks silently.
 
 # Design Decisions (frozen — do not change without explicit justification):
 #
@@ -77,6 +83,13 @@
   rdfs:label "Creditworthiness Evaluation Capability" ;
   rdfs:comment "Capability to evaluate creditworthiness of natural persons or establish their credit score, for access to financial or public services. Reality-side disposition (the hardware genuinely has this capacity). Regulatory grouping (AnnexIIITriggeringCapability) is asserted in the governance extension. Triggers Annex III 5(b)." ;
   rdfs:subClassOf :CapabilityDisposition .
+
+# Pairwise disjointness: these are genuinely different capability kinds.
+# A component cannot simultaneously bear biometric identification AND
+# creditworthiness evaluation as the SAME disposition. Prevents mis-typing.
+:BiometricIdentificationCapability owl:disjointWith :BiometricVerificationCapability .
+:BiometricIdentificationCapability owl:disjointWith :CreditworthinessEvaluationCapability .
+:BiometricVerificationCapability owl:disjointWith :CreditworthinessEvaluationCapability .
 
 :OperationalProcess rdf:type owl:Class ;
   rdfs:label "Operational Process" ;

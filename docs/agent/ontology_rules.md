@@ -44,12 +44,13 @@ Before adding any class, relation, axiom, instance, or SPARQL query, evaluate ag
 ### Intended Use (CCO Directive ICE + prescribes)
 ```turtle
 :IntendedUseSpecification rdfs:subClassOf cco:DirectiveInformationContentEntity .
+:Sentinel_RBIP_Process a :RemoteBiometricIdentificationProcess .
 :Sentinel_IntendedUse_001 a :IntendedUseSpecification ;
-  cco:prescribes :RemoteBiometricIdentificationProcessType ;
+  cco:prescribes :Sentinel_RBIP_Process ;
   iao:0000136 :Sentinel_ID_System ;
-  iao:0000136 :RemoteBiometricIdentificationProcessType .
+  iao:0000136 :RemoteBiometricIdentificationProcess .
 ```
-Reads: "directive artifact about the system that prescribes a remote biometric identification process type."
+Reads: "directive artifact about the system that prescribes a typed process token (instance of RemoteBiometricIdentificationProcess). Gate 2 uses `owl:someValuesFrom` — the prescribed filler must be a typed instance, not the class IRI."
 
 ### Use Scenario (affected entities)
 ```turtle
@@ -74,7 +75,7 @@ System (ObjectAggregate) `has_part` SystemComponent. SystemComponent `has_dispos
 ## What NOT To Do
 
 - Do not rewrite HighRiskSystem equivalentClass axiom (keep capability-based = latent risk)
-- Do not model all 8 Annex III categories — biometrics only
+- Do not model additional Annex III categories beyond 1(a) and 5(b) without explicit instruction — follow extension_protocol.md
 - Do not create separate files per Annex III item
 - Do not add CCO as full import — local stubs with proper OWL typing
 - Do not refactor directory structure

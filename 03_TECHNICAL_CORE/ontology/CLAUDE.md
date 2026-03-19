@@ -22,7 +22,7 @@ EU AI Act classification logic: `docs/agent/eu_ai_act_rules.md` — read for Ann
 
 **False subsumption** — The canonical error: VisionCapability ⊑ BiometricIdentificationCapability. Vision is not a species of biometric identification. Subsumption means every-instance-is, necessarily. If you cannot state that universally and defend it empirically, do not create the subsumption.
 
-**Scope boundary** — Biometrics only (Annex III 1(a)). Do not add other Annex III categories without an explicit instruction to do so. Each category requires separate validation, SPARQL tests, and business traceability.
+**Scope boundary** — Currently Annex III 1(a) (biometrics) and 5(b) (creditworthiness). Do not add other Annex III categories without an explicit instruction to do so. Each category requires separate instance data, SPARQL tests, gate-removal regression coverage, and business traceability. Follow `docs/agent/extension_protocol.md`.
 
 **Model/software typing** — Trained models are `SoftwareArtifact ⊑ ICE`. They cannot bear dispositions (BFO: dispositions inhere in independent continuants). Dispositions inhere in the hardware infrastructure that concretizes the model.
 

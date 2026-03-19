@@ -37,3 +37,9 @@ jobs:
             echo "FAIL: 'REGULATORY DETERMINATION CERTIFICATE' not found in pipeline output."
             exit 1
           fi
+
+      - name: Run gate-removal regression tests
+        run: python 03_TECHNICAL_CORE/scripts/test_gate_removal.py
+
+      - name: Run multi-scenario regression tests
+        run: python 03_TECHNICAL_CORE/scripts/test_scenarios.py

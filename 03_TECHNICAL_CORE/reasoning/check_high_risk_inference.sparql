@@ -15,8 +15,8 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 #   2. Sentinel_ID_System bfo:0000051 (has_part) Sentinel_FaceID_Module
 #   3. Sentinel_FaceID_Module ro:0000091 (has_disposition) Sentinel_FaceID_Disposition
 #   4. Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability
-#   5. :BiometricIdentificationCapability subClassOf :AnnexIIITriggeringCapability (via equivalentClass)
-#   6. :HighRiskSystem equivalentClass :System AND (bfo:0000051 some (ro:0000091 some :AnnexIIITriggeringCapability))
+#   5. :BiometricIdentificationCapability subClassOf :AnnexIIITriggeringCapability (via direct subclassing)
+#   6. :HighRiskSystem equivalentClass :System AND (bfo:0000051 some (:SystemComponent AND ro:0000091 some :AnnexIIITriggeringCapability))
 #   => Sentinel_ID_System rdf:type :HighRiskSystem (INFERRED)
 #################################################################
 
