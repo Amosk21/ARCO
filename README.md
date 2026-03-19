@@ -142,37 +142,31 @@ A concise, business-facing overview of ARCO's purpose, economic value, and posit
 A one-page diagram showing how ARCO functions as a formal regulatory decision point before model deployment.
 → [`arco_deployment_gate.png`](04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png)
 
-**2. Where ARCO sits in the governance ecosystem**
-A short narrative explaining how ARCO relates to existing compliance, monitoring, and AI tooling.
-→ [`arco_positioning.md`](02_SYSTEM_OVERVIEW/arco_positioning.md)
-
-**3. EU AI Act classification models (reference diagrams)**
+**2. EU AI Act classification models (reference diagrams)**
 Visual models showing how Article 6 and Annex III classification criteria are represented and evaluated within ARCO.
 → [`EUAI_mmd_1.png`](04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png)
 → [`EUAI_mmd_2.png`](04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png)
 
 ---
 
-## Where to start
+## Canonical documents
 
-This repository supports both high-level review and hands-on technical validation. Three entry paths depending on your role.
+| Document | Purpose |
+|----------|---------|
+| [`EXEC_PITCH.md`](01_COMMERCIAL/EXEC_PITCH.md) | Why ARCO matters — business-facing overview |
+| [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md) | Concrete proof artifact — full worked determination |
+| [`TechnicalDeck.md`](02_SYSTEM_OVERVIEW/TechnicalDeck.md) | Technical architecture and system explanation |
+| [`run_pipeline.py`](03_TECHNICAL_CORE/scripts/run_pipeline.py) | Run the classification pipeline yourself |
 
-### Phase 1: Methodology (Strategic View)
+## Archived background documents
 
-- [`ARCO_Assurance_Engine.md`](01_COMMERCIAL/ARCO_Assurance_Engine.md)
-- [`Command_Center.md`](01_COMMERCIAL/Command_Center.md)
-- [`Glass_Box_Compliance_White_Paper.md`](01_COMMERCIAL/Glass_Box_Compliance_White_Paper.md)
+Earlier narrative drafts and positioning documents are preserved in [`90_ARCHIVE/NARRATIVE_DRAFTS/`](90_ARCHIVE/NARRATIVE_DRAFTS/). These were useful during initial development but are not maintained as canonical references.
 
-### Phase 2: Technical Deep-Dive
-
-- [`TechnicalDeck.md`](02_SYSTEM_OVERVIEW/TechnicalDeck.md)
-- [`ARCO_Technical_Implementation.md`](02_SYSTEM_OVERVIEW/ARCO_Technical_Implementation.md)
-
-### Phase 3: Execution (Operational View)
-
-- [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
-- [`ARCO_Pilot_Engagement_Scope.md`](01_COMMERCIAL/ARCO_Pilot_Engagement_Scope.md)
-- [`run_pipeline.py`](03_TECHNICAL_CORE/scripts/run_pipeline.py)
+- [`ARCO_Assurance_Engine.md`](90_ARCHIVE/NARRATIVE_DRAFTS/ARCO_Assurance_Engine.md)
+- [`ARCO_Pilot_Engagement_Scope.md`](90_ARCHIVE/NARRATIVE_DRAFTS/ARCO_Pilot_Engagement_Scope.md)
+- [`arco_positioning.md`](90_ARCHIVE/NARRATIVE_DRAFTS/arco_positioning.md)
+- [`Command_Center.md`](90_ARCHIVE/NARRATIVE_DRAFTS/Command_Center.md)
+- [`Glass_Box_Compliance_White_Paper.md`](90_ARCHIVE/NARRATIVE_DRAFTS/Glass_Box_Compliance_White_Paper.md)
 
 ---
 
