@@ -67,6 +67,7 @@ Detailed reference files (read when the task requires it, not by default):
 - `docs/agent/coding_rules.md` — pipeline and CI rules
 - `docs/agent/eu_ai_act_rules.md` — Annex III structure, derogation, Article 6
 - `docs/agent/writing_rules.md` — outward-facing tone and accuracy rules
+- `docs/agent/working_guardrails.md` — stability, anti-drift, and ontology-change guardrails; read before ontology changes, major audits, or claim reframing
 - `docs/agent/extension_protocol.md` — mandatory protocol for every new Annex III category addition
 - `docs/agent/bfo_cco_alignment_audit.md` — current alignment status, known gaps, and import risks (versioned; read before any BFO/CCO/RO/IAO work)
 - `docs/agent/adr_001_alignment_end_state.md` — accepted decision: full import (end state A), staged RO → IAO → CCO with blockers
@@ -74,6 +75,7 @@ Detailed reference files (read when the task requires it, not by default):
 ## Context Rules
 
 - Use Architectural Memory above before reading TTL files. Do not re-derive architecture.
+- Before ontology edits, major audits, or product-claim reframing: read `docs/agent/working_guardrails.md` and explicitly preserve current architecture unless a real contradiction is demonstrated.
 - **Before doing a full codebase audit**: read `docs/agent/bfo_cco_alignment_audit.md` first. Check the version/date. Only re-audit files changed since that date — do not re-scan the full repo if the audit is current.
 - Grep within `03_TECHNICAL_CORE/` only. No repo-wide scanning.
 - Minimal patches. No full rewrites unless requested.
@@ -103,3 +105,14 @@ Do not simultaneously edit ontology, SHACL, and SPARQL to make a failing check p
 ## Cross-Layer Safety Rule
 
 Any change touching classification logic, gate conditions, audit queries, ontology semantics, or certificate output must be checked for contradiction risk across the full determination chain before finalizing. If a change at one layer could produce misleading output at another layer, diagnose and fix both sides — do not patch only the symptom.
+
+## Stability Rule For Ontology Commitments
+
+Load-bearing ontology commitments are presumed stable unless a specific contradiction is shown against:
+
+1. current OWL entailment behavior
+2. documented architectural intent
+3. scoped legal encoding
+4. pipeline/test baselines
+
+Alternative encodings, stronger elegance, or generalized ontology anxiety are not by themselves grounds for rework.

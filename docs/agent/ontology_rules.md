@@ -1,5 +1,10 @@
 # Ontology Rules
 
+## Mandatory Read Before Ontology Work
+
+Before proposing or making ontology changes, read `docs/agent/working_guardrails.md`.
+Its anti-drift and backtest rules are part of the ontology standard.
+
 ## Evaluating Any Addition — Three Standards
 
 Before adding any class, relation, axiom, instance, or SPARQL query, evaluate against all three:
@@ -82,3 +87,15 @@ System (ObjectAggregate) `has_part` SystemComponent. SystemComponent `has_dispos
 - Do not touch CI workflow unless pipeline output format changes
 - Do not model NaturalPerson as biological subclass — use `cco:Person` + `NaturalPersonRole ⊑ Role`
 - Do not create Person instances or role-bearing axioms — aboutness only
+
+## Before Touching A Load-Bearing Commitment
+
+For any proposed change to a core class, bridge axiom, or gate pattern, write down all five first:
+
+1. current behavior
+2. exact problem being solved
+3. proposed behavior
+4. defense of the new modeling choice
+5. regression/backtest plan
+
+If all five are not clear, do not modify the ontology.
