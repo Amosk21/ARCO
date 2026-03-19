@@ -160,13 +160,13 @@ System components and capabilities are encoded as instances aligned to BFO categ
 
 ### 4.2 Structural Validation (SHACL)
 
-SHACL constraints enforce:
+SHACL constraints enforce documentary completeness:
 
-- Explicit declaration of sensing and processing components
-- Completeness of system documentation
-- Prohibition of inferred or assumed capabilities
+- Sensing and processing components are explicitly declared
+- Required system documentation is present
+- Required structural relationships are asserted, not left implicit
 
-Only structurally admissible systems proceed.
+Only structurally complete systems proceed.
 
 ### 4.3 OWL-RL Reasoning
 
@@ -189,9 +189,9 @@ SPARQL audit queries confirm both entailments materialized: `TRUE`.
 
 From this, it follows that:
 
-> Sentinel-ID is classified as a High-Risk AI System under Article 6 and as Annex III 1(a) applicable under the EU AI Act.
+> Under the ARCO ontology encoding of the EU AI Act, Sentinel-ID is determined to be a High-Risk System and Annex III 1(a) applicable.
 
-This conclusion is invariant under runtime configuration — the system's structural capability persists regardless of software state. Each gate is independently necessary.
+The HighRiskSystem classification is invariant under runtime configuration — the system's structural capability persists regardless of software state. The full Annex III 1(a) determination additionally requires that Gate 2 (intended use) and Gate 3 (affected role) are satisfied. Each gate is independently necessary.
 
 ---
 
