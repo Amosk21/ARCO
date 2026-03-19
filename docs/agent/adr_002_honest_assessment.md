@@ -74,15 +74,22 @@ The EU AI Act's high-risk system obligations take effect **August 2, 2026** — 
 | GRC platforms | OneTrust, TrustArc | AI Act modules on existing risk platforms | ARCO has formal entailment; they have checklists |
 | AI governance startups | Holistic AI, Credo AI | Purpose-built governance platforms | ARCO has structural traceability; they have risk scores |
 | Certification bodies | ForHumanity | Audit standards, certified auditor training | ForHumanity defines criteria; ARCO automates classification |
-| Academic / formal methods | FRIA ontology, OWL DL compliance papers | Research papers | None use BFO; none do three-gate OWL entailment |
+| Academic / formal methods | AIRO (Trinity College Dublin), W3C DPV AI Act extension, FinRegOnt | Research / vocabularies | AIRO represents risks; ARCO classifies. W3C DPV is vocabulary, not reasoning. See below. |
+
+### Market size (Gartner, February 2026)
+
+- AI governance platform spending: **~$492 million in 2026**, projected to surpass **$1 billion by 2030**
+- This is tooling/platforms only; consulting spend is larger but harder to measure
+- Broader context: worldwide AI spending forecast at $2.52 trillion in 2026; governance is a tiny fraction
 
 ### The BFO/NCOR ecosystem
 
 - BFO is ISO/IEC 21838-2, used by 700+ ontology groups
-- DoD and IC adopted BFO + CCO as baseline standards
-- CUBRC does commercial ontology work for defense/intelligence
+- DoD and IC adopted BFO + CCO as baseline standards (January 2024)
+- CUBRC (~170 engineers) does commercial ontology work for defense/intelligence
 - **Nobody in this ecosystem is doing EU AI Act regulatory classification with BFO**
 - The commercial activity is data integration and interoperability, not regulatory determination
+- Semantic Arts created gistBFO for enterprise data integration, not regulatory compliance
 
 ### What competitors have that ARCO doesn't
 
@@ -91,12 +98,20 @@ The EU AI Act's high-risk system obligations take effect **August 2, 2026** — 
 - Real-system evaluations
 - Sales teams and go-to-market
 
+### The closest academic precedent: AIRO
+
+AIRO (AI Risk Ontology), developed at Trinity College Dublin's ADAPT Centre by Golpayegani, Pandit, and Lewis (2022), is an OWL 2 ontology for representing AI risks based on the EU AI Act and ISO risk management standards. It models AI use cases and their risks, and the authors demonstrated that SHACL validation and logical reasoning can determine whether a use case is high-risk. AIRO is integrated into the W3C Data Privacy Vocabulary (DPV) AI Act extension.
+
+**How ARCO differs from AIRO:** AIRO is a risk *representation* ontology — it models risks and their relationships. ARCO is a deterministic *classification* ontology — it uses OWL-RL entailment via gate-structured equivalentClass axioms grounded in BFO/CCO to produce actual regulatory classifications (e.g., "this system IS an Annex III 1(a) system"). AIRO describes risk; ARCO classifies. These are fundamentally different approaches.
+
+AIRO does not use BFO. The W3C DPV AI Act extension uses RDFS/SKOS as default semantics — it is a vocabulary/taxonomy, not a classification engine.
+
 ### What ARCO has that competitors don't
 
 1. **Deterministic classification** — same input, same output, every time. No human judgment in the pipeline.
 2. **Structural traceability** — full entailment chain from component → capability → regulatory condition → classification.
 3. **BFO alignment** — positions for interoperability with other BFO-aligned systems (defense, biomedical, industrial).
-4. **Three-gate decomposition** — novel encoding of Annex III conditions as OWL equivalentClass axioms. No published precedent found.
+4. **Three-gate decomposition** — novel encoding of Annex III conditions as OWL equivalentClass axioms. No published precedent found. AIRO (closest academic work) represents risk but does not do gate-structured entailment classification.
 
 ---
 
