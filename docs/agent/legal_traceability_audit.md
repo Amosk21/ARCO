@@ -38,10 +38,10 @@ _(Note: ARCO documentation previously cited this as Article 3(36). Corrected 202
 **Annex III 5(b):**
 > "AI systems intended to be used to evaluate the creditworthiness of natural persons or establish their credit score, with the exception of AI systems used for the purpose of detecting financial fraud."
 
-**Recital 17** (definition of remote biometric identification):
+**Recital 17** (definition of remote biometric identification; truncated excerpt):
 > "The notion of 'remote biometric identification system' [...] should be defined functionally, as an AI system intended for the identification of natural persons without their active involvement, typically at a distance, through the comparison of a person's biometric data with the biometric data contained in a reference database [...] This excludes AI systems intended to be used for biometric verification, which includes authentication, the sole purpose of which is to confirm that a specific natural person is the person he or she claims to be."
 
-**Recital 54** (biometrics as high-risk):
+**Recital 54** (biometrics as high-risk; truncated excerpt):
 > "Remote biometric identification systems should therefore be classified as high-risk in view of the risks that they pose. Such a classification excludes AI systems intended to be used for biometric verification, including authentication, the sole purpose of which is to confirm that a specific natural person is who that person claims to be."
 
 ---
