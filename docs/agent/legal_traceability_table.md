@@ -10,9 +10,9 @@ ARCO documentation (legal_traceability_audit.md, deep_alignment_audit.md) previo
 
 | Point | Actual definition |
 |---|---|
-| Article 3(35) | 'biometric data' |
-| Article 3(36) | 'biometric identification' |
-| Article 3(37) | 'biometric verification' |
+| Article 3(34) | 'biometric data' |
+| Article 3(35) | 'biometric identification' |
+| Article 3(36) | 'biometric verification' |
 | Article 3(41) | 'remote biometric identification system' |
 
 All references below use corrected numbering. Upstream ARCO docs (`legal_traceability_audit.md`, `deep_alignment_audit.md`) have been fixed.
@@ -40,15 +40,15 @@ All references below use corrected numbering. Upstream ARCO docs (`legal_traceab
 
 ### Finding 1 — CRITICAL: Article 3 citation numbering error
 
-All ARCO documentation cited "Article 3(36)" for the definition of "remote biometric identification system." The actual regulation numbers this as **Article 3(41)**. Article 3(36) actually defines "biometric identification" (the general concept, not remote). Article 3(37) defines "biometric verification." This error appeared in: `legal_traceability_audit.md` (6 occurrences, now fixed) and `deep_alignment_audit.md` (1 occurrence, now fixed). The table above uses corrected numbering.
+All ARCO documentation cited "Article 3(36)" for the definition of "remote biometric identification system." The actual regulation numbers this as **Article 3(41)**. Article 3(35) actually defines "biometric identification" and Article 3(36) defines "biometric verification." This error appeared in: `legal_traceability_audit.md` (6 occurrences, now fixed) and `deep_alignment_audit.md` (1 occurrence, now fixed). The table above uses corrected numbering.
 
 ### Finding 2 — Article 6(2) excerpt was truncated
 
 ARCO's `legal_traceability_audit.md` quotes Article 6(2) as: "AI systems referred to in Annex III shall be considered to be high-risk." The full text begins: "**In addition to** the high-risk AI systems referred to in paragraph 1, AI systems referred to in Annex III shall be considered to be high-risk." The omitted prefix ("In addition to...paragraph 1") establishes that Annex III listing is a second, independent pathway — distinct from the product-safety-component pathway in Article 6(1). This framing is relevant but the omission does not change the operative meaning for ARCO's scope.
 
-### Finding 3 — Article 3(36) "biometric identification" definition not separately traced
+### Finding 3 — Article 3(35) "biometric identification" definition not separately traced
 
-The actual Article 3(36) defines "biometric identification" as: "the automated recognition of physical, physiological, behavioural, or psychological human features for the purpose of establishing the identity of a natural person by comparing biometric data of that individual to biometric data of individuals stored in a database." ARCO's `BiometricIdentificationCapability` maps to this but does not encode the "comparing... to... database" element. A system that identifies persons without database comparison (e.g., de novo clustering) might not meet the legal definition but would satisfy ARCO's gate.
+The actual Article 3(35) defines "biometric identification" as: "the automated recognition of physical, physiological, behavioural, or psychological human features for the purpose of establishing the identity of a natural person by comparing biometric data of that individual to biometric data of individuals stored in a database." ARCO's `BiometricIdentificationCapability` maps to this but does not encode the "comparing... to... database" element. A system that identifies persons without database comparison (e.g., de novo clustering) might not meet the legal definition but would satisfy ARCO's gate.
 
 ### Finding 4 — Recital 17 verification exclusion is broader than ARCO quotes
 
@@ -74,7 +74,7 @@ Annex III 1(a) text, Annex III 1 chapeau text, Annex III 5(b) text, and Article 
 
 ## Worked Example: Sentinel-ID Annex III 1(a) Positive Path
 
-**Legal sources:** Article 6(2) ("Annex III systems are high-risk") + Annex III 1(a) ("Remote biometric identification systems") + Article 3(41) (definition of remote biometric identification) + Article 3(36) (definition of biometric identification) + Article 3(12) (intended purpose grounded in provider documentation).
+**Legal sources:** Article 6(2) ("Annex III systems are high-risk") + Annex III 1(a) ("Remote biometric identification systems") + Article 3(41) (definition of remote biometric identification) + Article 3(35) (definition of biometric identification) + Article 3(12) (intended purpose grounded in provider documentation).
 
 **Gates fired:**
 - Gate 1: Sentinel-ID `has_part` a `SystemComponent` (`Sentinel_FacialRecognitionModule_001`) that `has_disposition` a `BiometricIdentificationCapability` instance.
@@ -83,7 +83,7 @@ Annex III 1(a) text, Annex III 1 chapeau text, Annex III 5(b) text, and Article 
 
 **Class inferred:** `AnnexIII1aApplicableSystem` (via OWL-RL equivalentClass entailment) and `HighRiskSystem` (via capability-only bridge axiom).
 
-**Limitations:** Classification does not verify "without active involvement" or "at a distance" (Article 3(41) definitional elements). Does not verify "comparison with a reference database" (Article 3(36) definitional element). Article 6(3) derogation cannot exempt the system even if applicable. Gate 1 (capability in hardware component) is ARCO-added — the law does not separately require a hardware capability gate. The Annex III 1 chapeau legality precondition is not checked.
+**Limitations:** Classification does not verify "without active involvement" or "at a distance" (Article 3(41) definitional elements). Does not verify "comparison with a reference database" (Article 3(35) definitional element). Article 6(3) derogation cannot exempt the system even if applicable. Gate 1 (capability in hardware component) is ARCO-added — the law does not separately require a hardware capability gate. The Annex III 1 chapeau legality precondition is not checked.
 
 ---
 

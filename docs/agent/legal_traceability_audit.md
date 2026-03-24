@@ -24,7 +24,7 @@ This is not an ontology quality review or a BFO alignment check. It is a legal-t
 > "'intended purpose' means the use for which an AI system is intended by the provider, including the specific context and conditions of use, as specified in the information supplied by the provider in the instructions for use, promotional or sales materials and statements, as well as in the technical documentation."
 
 **Article 3(41) — "remote biometric identification system":**
-_(Note: ARCO documentation previously cited this as Article 3(36). Corrected 2026-03-24 after backtest against Regulation 2024/1689. Article 3(36) actually defines "biometric identification"; Article 3(37) defines "biometric verification.")_
+_(Note: ARCO documentation previously cited this as Article 3(36). Corrected 2026-03-24 after backtest against Regulation 2024/1689. Article 3(35) defines "biometric identification"; Article 3(36) defines "biometric verification.")_
 > "'remote biometric identification system' means an AI system for the purpose of identifying natural persons, without their active involvement, typically at a distance through the comparison of a person's biometric data with the biometric data contained in a reference database."
 
 **Annex III 1 (chapeau):**
@@ -51,7 +51,7 @@ _(Note: ARCO documentation previously cited this as Article 3(36). Corrected 202
 | Field | Content |
 |---|---|
 | **Legal Source** | Article 6(2) |
-| **Exact Legal Text** | "AI systems referred to in Annex III shall be considered to be high-risk." |
+| **Exact Legal Text** | "In addition to the high-risk AI systems referred to in paragraph 1, AI systems referred to in Annex III shall be considered to be high-risk." |
 | **ARCO Construct** | `HighRiskSystem` equivalentClass axiom (governance extension lines 156-177); `AnnexIII1aApplicableSystem` and `AnnexIII5bApplicableSystem` equivalentClass axioms |
 | **Gate / Layer** | Classification layer. `HighRiskSystem` is entailed from Gate 1 alone. `AnnexIIIXApplicableSystem` is entailed from all three gates. |
 | **Direct or Interpretive** | **Interpretive move.** Article 6(2) is a single-step conclusion: Annex III systems are high-risk. ARCO splits this into two classes: `HighRiskSystem` (capability-only, from Gate 1) and `AnnexIII1aApplicableSystem` (full three-gate). The law does not make this split. |
