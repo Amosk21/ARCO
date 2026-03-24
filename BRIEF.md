@@ -59,9 +59,9 @@ Each gate checks specific content, not the existence of documentation alone. Gat
 | Requirement | What ARCO Produces |
 |-------------|-------------------|
 | Art. 6 — Classification rationale | Formal entailment chain, not legal opinion |
-| Art. 9 — Risk management documentation | Machine-readable, auditable determination artifact |
-| Art. 11 — Technical documentation | Reproducible classification with full provenance |
-| Art. 49 — Non-high-risk providers must document why | Same pipeline run, negative result, same audit trail |
+| Art. 9 — Risk management system | Traceable classification evidence that can support, but does not replace, a broader Article 9 risk-management process |
+| Art. 11 — Technical documentation | Reproducible classification evidence with provenance that can contribute to, but does not itself constitute, full Article 11 documentation |
+| Art. 49 — Registration of high-risk and certain non-high-risk systems | Same pipeline can support a documented non-high-risk conclusion, but Article 49 is a registration obligation tied to EU database entries |
 
 The output is not a checklist. It is a formal artifact that can be handed to a notified body, a national competent authority, or an internal audit team — and reproduced exactly on any subsequent run against the same system description.
 

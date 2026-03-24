@@ -15,7 +15,7 @@
 
   Non-entailment claim: AnnexIII1aApplicableSystem is not entailed for VerificationKiosk_001 under current assertions (OWA — no closed-world guarantee).
 
-  Legal basis: Recital 22 and Art. 3(41) EU AI Act — 1:1 biometric verification is excluded from Annex III 1(a); only 1:N remote biometric identification triggers classification.""" ;
+  Legal basis: Recital 17, Recital 54, and Art. 3(41) EU AI Act — 1:1 biometric verification is excluded from Annex III 1(a); only 1:N remote biometric identification triggers classification.""" ;
   owl:imports <https://arco.ai/ontology/governance> .
 
 #################################################################
@@ -24,7 +24,7 @@
 
 :AnnexIII_Condition_Q1_Exclusion rdf:type :RegulatoryContent ;
   rdfs:label "Annex III 1(a) — Verification Exclusion Note" ;
-  rdfs:comment "Documents the 1:1 verification exclusion from Annex III 1(a). Recital 22 and Art. 3(41): only 1:N remote biometric identification triggers the Annex III classification." ;
+  rdfs:comment "Documents the 1:1 verification exclusion from Annex III 1(a). Recital 17, Recital 54, and Art. 3(41): only 1:N remote biometric identification triggers the Annex III classification." ;
   iao:0000136 :BiometricVerificationCapability ;
   iao:0000136 :BiometricIdentificationCapability .
 
