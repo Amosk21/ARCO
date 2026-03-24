@@ -12,6 +12,8 @@ This is not an ontology quality review or a BFO alignment check. It is a legal-t
 
 ## Legal Text Inventory (Verbatim Excerpts)
 
+_Provenance note: this inventory is the repo's working legal-text basis for ARCO's current scope. Article numbering corrections have been backtested, but not every quoted excerpt below has yet been independently re-checked line-by-line against official EUR-Lex / AI Act Service Desk text._
+
 **Article 6(2):**
 > "In addition to the high-risk AI systems referred to in paragraph 1, AI systems referred to in Annex III shall be considered to be high-risk."
 

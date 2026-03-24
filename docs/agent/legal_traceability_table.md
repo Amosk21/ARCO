@@ -52,11 +52,11 @@ The actual Article 3(35) defines "biometric identification" as: "the automated r
 
 ### Finding 4 — Recital 17 verification exclusion is broader than ARCO quotes
 
-ARCO's `legal_traceability_audit.md` truncates Recital 17's verification exclusion. The full text adds: "and to confirm the identity of a natural person for the sole purpose of having access to a service, unlocking a device or having security access to premises." These specific use-case boundaries (service access, device unlock, premises security) are part of the regulatory context for the exclusion but are not captured by ARCO's type-disjointness model.
+ARCO's `legal_traceability_audit.md` may truncate Recital 17's verification-exclusion language, but this claim still depends on the repo's own legal text inventory rather than a separately pinned official recital check. Treat the broader service-access / device-unlock / premises-access wording as a backtest target, not yet as a verified repo fact.
 
 ### Finding 5 — Recital 17 supports technology-neutral approach
 
-Recital 17 states the definition applies "irrespectively of the particular technology, processes or types of biometric data used." This supports ARCO's abstract capability-based modeling rather than encoding specific biometric modalities (facial, fingerprint, iris, etc.).
+The repo's current recital inventory suggests a technology-neutral reading of remote biometric identification, which would support ARCO's abstract capability-based modeling rather than encoding specific biometric modalities. This recital-level claim should be verified directly against official text before being treated as settled support.
 
 ### Finding 6 — Article 6(3) profiling override is a distinct unmodeled element
 
@@ -64,11 +64,11 @@ Article 6(3) final subparagraph: "an AI system referred to in Annex III shall **
 
 ### Finding 7 — Article 6(4) creates provider documentation obligation for derogation
 
-"A provider who considers that an AI system referred to in Annex III is not high-risk shall document its assessment before that system is placed on the market or put into service." This aligns with ARCO's planned approach of modeling derogation claims as Descriptive ICE artifacts, but is not yet implemented.
+The repo currently treats Article 6(4) as creating a provider documentation obligation for derogation claims, which would align with ARCO's planned modeling of derogation claims as documentary artifacts. This should remain a provisional reading until Article 6(4) is checked directly against official text.
 
 ### Finding 8 — All Annex III legal excerpts verified accurate
 
-Annex III 1(a) text, Annex III 1 chapeau text, Annex III 5(b) text, and Article 3(12) "intended purpose" definition all match the official text verbatim. No content errors found in ARCO's legal excerpts beyond the citation numbering issue.
+No additional content errors are currently flagged inside the repo's legal text inventory for Annex III 1(a), the Annex III 1 chapeau, Annex III 5(b), and Article 3(12). However, the inventory itself still needs direct official-source verification before these excerpts should be described as fully verified.
 
 ---
 
