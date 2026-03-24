@@ -72,7 +72,7 @@ The core entailment mechanism is genuine OWL Description Logic: three `owl:equiv
 | 4 | `AnnexIII_Condition_Q1` vestigial `prescribes` triple | Documented deferral | instances_sentinel.ttl line 25 | Low-Med | CCO-import blocker, semantically misleading | Later |
 | 5 | No Article 6(3) derogation | Real gap | EU AI Act Art. 6(3) | Medium | Over-classifies when derogation applies | Later (design doc first) |
 | 6 | No 5(b) fraud exclusion | Real gap | Annex III 5(b) | Medium | False positive for fraud-detection credit systems | Later (document as known limitation now) |
-| 7 | "At a distance" / "without active involvement" not modeled | Deferred scope | Art. 3(36) | Low | Acceptable for v1 | No action |
+| 7 | "At a distance" / "without active involvement" not modeled | Deferred scope | Art. 3(41) | Low | Acceptable for v1 | No action |
 | 8 | Case study section 2.2 "capability, not intent" | Overclaim | Regulatory Determination Case | Low | Contradicts own three-gate design | **Now** |
 | 9 | TechnicalDeck stale `HighRiskSystem` axiom | Overclaim (stale) | TechnicalDeck.md | Low | Misleading to technical reader | **Now** |
 | 10 | README TL;DR unqualified "high-risk" | Overclaim | README.md | Low | Elides ARCO-encoding qualifier | **Now** |

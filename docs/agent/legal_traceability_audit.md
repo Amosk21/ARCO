@@ -23,7 +23,8 @@ This is not an ontology quality review or a BFO alignment check. It is a legal-t
 **Article 3(12) — "intended purpose":**
 > "'intended purpose' means the use for which an AI system is intended by the provider, including the specific context and conditions of use, as specified in the information supplied by the provider in the instructions for use, promotional or sales materials and statements, as well as in the technical documentation."
 
-**Article 3(36) — "remote biometric identification system":**
+**Article 3(41) — "remote biometric identification system":**
+_(Note: ARCO documentation previously cited this as Article 3(36). Corrected 2026-03-24 after backtest against Regulation 2024/1689. Article 3(36) actually defines "biometric identification"; Article 3(37) defines "biometric verification.")_
 > "'remote biometric identification system' means an AI system for the purpose of identifying natural persons, without their active involvement, typically at a distance through the comparison of a person's biometric data with the biometric data contained in a reference database."
 
 **Annex III 1 (chapeau):**
@@ -66,7 +67,7 @@ This is not an ontology quality review or a BFO alignment check. It is a legal-t
 
 | Field | Content |
 |---|---|
-| **Legal Source** | Annex III 1(a); Article 3(36); Recital 17 |
+| **Legal Source** | Annex III 1(a); Article 3(41); Recital 17 |
 | **Exact Legal Text** | "Remote biometric identification systems." / "'remote biometric identification system' means an AI system for the purpose of identifying natural persons, without their active involvement, typically at a distance..." |
 | **ARCO Construct** | Gate 1: `System AND has_part some (SystemComponent AND has_disposition some BiometricIdentificationCapability)` (governance extension lines 316-329) |
 | **Gate / Layer** | Gate 1 / Classification layer |
@@ -100,14 +101,14 @@ This is not an ontology quality review or a BFO alignment check. It is a legal-t
 
 | Field | Content |
 |---|---|
-| **Legal Source** | Article 3(36); Recital 17 |
+| **Legal Source** | Article 3(41); Recital 17 |
 | **Exact Legal Text** | "identifying natural persons, without their active involvement" |
 | **ARCO Construct** | Gate 3: System is target of `UseScenarioSpecification` (via inverse `iao:0000136`) where specification `iao:0000136 :NaturalPersonRole` (`owl:hasValue`) (governance extension lines 357-370) |
 | **Gate / Layer** | Gate 3 / Classification layer |
 | **Direct or Interpretive** | **Three interpretive moves.** **(A) "Natural persons" modeled as a BFO Role.** The law means real human beings with legal personhood. ARCO models this as `NaturalPersonRole ⊑ bfo:0000023 (Role)`. Rationale: legal personhood is a role (externally contingent on the legal system), not a biological kind. **(B) Affected-entity constraint separated into a distinct documentary artifact.** The law says "of natural persons" as part of the same clause. ARCO splits it into a separate `UseScenarioSpecification` for independent testability. **(C) `owl:hasValue` punning on class IRI.** The specification is about the role CATEGORY (the universal), not a specific person. Class IRI used as concept-individual (OWL 2 punning). |
 | **Why This Mapping** | Role vs Person avoids creating person instances. Separate document makes the gate independently testable. `hasValue` on universal: the regulation targets a category, not individuals. |
 | **What It Infers** | Gate 3 fires if a `UseScenarioSpecification` about the system and about `:NaturalPersonRole` exists. |
-| **What It Does Not Prove** | (1) Only checks that a document SAYS the system addresses natural persons — does not verify that the system actually interacts with them. (2) "Without their active involvement" (Article 3(36)) is NOT encoded. (3) "Typically at a distance" is NOT encoded. (4) The punning creates a fragility under CCO import (documented in alignment audit item 9). |
+| **What It Does Not Prove** | (1) Only checks that a document SAYS the system addresses natural persons — does not verify that the system actually interacts with them. (2) "Without their active involvement" (Article 3(41)) is NOT encoded. (3) "Typically at a distance" is NOT encoded. (4) The punning creates a fragility under CCO import (documented in alignment audit item 9). |
 | **Alternatives** | (A) Merge Gate 3 into Gate 2 — affected role as a constraint on the process. (B) `owl:someValuesFrom` with typed individual (like Gate 2). (C) Model "without active involvement" and "at a distance" as additional gate conditions. |
 | **Validation Status** | Tested (gate-removal). Punning dependency documented. |
 
@@ -185,10 +186,10 @@ This is not an ontology quality review or a BFO alignment check. It is a legal-t
 
 | Field | Content |
 |---|---|
-| **Legal Source** | Article 3(36); Recital 17 |
+| **Legal Source** | Article 3(41); Recital 17 |
 | **Exact Legal Text** | "without their active involvement, typically at a distance" |
 | **ARCO Construct** | None. Not in any class, property, restriction, or gate. Not even in the `rdfs:comment` on `RemoteBiometricIdentificationProcess`. |
-| **Direct or Interpretive** | **Omission.** These are defining characteristics of "remote" biometric identification. A biometric system used at close range with active subject participation would satisfy ARCO's gates but would NOT be a "remote biometric identification system" under Article 3(36). |
+| **Direct or Interpretive** | **Omission.** These are defining characteristics of "remote" biometric identification. A biometric system used at close range with active subject participation would satisfy ARCO's gates but would NOT be a "remote biometric identification system" under Article 3(41). |
 | **Alternatives** | (A) Properties on the process type: participation mode, range. (B) Constraints in `UseScenarioSpecification`. (C) Accept omission and document that "remote" is not formally verified. |
 | **Validation Status** | Not modeled. Gap not documented in any existing file. |
 
@@ -243,7 +244,7 @@ This is not an ontology quality review or a BFO alignment check. It is a legal-t
 
 - **Gate 2** answers: "Is this system documented as intended for the regulated process?" IS in the legal text. Article 3(12) grounds "intended purpose" in provider documentation. Mapping to `cco:prescribes` adds prescriptive semantics beyond mere aboutness.
 
-- **Gate 3** answers: "Does the intended use target natural persons?" IS in the legal text. Both 1(a) (via Article 3(36)) and 5(b) explicitly name "natural persons."
+- **Gate 3** answers: "Does the intended use target natural persons?" IS in the legal text. Both 1(a) (via Article 3(41)) and 5(b) explicitly name "natural persons."
 
 ---
 
