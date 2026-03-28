@@ -798,10 +798,10 @@ def write_html_view(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ARCO \u2014 {system_local} \u2014 Regulatory Determination</title>
+<title>ARCO \u2014 {system_local} \u2014 Condition Assessment</title>
 <style>
 /* ══════════════════════════════════════════════════════════════
-   ARCO Regulatory Determination View — Self-contained CSS
+   ARCO Condition Assessment View — Self-contained CSS
    ══════════════════════════════════════════════════════════════ */
 :root {{
   --bg: #0d1017; --sf: #151922; --sf2: #1a1f2e; --bd: #252a3a;
@@ -1153,7 +1153,7 @@ section {{ scroll-margin-top: 1rem }}
 <header class="header">
   <div class="header-brand">
     <span class="logo">ARCO</span>
-    <h1>Regulatory Determination Report</h1>
+    <h1>Condition Assessment Report</h1>
   </div>
   <div class="header-meta">
     <span>System: <strong>{sys_display}</strong></span>
@@ -1507,7 +1507,7 @@ def main() -> None:
     print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
 
     # ---------------------------------------------------------------
-    # REGULATORY DETERMINATION CERTIFICATE
+    # ARCO CONDITION ASSESSMENT CERTIFICATE
     # ---------------------------------------------------------------
     if not asserted_pre and entailed_post:
         classification_mode = "INFERRED"
@@ -1526,7 +1526,7 @@ def main() -> None:
     for comp, disp in bindings[:3]:
         evidence_lines.append(f"  {SYSTEM_LOCAL} -> {_short(comp)} -> {_short(disp)}")
 
-    hr("REGULATORY DETERMINATION CERTIFICATE")
+    hr("ARCO CONDITION ASSESSMENT CERTIFICATE")
     print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     print(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
     print(f"  INPUT INSTANCE:          {INSTANCES.name}  ({_repo_relative(INSTANCES)})")
@@ -1564,7 +1564,7 @@ def main() -> None:
     # certificate.txt
     cert_lines = []
     cert_lines.append("=" * 72)
-    cert_lines.append("REGULATORY DETERMINATION CERTIFICATE")
+    cert_lines.append("ARCO CONDITION ASSESSMENT CERTIFICATE")
     cert_lines.append("=" * 72)
     cert_lines.append(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     cert_lines.append(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
