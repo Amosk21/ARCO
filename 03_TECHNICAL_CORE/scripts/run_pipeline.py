@@ -49,6 +49,8 @@ ANNEX_III_1A_QUERY = REASONING_DIR / "check_annex_iii_1a_entailment.sparql"
 ANNEX_III_5B_QUERY = REASONING_DIR / "check_annex_iii_5b_entailment.sparql"
 OBLIGATION_QUERY = REASONING_DIR / "check_obligation_link.sparql"
 REGULATORY_ALIGNMENT_QUERY = REASONING_DIR / "check_regulatory_alignment.sparql"
+DEROGATION_FLAG_QUERY = REASONING_DIR / "flag_derogation_candidate.sparql"
+FRAUD_FLAG_QUERY = REASONING_DIR / "flag_fraud_exclusion_candidate.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -1329,7 +1331,7 @@ def main() -> None:
     SYSTEM_LOCAL = args.system
     SYSTEM_IRI = f"{ARCO_NS}{SYSTEM_LOCAL}"
     if args.instances is not None:
-        INSTANCES = Path(args.instances)
+        INSTANCES = Path(args.instances).resolve()
 
     hr("ARCO COMPLIANCE VERIFICATION PIPELINE (OPERATOR VIEW)")
 
@@ -1386,6 +1388,21 @@ def main() -> None:
         reg_alignment_ok = run_sparql_ask_for_system(g, REGULATORY_ALIGNMENT_QUERY, SYSTEM_LOCAL)
         print(f"Regulatory aligned: {reg_alignment_ok}")
 
+    # ── Audit-layer exception flags (informational only — do not affect classification or audit_pass) ──
+    # These detect provider-submitted claim artifacts that may affect legal interpretation.
+    # A flag does not override OWL classification. It directs human review.
+    derogation_flagged = False
+    if DEROGATION_FLAG_QUERY.exists():
+        print("\nArticle 6(3) derogation claim detection...")
+        derogation_flagged = run_sparql_ask_for_system(g, DEROGATION_FLAG_QUERY, SYSTEM_LOCAL)
+        print(f"Derogation claim present: {derogation_flagged}")
+
+    fraud_flagged = False
+    if FRAUD_FLAG_QUERY.exists():
+        print("\n5(b) fraud exclusion candidate detection...")
+        fraud_flagged = run_sparql_ask_for_system(g, FRAUD_FLAG_QUERY, SYSTEM_LOCAL)
+        print(f"Fraud exclusion candidate: {fraud_flagged}")
+
     inference_ok, asserted_pre, entailed_post, bindings = verify_high_risk_inference(g, g_source)
 
     sub("DETERMINATION PACKET (gate evidence extraction)")
@@ -1421,6 +1438,11 @@ def main() -> None:
     if reg_alignment_ok is not None:
         print(f"Reg. aligned:  {_pf(reg_alignment_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
+
+    print()
+    print("  [exception flags — provider-submitted claims, human review required]")
+    print(f"Art. 6(3) derogation:  {'FLAGGED — DerogationClaim detected; human review required' if derogation_flagged else 'NOT FLAGGED'}")
+    print(f"5(b) fraud exclusion:  {'FLAGGED — FraudDetectionProcess detected; human review required' if fraud_flagged else 'NOT FLAGGED'}")
 
     # ── Two-layer pass computation ──────────────────────────────────
     # Classification layer: OWL-RL entailment + SHACL structural validation.
@@ -1469,6 +1491,7 @@ def main() -> None:
     hr("REGULATORY DETERMINATION CERTIFICATE")
     print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     print(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
+    print(f"  INPUT INSTANCE:          {INSTANCES.name}  ({INSTANCES.relative_to(REPO_ROOT)})")
     if classification_mode in ("INFERRED", "ASSERTED"):
         print(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -1507,6 +1530,7 @@ def main() -> None:
     cert_lines.append("=" * 72)
     cert_lines.append(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     cert_lines.append(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
+    cert_lines.append(f"  INPUT INSTANCE:          {INSTANCES.name}  ({INSTANCES.relative_to(REPO_ROOT)})")
     if classification_mode in ("INFERRED", "ASSERTED"):
         cert_lines.append(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -1531,6 +1555,10 @@ def main() -> None:
     if obligation_ok is not None:
         cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
+    cert_lines.append("")
+    cert_lines.append("  [exception flags — provider-submitted claims, human review required]")
+    cert_lines.append(f"  ART. 6(3) DEROGATION:    {'FLAGGED — DerogationClaim artifact detected; human legal review required before treating this as a final determination' if derogation_flagged else 'NOT FLAGGED'}")
+    cert_lines.append(f"  5(b) FRAUD EXCLUSION:    {'FLAGGED — FraudDetectionProcess artifact detected; human legal review required' if fraud_flagged else 'NOT FLAGGED'}")
     cert_lines.append("=" * 72)
     (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
 
@@ -1538,6 +1566,8 @@ def main() -> None:
     summary = {
         "system": SYSTEM_LOCAL,
         "regime": "ARCO ontology encoding of EU AI Act (Article 6 / Annex III)",
+        "instance_file_name": INSTANCES.name,
+        "instance_file_path": str(INSTANCES.relative_to(REPO_ROOT)),
         "classification": f"HighRiskSystem ({classification_mode})" if classification_mode in ("INFERRED", "ASSERTED") else classification_mode,
         "shacl": _pf(shacl_ok),
         "traceability": _pf(traceability_ok),
@@ -1549,6 +1579,8 @@ def main() -> None:
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,
         "all_checks_passed": all_pass,
+        "flag_derogation_candidate": derogation_flagged,
+        "flag_fraud_exclusion_candidate": fraud_flagged,
     }
     (OUTPUT_DIR / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
 
@@ -1566,6 +1598,8 @@ def main() -> None:
         "system_uri": SYSTEM_IRI,
         "system_label": SYSTEM_LOCAL.replace("_", " "),
         "run_id": datetime.now(timezone.utc).isoformat(),
+        "instance_file_name": INSTANCES.name,
+        "instance_file_path": str(INSTANCES.relative_to(REPO_ROOT)),
         "classification": "HIGH_RISK" if classification_mode in ("INFERRED", "ASSERTED") else "NOT_HIGH_RISK",
         "classification_mode": classification_mode,
         "annex_categories": [
@@ -1610,6 +1644,8 @@ def main() -> None:
         ],
         "determination_node_uri": f"{ARCO_NS}HighRisk_Determination_001",
         "inferred_triples_added": inferred_added,
+        "flag_derogation_candidate": derogation_flagged,
+        "flag_fraud_exclusion_candidate": fraud_flagged,
     }
     (OUTPUT_DIR / "determination_packet.json").write_text(
         json.dumps(determination_packet, indent=2) + "\n", encoding="utf-8"

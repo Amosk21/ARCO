@@ -1,0 +1,166 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances/flag_tests> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Flag Test Instances" ;
+  rdfs:comment """Two test cases for the audit-layer exception flags.
+
+  NOTE: Running the full pipeline on these instances will show classification PASS
+  but audit FAIL (traceability and regulatory alignment). This is expected and correct —
+  these are minimal instances for flag testing only, without full regulatory content
+  linkage. The same pattern applies to ARCO_instances_adversarial_*.ttl.
+  The classification layer and flag behavior are the only results under test here.
+
+  Test A — FlagTest_BiometricSystem_WithDerogationClaim:
+    A system that IS classified as AnnexIII1aApplicableSystem (all three gates satisfied)
+    AND has a DerogationClaim artifact. Expected: OWL classification fires (INFERRED),
+    derogation flag = FLAGGED. Demonstrates that a submitted derogation claim is detected
+    without affecting the classification result.
+
+  Test B — FlagTest_CreditSystem_WithFraudProcess:
+    A system that IS classified as AnnexIII5bApplicableSystem (all three gates satisfied)
+    AND has an IntendedUseSpecification prescribing a FraudDetectionProcess token.
+    Expected: OWL classification fires (INFERRED), fraud exclusion flag = FLAGGED.
+    Demonstrates that a fraud-detection intended use is detected without affecting
+    the 5(b) classification result.
+
+  Both tests are isolated. Run with:
+    python run_pipeline.py --instances ARCO_instances_flag_tests.ttl --system FlagTest_BiometricSystem_WithDerogationClaim
+    python run_pipeline.py --instances ARCO_instances_flag_tests.ttl --system FlagTest_CreditSystem_WithFraudProcess
+  """ ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# TEST A — Biometric system with a submitted DerogationClaim
+# Expected: AnnexIII1aApplicableSystem ENTAILED + derogation flag FLAGGED
+#################################################################
+
+:FlagTest_Biometric_Disposition rdf:type :BiometricIdentificationCapability ;
+  rdfs:label "Flag Test Biometric Identification Disposition" .
+
+:FlagTest_Biometric_Module rdf:type :HardwareComponent ;
+  rdfs:label "Flag Test Biometric Module" ;
+  ro:0000091 :FlagTest_Biometric_Disposition .
+
+:FlagTest_BiometricSystem_WithDerogationClaim rdf:type :System ;
+  rdfs:label "Flag Test Biometric System (with DerogationClaim)" ;
+  rdfs:comment "Positive test: classified as AnnexIII1aApplicableSystem AND has a provider-submitted DerogationClaim. Both the classification and the derogation flag must fire simultaneously." ;
+  bfo:0000051 :FlagTest_Biometric_Module .
+
+:FlagTest_Biometric_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess ;
+  rdfs:label "Flag Test Remote Biometric Identification Process Token" .
+
+:FlagTest_Biometric_IntendedUse rdf:type :IntendedUseSpecification ;
+  rdfs:label "Flag Test Biometric Intended Use" ;
+  cco:prescribes :FlagTest_Biometric_RBIP_Process ;
+  iao:0000136 :FlagTest_BiometricSystem_WithDerogationClaim .
+
+:FlagTest_Biometric_UseScenario rdf:type :UseScenarioSpecification ;
+  rdfs:label "Flag Test Biometric Use Scenario" ;
+  iao:0000136 :FlagTest_BiometricSystem_WithDerogationClaim ;
+  iao:0000136 :NaturalPersonRole .
+
+# Provider-submitted DerogationClaim — triggers the audit flag
+:FlagTest_DerogationClaim_001 rdf:type :DerogationClaim ;
+  rdfs:label "Flag Test Derogation Claim 001" ;
+  rdfs:comment "Provider asserts this system qualifies for Article 6(3) derogation (e.g., narrow procedural task). This claim is NOT evaluated by the ontology — it requires human legal review." ;
+  iao:0000136 :FlagTest_BiometricSystem_WithDerogationClaim .
+
+# Minimal documentation for SHACL compliance
+:FlagTest_Biometric_ProviderOrg rdf:type :ProviderOrganization ;
+  rdfs:label "Flag Test Provider Org (Biometric)" ;
+  ro:0000087 :FlagTest_Biometric_ProviderRole .
+
+:FlagTest_Biometric_ProviderRole rdf:type :ProviderRole ;
+  rdfs:label "Flag Test Provider Role (Biometric)" ;
+  ro:0000052 :FlagTest_Biometric_ProviderOrg .
+
+:FlagTest_Biometric_AssessmentDocProcess rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Flag Test Assessment Doc Process (Biometric)" ;
+  ro:0000057 :FlagTest_BiometricSystem_WithDerogationClaim ;
+  ro:0000057 :FlagTest_Biometric_ProviderOrg ;
+  cco:has_output :FlagTest_Biometric_AssessmentDoc .
+
+:FlagTest_Biometric_AssessmentDoc rdf:type :AssessmentDocumentation ;
+  rdfs:label "Flag Test Assessment Doc (Biometric)" ;
+  iao:0000136 :FlagTest_BiometricSystem_WithDerogationClaim .
+
+:FlagTest_Biometric_Obligation rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Flag Test Compliance Obligation (Biometric)" ;
+  iao:0000136 :FlagTest_BiometricSystem_WithDerogationClaim ;
+  iao:0000136 :FlagTest_Biometric_ProviderRole .
+
+:FlagTest_Biometric_Determination rdf:type :HighRiskDetermination ;
+  rdfs:label "Flag Test High-Risk Determination (Biometric)" ;
+  iao:0000136 :FlagTest_BiometricSystem_WithDerogationClaim .
+
+#################################################################
+# TEST B — Creditworthiness system with a FraudDetectionProcess token
+# Expected: AnnexIII5bApplicableSystem ENTAILED + fraud exclusion flag FLAGGED
+#################################################################
+
+:FlagTest_Credit_Disposition rdf:type :CreditworthinessEvaluationCapability ;
+  rdfs:label "Flag Test Creditworthiness Evaluation Disposition" .
+
+:FlagTest_Credit_Module rdf:type :HardwareComponent ;
+  rdfs:label "Flag Test Credit Processing Module" ;
+  ro:0000091 :FlagTest_Credit_Disposition .
+
+:FlagTest_CreditSystem_WithFraudProcess rdf:type :System ;
+  rdfs:label "Flag Test Credit System (with FraudDetectionProcess)" ;
+  rdfs:comment "Positive test: classified as AnnexIII5bApplicableSystem AND has an IntendedUseSpecification prescribing a FraudDetectionProcess. Both the classification and the fraud exclusion flag must fire simultaneously." ;
+  bfo:0000051 :FlagTest_Credit_Module .
+
+:FlagTest_Credit_EvalProcess rdf:type :CreditworthinessEvaluationProcess ;
+  rdfs:label "Flag Test Creditworthiness Evaluation Process Token" .
+
+:FlagTest_Credit_FraudProcess rdf:type :FraudDetectionProcess ;
+  rdfs:label "Flag Test Fraud Detection Process Token" ;
+  rdfs:comment "Represents the fraud-detection component of this system's intended use. Its presence triggers the 5(b) fraud exclusion flag." .
+
+# IntendedUseSpecification prescribes BOTH the creditworthiness process (satisfies Gate 2 for 5(b))
+# AND the fraud detection process (triggers the fraud exclusion flag).
+:FlagTest_Credit_IntendedUse rdf:type :IntendedUseSpecification ;
+  rdfs:label "Flag Test Credit Intended Use" ;
+  cco:prescribes :FlagTest_Credit_EvalProcess ;
+  cco:prescribes :FlagTest_Credit_FraudProcess ;
+  iao:0000136 :FlagTest_CreditSystem_WithFraudProcess .
+
+:FlagTest_Credit_UseScenario rdf:type :UseScenarioSpecification ;
+  rdfs:label "Flag Test Credit Use Scenario" ;
+  iao:0000136 :FlagTest_CreditSystem_WithFraudProcess ;
+  iao:0000136 :NaturalPersonRole .
+
+# Minimal documentation for SHACL compliance
+:FlagTest_Credit_ProviderOrg rdf:type :ProviderOrganization ;
+  rdfs:label "Flag Test Provider Org (Credit)" ;
+  ro:0000087 :FlagTest_Credit_ProviderRole .
+
+:FlagTest_Credit_ProviderRole rdf:type :ProviderRole ;
+  rdfs:label "Flag Test Provider Role (Credit)" ;
+  ro:0000052 :FlagTest_Credit_ProviderOrg .
+
+:FlagTest_Credit_AssessmentDocProcess rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Flag Test Assessment Doc Process (Credit)" ;
+  ro:0000057 :FlagTest_CreditSystem_WithFraudProcess ;
+  ro:0000057 :FlagTest_Credit_ProviderOrg ;
+  cco:has_output :FlagTest_Credit_AssessmentDoc .
+
+:FlagTest_Credit_AssessmentDoc rdf:type :AssessmentDocumentation ;
+  rdfs:label "Flag Test Assessment Doc (Credit)" ;
+  iao:0000136 :FlagTest_CreditSystem_WithFraudProcess .
+
+:FlagTest_Credit_Obligation rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Flag Test Compliance Obligation (Credit)" ;
+  iao:0000136 :FlagTest_CreditSystem_WithFraudProcess ;
+  iao:0000136 :FlagTest_Credit_ProviderRole .
+
+:FlagTest_Credit_Determination rdf:type :HighRiskDetermination ;
+  rdfs:label "Flag Test High-Risk Determination (Credit)" ;
+  iao:0000136 :FlagTest_CreditSystem_WithFraudProcess .

@@ -1,0 +1,33 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# AUDIT LAYER ONLY — flag, not classification.
+#
+# Returns TRUE when:
+#   (a) the system is entailed as AnnexIII5bApplicableSystem (creditworthiness), AND
+#   (b) the system's IntendedUseSpecification prescribes a FraudDetectionProcess token.
+#
+# Condition (b) reflects the explicit legal carve-out in Annex III 5(b):
+# "with the exception of AI systems used for the purpose of detecting financial fraud."
+#
+# A system satisfying both conditions may qualify for the 5(b) fraud exclusion.
+# This query does NOT determine whether the exclusion applies — that requires
+# human legal judgment about whether fraud detection is the primary purpose.
+#
+# If TRUE, the certificate emits FLAGGED and directs human review.
+# OWL classification (AnnexIII5bApplicableSystem) is UNCHANGED by this flag.
+#
+# The pipeline substitutes :Sentinel_ID_System with the actual system IRI
+# when --system is provided.
+
+ASK WHERE {
+  :Sentinel_ID_System rdf:type :AnnexIII5bApplicableSystem .
+
+  ?ius rdf:type :IntendedUseSpecification ;
+       iao:0000136 :Sentinel_ID_System ;
+       cco:prescribes ?proc .
+
+  ?proc rdf:type :FraudDetectionProcess .
+}

@@ -1,0 +1,29 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# AUDIT LAYER ONLY — flag, not classification.
+#
+# Returns TRUE when a provider has submitted a DerogationClaim artifact
+# that is_about the system under evaluation.
+#
+# A DerogationClaim is a provider-asserted ICE (cco:DescriptiveInformationContentEntity)
+# representing a claim that the system qualifies for the Article 6(3) derogation:
+# "shall not be considered to be high-risk where it does not pose a significant risk
+# of harm to the health, safety or fundamental rights of natural persons."
+#
+# This query does NOT evaluate whether the derogation applies. It only detects
+# that a claim artifact exists in the documentary record. If TRUE, the certificate
+# emits FLAGGED and directs human legal review before treating the OWL classification
+# as a final legal determination.
+#
+# OWL classification is UNCHANGED by this flag. The flag fires after OWL-RL
+# reasoning is complete and does not affect any gate condition.
+#
+# The pipeline substitutes :Sentinel_ID_System with the actual system IRI
+# when --system is provided.
+
+ASK WHERE {
+  ?claim rdf:type :DerogationClaim ;
+         iao:0000136 :Sentinel_ID_System .
+}

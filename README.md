@@ -2,11 +2,11 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-Companies are building AI systems without knowing whether those systems will be classified as high-risk under the EU AI Act and other regulatory frameworks. When that determination happens after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
+Companies are building AI systems without knowing whether those systems will satisfy the high-risk conditions of the EU AI Act and other regulatory frameworks. When that exposure surfaces after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
 
-ARCO moves that risk decision upstream. It is a pre-deployment regulatory classification engine that tells organizations — before deployment, before sunk costs, before regulatory exposure — whether a system triggers high-risk conditions and exactly why.
+ARCO moves that risk decision upstream. It is a pre-deployment classification engine that tells organizations — before deployment, before sunk costs, before regulatory exposure — whether a system satisfies ARCO's formal encoding of Annex III conditions, and exactly why.
 
-The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable regulatory determination backed by formal logic.
+The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable determination backed by formal logic: same inputs, same classification, every time.
 
 **TL;DR**
 - ARCO is a deterministic regulatory classification framework aligned with BFO realist ontology and using local CCO stubs for governance vocabulary. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you — before you build — whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
@@ -28,7 +28,7 @@ All three gates must be satisfied for entailment. A system bearing only a biomet
 
 ## What organizations get
 
-- **Regulatory clarity at design time** — know whether your system is high-risk before you build it, not after you deploy it
+- **Regulatory clarity at design time** — know whether your system satisfies Annex III conditions before you build it, not after you deploy it
 - **Audit-ready evidence** — every classification traces back through components, capabilities, and regulatory criteria with no gaps
 - **Reduced regulatory exposure** — identify classification triggers while architecture changes are still cheap
 - **Repeatable, defensible determinations** — same system description in, same classification out, every time

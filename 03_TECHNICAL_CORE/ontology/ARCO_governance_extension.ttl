@@ -236,6 +236,16 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment "Legal designation under EU law. Not a biological kind — modeled as a BFO Role." ;
   rdfs:subClassOf bfo:0000023 . # Role
 
+:FraudDetectionProcess rdf:type owl:Class ;
+  rdfs:label "Fraud Detection Process" ;
+  rdfs:comment "Process whose primary purpose is detecting financial fraud. Relevant to the 5(b) fraud exclusion (Annex III 5(b) second clause: 'with the exception of AI systems used for the purpose of detecting financial fraud'). A system whose IntendedUseSpecification prescribes a FraudDetectionProcess token — and which is also classified as AnnexIII5bApplicableSystem — may qualify for the fraud exclusion. This class is used by the audit-layer SPARQL flag only; it does not participate in any OWL gate condition. Provider-declared: this classification cannot be verified by the ontology." ;
+  rdfs:subClassOf bfo:0000015 . # Process
+
+:DerogationClaim rdf:type owl:Class ;
+  rdfs:label "Derogation Claim" ;
+  rdfs:comment "PROVIDER-ASSERTED ARTIFACT. A descriptive ICE representing a provider's claim that their system qualifies for the Article 6(3) derogation ('shall not be considered to be high-risk where it does not pose a significant risk of harm'). This class is used by the audit-layer SPARQL flag only; it does NOT affect OWL classification. The ontology cannot evaluate whether a derogation claim is valid — that requires human legal judgment. When a DerogationClaim is_about a classified system, the audit layer emits a FLAGGED notice directing human review. NEVER use this class as a gate condition or in an equivalentClass axiom." ;
+  rdfs:subClassOf cco:DescriptiveInformationContentEntity .
+
 #################################################################
 # 4b) COMPLIANCE OBLIGATION MODELING
 #
