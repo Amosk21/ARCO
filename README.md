@@ -11,7 +11,7 @@ The output is not a score, a confidence level, or an advisory opinion. It is a d
 **TL;DR**
 - ARCO is a deterministic regulatory classification framework aligned with BFO realist ontology and using local CCO stubs for governance vocabulary. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you — before you build — whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
 - Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology (CCO terms as local stubs), with no probabilistic scoring and no LLMs in the decision loop.
-- Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` to produce a regulatory determination certificate with a full evidence path from system components through capabilities to regulatory criteria.
+- Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
 
 **What's modeled (current scope)**
 
@@ -93,7 +93,7 @@ ARCO moves that risk decision upstream — to design time, where it costs a frac
 3. SHACL validation enforces documentary completeness
 4. SPARQL audit queries run on the reasoned graph as a downstream documentation layer — confirming that the right content is explicitly declared and that the law's process prescription aligns with the provider's documentation. These queries inspect what the reasoning produced; they do not produce the classification themselves.
 
-**Output:** A regulatory determination certificate with full evidence path — which component bears which capability, which regulatory condition it triggers, and why.
+**Output:** A formal condition assessment certificate with full evidence path — which component bears which capability, which Annex III condition it satisfies, and why.
 
 The system is **agnostic by design**. New AI systems are evaluated by authoring new instance data against the same framework. The core ontology, validation rules, and classification logic do not change.
 
@@ -196,7 +196,7 @@ The pipeline will:
 4. Run two layers of checks:
    - **Classification layer (OWL-RL):** SHACL conformance, HighRiskSystem entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs
    - **Audit documentation layer (SPARQL ASK on reasoned graph):** traceability, latent risk, intended use, obligation linkage, regulatory alignment — these inspect declared documentary content and confirm it matches what the classification requires
-5. Emit a regulatory determination certificate with evidence path
+5. Emit a formal condition assessment certificate with evidence path
 6. Write artifact files to `runs/demo/` (certificate, summary JSON, evidence bindings, SHACL report)
 
 ### Run in GitHub Actions

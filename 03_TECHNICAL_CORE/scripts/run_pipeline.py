@@ -7,7 +7,7 @@ Stages:
 3) SHACL validation
 4) SPARQL audit checks (ASK)
 5) Verify HighRiskSystem entailment + evidence path
-6) Print regulatory determination certificate
+6) Print formal Annex III condition assessment certificate
 
 Modeling relation: RO_0000091 has_disposition (per OBO Foundry / RO best practice)
 """
@@ -63,6 +63,14 @@ ARCO_NS = "https://arco.ai/ontology/core#"
 # ---------------------------
 # helpers
 # ---------------------------
+
+def _repo_relative(p: Path) -> str:
+    """Return path relative to REPO_ROOT, or the absolute path string as fallback."""
+    try:
+        return str(p.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(p)
+
 
 def hr(title: str, width: int = 72) -> None:
     print("\n" + "=" * width)
@@ -444,6 +452,8 @@ def write_html_view(
     summary_raw: str,
     evidence_raw: str,
     gate_evidence: dict | None = None,
+    derogation_flagged: bool = False,
+    fraud_flagged: bool = False,
 ) -> None:
     """Write a self-contained static HTML determination view to output_dir.
 
@@ -1267,6 +1277,34 @@ section {{ scroll-margin-top: 1rem }}
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
+     LAYER 6: EXCEPTION FLAGS
+     ═══════════════════════════════════════════════════════════ -->
+<section id="exception-flags">
+  <h2>Exception Flags &mdash; Provider-Submitted Claims</h2>
+  <p class="gate-intro" style="margin-bottom:1rem">
+    These flags detect provider-submitted claim artifacts in the instance data.
+    They are <strong>informational only</strong> and do not affect the OWL-RL
+    classification or audit-layer pass/fail result. A flagged claim requires
+    independent human legal review before any regulatory reliance.
+  </p>
+  <table class="audit-table">
+    <thead><tr><th>Exception Type</th><th>Legal Basis</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Art. 6(3) derogation</td>
+        <td class="layer">provider claim / DerogationClaim artifact</td>
+        <td>{"<span class='badge ba'>FLAGGED &mdash; human review required</span>" if derogation_flagged else "<span class='badge bp'>NOT FLAGGED</span>"}</td>
+      </tr>
+      <tr>
+        <td>5(b) fraud exclusion</td>
+        <td class="layer">provider claim / FraudDetectionProcess artifact</td>
+        <td>{"<span class='badge ba'>FLAGGED &mdash; human review required</span>" if fraud_flagged else "<span class='badge bp'>NOT FLAGGED</span>"}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
      FOOTER
      ═══════════════════════════════════════════════════════════ -->
 <footer>
@@ -1491,7 +1529,7 @@ def main() -> None:
     hr("REGULATORY DETERMINATION CERTIFICATE")
     print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     print(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
-    print(f"  INPUT INSTANCE:          {INSTANCES.name}  ({INSTANCES.relative_to(REPO_ROOT)})")
+    print(f"  INPUT INSTANCE:          {INSTANCES.name}  ({_repo_relative(INSTANCES)})")
     if classification_mode in ("INFERRED", "ASSERTED"):
         print(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -1530,7 +1568,7 @@ def main() -> None:
     cert_lines.append("=" * 72)
     cert_lines.append(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     cert_lines.append(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
-    cert_lines.append(f"  INPUT INSTANCE:          {INSTANCES.name}  ({INSTANCES.relative_to(REPO_ROOT)})")
+    cert_lines.append(f"  INPUT INSTANCE:          {INSTANCES.name}  ({_repo_relative(INSTANCES)})")
     if classification_mode in ("INFERRED", "ASSERTED"):
         cert_lines.append(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
     else:
@@ -1567,7 +1605,7 @@ def main() -> None:
         "system": SYSTEM_LOCAL,
         "regime": "ARCO ontology encoding of EU AI Act (Article 6 / Annex III)",
         "instance_file_name": INSTANCES.name,
-        "instance_file_path": str(INSTANCES.relative_to(REPO_ROOT)),
+        "instance_file_path": str(_repo_relative(INSTANCES)),
         "classification": f"HighRiskSystem ({classification_mode})" if classification_mode in ("INFERRED", "ASSERTED") else classification_mode,
         "shacl": _pf(shacl_ok),
         "traceability": _pf(traceability_ok),
@@ -1594,12 +1632,12 @@ def main() -> None:
     # determination_packet.json — compact intermediate representation;
     # the HTML view is rendered from this, not from scattered Python logic.
     determination_packet = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "system_uri": SYSTEM_IRI,
         "system_label": SYSTEM_LOCAL.replace("_", " "),
         "run_id": datetime.now(timezone.utc).isoformat(),
         "instance_file_name": INSTANCES.name,
-        "instance_file_path": str(INSTANCES.relative_to(REPO_ROOT)),
+        "instance_file_path": str(_repo_relative(INSTANCES)),
         "classification": "HIGH_RISK" if classification_mode in ("INFERRED", "ASSERTED") else "NOT_HIGH_RISK",
         "classification_mode": classification_mode,
         "annex_categories": [
@@ -1671,6 +1709,8 @@ def main() -> None:
         summary_raw=json.dumps(summary, indent=2),
         evidence_raw=json.dumps(evidence, indent=2),
         gate_evidence=gate_evidence,
+        derogation_flagged=derogation_flagged,
+        fraud_flagged=fraud_flagged,
     )
 
     # shacl_report.txt
