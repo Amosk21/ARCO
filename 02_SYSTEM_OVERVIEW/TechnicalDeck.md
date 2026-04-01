@@ -168,18 +168,22 @@ Traditional ETL pipelines operate at the schema level, not the semantic level. P
 
 ## Architecture & Project Alignment
 
-### 3-Stage Architecture
+### Current Determination Architecture
 
-**Stage 1: Extraction (Neuro)**
-LLM extracts candidate capabilities from unstructured text (linguistic extraction only — not legal interpretation)
+**Stage 1: Structured Representation**
+System descriptions are currently modeled as hand-authored ontology instances grounded in BFO distinctions and CCO-informed governance vocabulary.
 
-**Stage 2: Representation (Symbolic)**
-BFO grounding represents extracted claims as axioms
+**Stage 2: Classification (Logic)**
+OWL-RL reasoning infers classifications from bridge axioms over the modeled graph.
 
-**Stage 3: Classification (Logic)**
-OWL-RL reasoning infers classifications from bridge axioms; SPARQL queries provide audit confirmation
+**Stage 3: Validation and Audit**
+SHACL checks documentary completeness and SPARQL queries inspect the reasoned graph as an audit/documentation layer.
 
-> Uses LLM for recall, Ontology for precision, Logic for determination
+> Current implementation: ontology for structure, logic for determination, SHACL/SPARQL for validation and audit.
+
+### Future Upstream Intake (Not in Current Pipeline)
+
+A future intake layer may help generate candidate structured assertions from unstructured documentation, but it is not part of ARCO's current determination pipeline and does not participate in classification.
 
 ---
 

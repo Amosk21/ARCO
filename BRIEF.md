@@ -21,7 +21,7 @@ ARCO applies OWL-RL reasoning over a BFO/CCO-aligned ontology to produce a **det
 
 Each determination includes:
 
-- A signed certificate naming the triggering capability, evidence path, and classification
+- A condition assessment certificate naming the triggering capability, evidence path, and classification
 - Two verification layers: OWL-RL classification (the formal entailment that produces the determination) and SPARQL ASK audit queries that run on the reasoned graph to confirm documentary content is explicitly declared and aligned with the regulatory condition — each boolean, each traceable
 - A SHACL validation report confirming structural completeness of the system description
 - A traceable chain: system capabilities → triggering classification → applicable obligations → provider role
@@ -63,7 +63,7 @@ Each gate checks specific content, not the existence of documentation alone. Gat
 | Art. 11 — Technical documentation | Reproducible classification with full provenance |
 | Art. 49 — Non-high-risk providers must document why | Same pipeline run, negative result, same audit trail |
 
-The output is not a checklist. It is a formal artifact that can be handed to a notified body, a national competent authority, or an internal audit team — and reproduced exactly on any subsequent run against the same system description.
+The output is not a checklist. It is a formal artifact that can support internal audit teams, notified-body preparation, and regulator-facing documentation — and be reproduced exactly on any subsequent run against the same system description.
 
 ---
 
