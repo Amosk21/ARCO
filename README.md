@@ -20,7 +20,7 @@ The output is not a score, a confidence level, or an advisory opinion. It is a d
 | 1(a) — Remote biometric identification | `BiometricIdentificationCapability` | `RemoteBiometricIdentificationProcess` | `NaturalPersonRole` |
 | 5(b) — Creditworthiness evaluation | `CreditworthinessEvaluationCapability` | `CreditworthinessEvaluationProcess` | `NaturalPersonRole` |
 
-All three gates must be satisfied for entailment. A system bearing only a biometric capability is **not** entailed as a creditworthiness system, and vice versa — cross-category isolation is formally enforced by the ontology, not asserted by hand.
+All three gates must be satisfied for category-specific Annex III applicability entailment. A system bearing only a biometric capability is **not** entailed as a creditworthiness system, and vice versa — cross-category isolation is formally enforced by the ontology, not asserted by hand. `HighRiskSystem` remains a Gate 1 latent-risk flag, not the full category-specific output.
 
 ---
 
@@ -46,7 +46,8 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
 ========================================================================
   SYSTEM:                  Sentinel_ID_System
   REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)
-  CLASSIFICATION:          HighRiskSystem (INFERRED)
+  PRIMARY ARCO CLASSIFICATION:  AnnexIII1aApplicableSystem (ENTAILED, all three ARCO gates)
+  LATENT-RISK FLAG:             HighRiskSystem (INFERRED, Gate 1 capability precondition only)
   TRIGGERING CAPABILITY:   Sentinel_FaceID_Disposition
   EVIDENCE PATH:
   Sentinel_ID_System -> Sentinel_FaceID_Module -> Sentinel_FaceID_Disposition
@@ -71,7 +72,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
 ========================================================================
 ```
 
-This determination is **derived**, not asserted. If the structural prerequisites for the regulated capability were not present, the classification would not be inferred. Full case study: [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
+This determination is **derived**, not asserted. If any category-specific gate were not present, the Annex III applicability class would not be inferred. Full case study: [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
 
 ---
 
@@ -89,7 +90,7 @@ ARCO moves that risk decision upstream — to design time, where it costs a frac
 
 **Process:**
 1. The system's structure is encoded in a formal ontology grounded in [BFO](https://basic-formal-ontology.org/) (the same foundational ontology used across biomedical, defense, and industrial standards)
-2. OWL-RL reasoning derives what the system is capable of and whether it meets the three-gate classification condition: capability (reality-side), prescribed process type (representation-side), and affected role category (representation-side). All three gates check specific content — not the existence of documentation alone.
+2. OWL-RL reasoning derives what the system is capable of and whether it meets the category-specific three-gate classification condition: capability (reality-side), prescribed process type (representation-side), and affected role category (representation-side). All three gates check specific content — not the existence of documentation alone.
 3. SHACL validation enforces documentary completeness
 4. SPARQL audit queries run on the reasoned graph as a downstream documentation layer — confirming that the right content is explicitly declared and that the law's process prescription aligns with the provider's documentation. These queries inspect what the reasoning produced; they do not produce the classification themselves.
 
@@ -194,7 +195,7 @@ The pipeline will:
 2. Run OWL-RL reasoning to materialize entailments (1426 asserted → 4868 post-reasoning)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
-   - **Classification layer (OWL-RL):** SHACL conformance, HighRiskSystem entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs
+   - **Classification layer (OWL-RL):** SHACL conformance, `HighRiskSystem` latent-risk entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs
    - **Audit documentation layer (SPARQL ASK on reasoned graph):** traceability, latent risk, intended use, obligation linkage, regulatory alignment — these inspect declared documentary content and confirm it matches what the classification requires
 5. Emit a formal condition assessment certificate with evidence path
 6. Write artifact files to `runs/demo/` (certificate, summary JSON, evidence bindings, SHACL report)

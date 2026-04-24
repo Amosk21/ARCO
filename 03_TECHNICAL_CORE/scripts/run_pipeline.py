@@ -6,7 +6,7 @@ Stages:
 2) OWL-RL reasoning (materialize entailments)
 3) SHACL validation
 4) SPARQL audit checks (ASK)
-5) Verify HighRiskSystem entailment + evidence path
+5) Verify HighRiskSystem latent-risk entailment + evidence path
 6) Print formal Annex III condition assessment certificate
 
 Modeling relation: RO_0000091 has_disposition (per OBO Foundry / RO best practice)
@@ -253,6 +253,26 @@ def _short(iri: str) -> str:
         return "Anonymous Entity (Blank Node)"
     return iri.rsplit("#", 1)[-1] if "#" in iri else iri.rsplit("/", 1)[-1]
 
+def get_primary_arco_classes(annex_iii_1a_ok, annex_iii_5b_ok) -> list[str]:
+    classes = []
+    if annex_iii_1a_ok:
+        classes.append("AnnexIII1aApplicableSystem")
+    if annex_iii_5b_ok:
+        classes.append("AnnexIII5bApplicableSystem")
+    return classes
+
+def format_primary_arco_classification(primary_classes: list[str]) -> str:
+    if not primary_classes:
+        return "NONE (no category-specific Annex III applicability class entailed)"
+    return ", ".join(
+        f"{cls} (ENTAILED, all three ARCO gates)" for cls in primary_classes
+    )
+
+def format_latent_risk_flag(classification_mode: str) -> str:
+    if classification_mode in ("INFERRED", "ASSERTED"):
+        return f"HighRiskSystem ({classification_mode}, Gate 1 capability precondition only)"
+    return "HighRiskSystem (NOT PRESENT, Gate 1 capability precondition not detected)"
+
 def get_primary_bindings(g: Graph, system_local: str = "Sentinel_ID_System") -> list[tuple[str, str]]:
     rows = []
     try:
@@ -417,11 +437,11 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bo
 
     if entailed_post:
         sub("SUCCESS")
-        print("HighRiskSystem classification is present AND justified by an explicit structural path.")
+        print("HighRiskSystem latent-risk flag is present AND justified by an explicit structural path.")
         return True, asserted_pre, entailed_post, bindings
 
     sub("FAIL")
-    print("HighRiskSystem was not inferred.")
+    print("HighRiskSystem latent-risk flag was not inferred.")
     print("Common causes:")
     print("  - owlrl not installed (no reasoning step)")
     print("  - bridge axiom uses a different predicate than the instances")
@@ -482,7 +502,7 @@ def write_html_view(
 
     # ── classification labels ──────────────────────────────────────
     is_high_risk = classification_mode in ("INFERRED", "ASSERTED")
-    result_label = "HighRiskSystem" if is_high_risk else "NOT CLASSIFIED AS HIGH RISK"
+    result_label = "HighRiskSystem latent-risk flag" if is_high_risk else "NO ARCO CATEGORY OR LATENT-RISK FLAG"
 
     # ── derive triggered Annex III categories from pipeline results ─
     triggered_categories = []
@@ -507,32 +527,37 @@ def write_html_view(
             "role": "Natural persons",
         })
 
+    has_applicable_category = bool(triggered_categories)
+    primary_arco_classes = get_primary_arco_classes(annex_iii_1a_ok, annex_iii_5b_ok)
+    primary_result_label = ", ".join(primary_arco_classes) if primary_arco_classes else "No category-specific ARCO class"
+
     # ── human-readable system name ─────────────────────────────────
     sys_display = system_local.replace("_", " ")
 
     # ── build executive summary text ───────────────────────────────
-    if is_high_risk and triggered_categories:
+    if has_applicable_category:
         cat_list = ", ".join(c["label"] for c in triggered_categories)
         cap_list = ", ".join(c["capability"] for c in triggered_categories)
         summary_text = (
-            f"{sys_display} is classified as <strong>High Risk</strong> per "
-            f"ARCO's ontology encoding of EU AI Act Annex III. The system possesses "
-            f"a {cap_list}, triggering {cat_list}. All three regulatory gates are "
-            f"satisfied for each applicable category, and the classification was "
-            f"{classification_mode.lower()} by OWL-RL formal reasoning over "
+            f"{sys_display} has a <strong>category-specific ARCO applicability "
+            f"classification</strong> under ARCO's ontology encoding of EU AI Act "
+            f"Annex III. The system possesses a {cap_list}, triggering {cat_list}. "
+            f"All three regulatory gates are satisfied for each applicable category, "
+            f"and the category class was entailed by OWL-RL formal reasoning over "
             f"{inferred_added:,} entailed triples."
         )
     elif is_high_risk:
         summary_text = (
-            f"{sys_display} is classified as <strong>High Risk</strong> per "
-            f"ARCO's ontology encoding of EU AI Act Annex III. Classification was "
-            f"{classification_mode.lower()} by OWL-RL formal reasoning."
+            f"{sys_display} has a <strong>latent-risk flag</strong>: "
+            f"HighRiskSystem was {classification_mode.lower()} from the Gate 1 "
+            f"capability precondition, but no category-specific Annex III "
+            f"applicability class was entailed."
         )
     else:
         summary_text = (
-            f"{sys_display} was <strong>not classified as High Risk</strong> per "
-            f"ARCO's ontology encoding of EU AI Act Annex III based on current "
-            f"assertions. The OWL-RL reasoner did not entail HighRiskSystem membership."
+            f"{sys_display} has <strong>no category-specific ARCO classification</strong> "
+            f"and no HighRiskSystem latent-risk flag under ARCO's ontology encoding "
+            f"of EU AI Act Annex III based on current assertions."
         )
 
     if all_pass:
@@ -567,12 +592,19 @@ def write_html_view(
         return '<span class="badge bn">NOT APPLICABLE</span>'
 
     # ── mode badge ─────────────────────────────────────────────────
-    if classification_mode == "INFERRED":
-        mode_badge = '<span class="badge bi">INFERRED</span>'
+    if has_applicable_category:
+        mode_badge = '<span class="badge bi">ENTAILED</span>'
+    elif classification_mode == "INFERRED":
+        mode_badge = '<span class="badge bi">LATENT INFERRED</span>'
     elif classification_mode == "ASSERTED":
-        mode_badge = '<span class="badge ba">ASSERTED</span>'
+        mode_badge = '<span class="badge ba">LATENT ASSERTED</span>'
     else:
         mode_badge = '<span class="badge bn">NOT PRESENT</span>'
+
+    headline_label = (
+        "CATEGORY APPLICABLE" if has_applicable_category
+        else ("LATENT RISK ONLY" if is_high_risk else "NOT TRIGGERED")
+    )
 
     overall_badge = ('<span class="badge bp">ALL PASS</span>' if all_pass
                      else '<span class="badge bf">SOME FAIL</span>')
@@ -580,7 +612,7 @@ def write_html_view(
     # ── audit rows ─────────────────────────────────────────────────
     audit_rows = [
         ("SHACL conformance",        "classification / structure", _b(shacl_ok)),
-        ("HighRiskSystem entailment", "classification / OWL-RL",   _b(inference_ok)),
+        ("HighRiskSystem latent-risk flag", "classification / OWL-RL",   _b(inference_ok)),
         ("Annex III 1(a)",           "classification / OWL-RL",   _annex(annex_iii_1a_ok)),
         ("Annex III 5(b)",           "classification / OWL-RL",   _annex(annex_iii_5b_ok)),
         ("Traceability",             "audit / SPARQL",            _b(traceability_ok)),
@@ -608,7 +640,7 @@ def write_html_view(
         return (f'<div class="edge"><span class="earrow">\u2192</span>'
                 f'<span class="erel">{rel}</span>{sub}</div>')
 
-    result_node_cls = "nr-high" if is_high_risk else "nr-none"
+    result_node_cls = "nr-high" if has_applicable_category or is_high_risk else "nr-none"
 
     strip_html = (
         node("ns", "System", system_local)
@@ -619,7 +651,7 @@ def write_html_view(
         + edge_el("rdf:type \u2286")
         + node("nt", "AnnexIIITriggeringCapability", "(bridge axiom) \u2021")
         + edge_el("OWL-RL \u22a2")
-        + node(result_node_cls, "Classification", result_label)
+        + node(result_node_cls, "Primary Result", primary_result_label if has_applicable_category else result_label)
     )
 
     # ── gate cards (for Layer 2) ───────────────────────────────────
@@ -721,13 +753,13 @@ def write_html_view(
     else:
         counterfactual_html = (
             '<div class="cf-item"><p>No Annex III categories are currently triggered. '
-            'To trigger a high-risk classification, the system would need to satisfy '
-            'all three gates (capability, prescribed process, affected role) for at '
-            'least one Annex III category.</p></div>'
+            'To trigger a category-specific ARCO classification, the system would '
+            'need to satisfy all three gates (capability, prescribed process, '
+            'affected role) for at least one Annex III category.</p></div>'
         )
 
     # ── obligations text (Layer 3) ─────────────────────────────────
-    if is_high_risk:
+    if has_applicable_category:
         obligations_html = """
         <p class="fn" style="margin-bottom:0.9rem">
           <strong>Static regulatory reference</strong> &mdash; the obligation categories
@@ -789,7 +821,7 @@ def write_html_view(
     else:
         obligations_html = """
         <div class="obl-note">
-          <p>The system is not currently classified as high-risk. Standard transparency obligations under Title IV may still apply depending on the system's interaction with natural persons.</p>
+          <p>No category-specific Annex III applicability class is currently entailed. Standard transparency obligations under Title IV may still apply depending on the system's interaction with natural persons.</p>
         </div>"""
 
     # ── assemble full HTML ─────────────────────────────────────────
@@ -1182,9 +1214,9 @@ section {{ scroll-margin-top: 1rem }}
      ═══════════════════════════════════════════════════════════ -->
 <section id="summary">
   <h2>Executive Summary</h2>
-  <div class="exec-summary">
+    <div class="exec-summary">
     <div class="exec-banner">
-      <span class="classification">{"HIGH RISK" if is_high_risk else "NOT HIGH RISK"}</span>
+      <span class="classification">{headline_label}</span>
       {mode_badge}
       {overall_badge}
     </div>
@@ -1218,7 +1250,7 @@ section {{ scroll-margin-top: 1rem }}
     <span class="gr-arrow">&amp;</span>
     <span class="gr-label">Gate 3 {_gate_status_label(gate3_ok)}</span>
     <span class="gr-arrow">\u2192</span>
-    <span class="gr-final">{"HIGH RISK (Annex III)" if is_high_risk else "NOT TRIGGERED"}</span>
+    <span class="gr-final">{headline_label}</span>
   </div>
 </section>
 
@@ -1516,6 +1548,11 @@ def main() -> None:
     else:
         classification_mode = "NOT PRESENT"
 
+    primary_arco_classes = get_primary_arco_classes(annex_iii_1a_ok, annex_iii_5b_ok)
+    primary_arco_classification = format_primary_arco_classification(primary_arco_classes)
+    latent_risk_flag = format_latent_risk_flag(classification_mode)
+    primary_classification_mode = "ENTAILED" if primary_arco_classes else "NOT_ENTAILED"
+
     # Derive triggering capability class from bindings
     trigger_display = "N/A"
     if bindings:
@@ -1530,10 +1567,8 @@ def main() -> None:
     print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     print(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
     print(f"  INPUT INSTANCE:          {INSTANCES.name}  ({_repo_relative(INSTANCES)})")
-    if classification_mode in ("INFERRED", "ASSERTED"):
-        print(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
-    else:
-        print(f"  CLASSIFICATION:          {classification_mode}")
+    print(f"  PRIMARY ARCO CLASSIFICATION:  {primary_arco_classification}")
+    print(f"  LATENT-RISK FLAG:             {latent_risk_flag}")
     print(f"  TRIGGERING CAPABILITY:   {trigger_display}")
     if evidence_lines:
         print(f"  EVIDENCE PATH:")
@@ -1569,10 +1604,8 @@ def main() -> None:
     cert_lines.append(f"  SYSTEM:                  {SYSTEM_LOCAL}")
     cert_lines.append(f"  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)")
     cert_lines.append(f"  INPUT INSTANCE:          {INSTANCES.name}  ({_repo_relative(INSTANCES)})")
-    if classification_mode in ("INFERRED", "ASSERTED"):
-        cert_lines.append(f"  CLASSIFICATION:          HighRiskSystem ({classification_mode})")
-    else:
-        cert_lines.append(f"  CLASSIFICATION:          {classification_mode}")
+    cert_lines.append(f"  PRIMARY ARCO CLASSIFICATION:  {primary_arco_classification}")
+    cert_lines.append(f"  LATENT-RISK FLAG:             {latent_risk_flag}")
     cert_lines.append(f"  TRIGGERING CAPABILITY:   {trigger_display}")
     if evidence_lines:
         cert_lines.append(f"  EVIDENCE PATH:")
@@ -1606,7 +1639,12 @@ def main() -> None:
         "regime": "ARCO ontology encoding of EU AI Act (Article 6 / Annex III)",
         "instance_file_name": INSTANCES.name,
         "instance_file_path": str(_repo_relative(INSTANCES)),
-        "classification": f"HighRiskSystem ({classification_mode})" if classification_mode in ("INFERRED", "ASSERTED") else classification_mode,
+        "classification": primary_arco_classification,
+        "classification_mode": primary_classification_mode,
+        "primary_arco_classes": primary_arco_classes,
+        "latent_risk_flag": latent_risk_flag,
+        "latent_risk_class": "HighRiskSystem",
+        "latent_risk_mode": classification_mode,
         "shacl": _pf(shacl_ok),
         "traceability": _pf(traceability_ok),
         "latent_risk": (_pf(latent_ok) if latent_ok is not None else "N/A"),
@@ -1632,14 +1670,19 @@ def main() -> None:
     # determination_packet.json — compact intermediate representation;
     # the HTML view is rendered from this, not from scattered Python logic.
     determination_packet = {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "system_uri": SYSTEM_IRI,
         "system_label": SYSTEM_LOCAL.replace("_", " "),
         "run_id": datetime.now(timezone.utc).isoformat(),
         "instance_file_name": INSTANCES.name,
         "instance_file_path": str(_repo_relative(INSTANCES)),
-        "classification": "HIGH_RISK" if classification_mode in ("INFERRED", "ASSERTED") else "NOT_HIGH_RISK",
-        "classification_mode": classification_mode,
+        "classification": "CATEGORY_APPLICABLE" if primary_arco_classes else "NO_CATEGORY_APPLICABILITY",
+        "classification_mode": primary_classification_mode,
+        "primary_arco_classification": primary_arco_classification,
+        "primary_arco_classes": primary_arco_classes,
+        "latent_risk_flag": "PRESENT" if classification_mode in ("INFERRED", "ASSERTED") else "NOT_PRESENT",
+        "latent_risk_class": "HighRiskSystem",
+        "latent_risk_mode": classification_mode,
         "annex_categories": [
             c for c in (
                 "AnnexIII_1a" if annex_iii_1a_ok else None,

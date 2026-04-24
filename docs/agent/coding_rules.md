@@ -2,17 +2,17 @@
 
 ## Tech Stack
 - Python 3.10+, rdflib, pyshacl, owlrl
-- OWL 2 (Turtle syntax), SHACL, SPARQL ASK queries
-- OWL-RL reasoning profile via owlrl
-- GitHub Actions CI (`.github/workflows/arco-demo.yml`)
+- OWL 2 (Turtle syntax), SHACL, SPARQL ASK
+- OWL-RL reasoning via owlrl
+- GitHub Actions CI: `.github/workflows/arco-demo.yml`
 
 ## Repository Structure
 ```
 03_TECHNICAL_CORE/
   ontology/
-    ARCO_core.ttl              — Core ontology (BFO-aligned classes, bridge axioms)
-    ARCO_governance_extension.ttl — Provider roles, documentation workflow
-    ARCO_instances_sentinel.ttl   — Sentinel-ID demo instances
+    ARCO_core.ttl — Core ontology (BFO-aligned, bridge axioms)
+    ARCO_governance_extension.ttl — Provider roles, doc workflow
+    ARCO_instances_sentinel.ttl — Sentinel-ID demo
   validation/
     assessment_documentation_shape.ttl — SHACL shapes
   reasoning/
@@ -24,23 +24,23 @@
     check_intended_use.sparql
     check_obligation_link.sparql
   scripts/
-    run_pipeline.py            — Main execution pipeline
-    test_gate_removal.py       — Gate-removal regression test
-    test_scenarios.py          — Multi-scenario classification regression test
+    run_pipeline.py — Main execution
+    test_gate_removal.py — Gate-removal regression
+    test_scenarios.py — Multi-scenario classification regression
 ```
 
 ## Regression Testing
-Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` after every coherent unit of change.
+Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` after every coherent change.
 
 Pass criteria (two-layer):
-- **Classification layer** (OWL-RL + SHACL): OWL-RL reasoning runs without exception, SHACL conforms, HighRiskSystem entailment succeeds
-- **Audit layer** (SPARQL ASK on reasoned graph): all SPARQL audit queries return True
+- **Classification** (OWL-RL + SHACL): OWL-RL succeeds, SHACL conforms, `HighRiskSystem` latent-risk flag entails when Gate 1 is present, and category-specific classes such as `AnnexIII1aApplicableSystem` / `AnnexIII5bApplicableSystem` entail only when all applicable gates are present
+- **Audit** (SPARQL ASK on reasoned graph): all queries return True
 - Certificate emits with correct field values
-- Both layers report PASS, "ALL CHECKS PASSED" prints, exit 0
+- Both layers PASS, "ALL CHECKS PASSED" prints, exit 0
 
-SPARQL audit queries inspect documentary completeness on the reasoned graph. They do not produce or affect the classification result. An audit failure means incomplete documentation, not a wrong classification.
+SPARQL queries inspect documentary completeness post-reasoning. They document, not produce classification. Audit failure = incomplete documentation, not wrong classification.
 
-Do not batch changes that touch existing triples, restrictions, or shapes — test immediately.
+Don't batch changes to triples, restrictions, or shapes — test immediately.
 
 ## Pipeline
-Load ontology + instances → OWL-RL reasoning → SHACL validation → SPARQL ASK queries → emit REGULATORY DETERMINATION CERTIFICATE → write artifacts to `runs/demo/`
+Load ontology + instances → OWL-RL reasoning → SHACL validation → SPARQL ASK → emit ARCO CONDITION ASSESSMENT CERTIFICATE → write artifacts to `runs/demo/`

@@ -7,7 +7,7 @@ Full coding rules: `docs/agent/coding_rules.md`
 ## Pass Criteria
 
 Every pipeline run must satisfy both layers:
-- **Classification layer**: OWL-RL reasoning executes without exception, SHACL conforms (zero violations), HighRiskSystem entailment succeeds
+- **Classification layer**: OWL-RL reasoning executes without exception, SHACL conforms (zero violations), `HighRiskSystem` latent-risk entailment succeeds, and the applicable category-specific class (`AnnexIII1aApplicableSystem` or `AnnexIII5bApplicableSystem` for current demo categories) is reported separately when entailed
 - **Audit layer**: All SPARQL ASK queries return True (documentary completeness on the reasoned graph)
 - Certificate emits with correct field values
 - Both layers report PASS, "ALL CHECKS PASSED" prints, exit 0
@@ -34,7 +34,7 @@ SPARQL audit queries do not produce or affect the classification result. An audi
 **No hardcoded expected values** — Pipeline assertions about entailed triple counts should use a minimum threshold (e.g., `> asserted_count`), not an exact expected value that silently passes on a wrong reasoner run.
 
 **Certificate field integrity** — Every certificate field must reflect a specific formal result from a specific layer. No field may be hardcoded, approximated, or inferred from another field:
-- Classification fields (`HighRiskSystem`, `AnnexIII1a`) → presence in OWL-RL graph post-reasoning
+- Classification fields (`AnnexIII1aApplicableSystem`, `AnnexIII5bApplicableSystem`) and latent-risk field (`HighRiskSystem`) → presence in OWL-RL graph post-reasoning
 - Validation field (`SHACL`) → pyshacl conformance return value
 - Audit fields (`Traceability`, `Latent Risk`, `Intended Use`, `Obligation`, `Reg. Aligned`) → individual SPARQL ASK return values
 - Triple counts → actual reasoner output, not a stored constant
