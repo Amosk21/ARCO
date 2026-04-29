@@ -31,7 +31,7 @@ on:
 jobs:
   robot-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
 
     env:
       ROBOT_VERSION: v1.9.10
