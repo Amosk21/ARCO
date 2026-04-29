@@ -1,6 +1,8 @@
-name: ROBOT Tooling Smoke Test
+name: ROBOT Tooling — Smoke Test + OWL 2 DL Profile Validation
 
-# Phase 0 of the ROBOT integration plan: confirm ROBOT installs and runs in CI.
+# Phase 0: confirm ROBOT installs and runs in CI.
+# Phase 1: merge ARCO ontology files and run robot validate-profile --profile DL.
+#           Result is informational only — Phase 1 does not gate CI.
 # This workflow is additive — it does not modify or replace any existing workflow.
 # It runs only on the tooling/** and experiment/** branches and on PRs to main.
 
@@ -53,3 +55,51 @@ jobs:
           set -euo pipefail
           java -jar ~/.local/share/robot/robot.jar --version
           echo "ROBOT smoke test PASSED."
+
+      # Phase 1: OWL 2 DL profile validation
+      # Merges the same files the Python pipeline loads, then runs validate-profile.
+      # Non-gating: step always exits 0 so CI passes regardless of outcome.
+      # The profile report is printed to logs and uploaded as an artifact for review.
+      - name: Merge ARCO ontology files
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROBOT="java -jar ~/.local/share/robot/robot.jar"
+          $ROBOT merge \
+            --input "03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl" \
+            --input "03_TECHNICAL_CORE/ontology/ARCO_core.ttl" \
+            --input "03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl" \
+            --input "03_TECHNICAL_CORE/ontology/ARCO_instances_sentinel.ttl" \
+            --output /tmp/arco_merged.owl
+          echo "Merge complete: /tmp/arco_merged.owl"
+
+      - name: Validate OWL 2 DL profile (informational)
+        shell: bash
+        run: |
+          ROBOT="java -jar ~/.local/share/robot/robot.jar"
+          mkdir -p /tmp/robot-reports
+
+          # Capture exit code without failing the step
+          $ROBOT validate-profile \
+            --profile DL \
+            --input /tmp/arco_merged.owl \
+            --output /tmp/robot-reports/dl_profile_report.txt \
+            2>&1 || PROFILE_EXIT=$?
+
+          echo "=== OWL 2 DL Profile Report ==="
+          cat /tmp/robot-reports/dl_profile_report.txt || echo "(no report file generated)"
+          echo "=== Profile validation exit code: ${PROFILE_EXIT:-0} ==="
+
+          if [ "${PROFILE_EXIT:-0}" -eq 0 ]; then
+            echo "RESULT: ARCO is OWL 2 DL conformant."
+          else
+            echo "RESULT: ARCO has OWL 2 DL profile violations — see report above."
+          fi
+
+      - name: Upload profile report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owl2-dl-profile-report
+          path: /tmp/robot-reports/
+          if-no-files-found: warn
