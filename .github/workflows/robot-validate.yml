@@ -1,0 +1,239 @@
+name: ROBOT Validation
+
+# Independent DL validation using ROBOT (v1.9.10) and HermiT.
+# Runs alongside the production owlrl pipeline as a cross-check, not a replacement.
+#
+# Phase 0: confirm ROBOT installs and runs in CI.
+# Phase 1: merge ARCO ontology files and run robot validate-profile --profile DL.
+#           Confirms the ontology is OWL 2 DL conformant.
+#           Result is informational only -- Phase 1 does not gate CI.
+# Phase 2: run robot reason --reasoner HermiT with full ABox materialization.
+#           Flags: --axiom-generators "ClassAssertion SubClass" --include-indirect true
+#           Required so HermiT propagates individual classifications through the
+#           inferred SubClass chain. Without --include-indirect true, ClassAssertion
+#           only materializes direct equivalentClass hits and misses transitive steps.
+#           Result is informational only -- Phase 2 does not gate CI.
+# Phase 3: run ARCO's SPARQL classification queries against the HermiT-reasoned graph
+#           and compare to the owlrl baseline. Confirms both reasoners agree.
+#           Disagreement would indicate RL incompleteness or unexpected DL entailments.
+#           Result is informational only -- Phase 3 does not gate CI.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+      - 'tooling/**'
+      - 'experiment/**'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  robot-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      ROBOT_VERSION: v1.9.10
+      ROBOT_JAR_URL: https://github.com/ontodev/robot/releases/download/v1.9.10/robot.jar
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache ROBOT JAR
+        id: cache-robot
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/robot/robot.jar
+          key: robot-${{ env.ROBOT_VERSION }}
+
+      - name: Download ROBOT
+        if: steps.cache-robot.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/share/robot
+          curl -L -o ~/.local/share/robot/robot.jar "$ROBOT_JAR_URL"
+
+      - name: Verify ROBOT version
+        shell: bash
+        run: |
+          set -euo pipefail
+          java -jar ~/.local/share/robot/robot.jar --version
+          echo "ROBOT smoke test PASSED."
+
+      # Phase 1: OWL 2 DL profile validation
+      # Merges the same files the Python pipeline loads, then runs validate-profile.
+      # Non-gating: step always exits 0 so CI passes regardless of outcome.
+      # The profile report is printed to logs and uploaded as an artifact for review.
+      - name: Merge ARCO ontology files
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
+          $ROBOT merge \
+            --input "03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl" \
+            --input "03_TECHNICAL_CORE/ontology/ARCO_core.ttl" \
+            --input "03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl" \
+            --input "03_TECHNICAL_CORE/ontology/ARCO_instances_sentinel.ttl" \
+            --output /tmp/arco_merged.owl
+          echo "Merge complete: /tmp/arco_merged.owl"
+
+      - name: Validate OWL 2 DL profile (informational)
+        shell: bash
+        run: |
+          ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
+          mkdir -p /tmp/robot-reports
+
+          # Capture exit code without failing the step
+          $ROBOT validate-profile \
+            --profile DL \
+            --input /tmp/arco_merged.owl \
+            --output /tmp/robot-reports/dl_profile_report.txt \
+            2>&1 || PROFILE_EXIT=$?
+
+          echo "=== OWL 2 DL Profile Report ==="
+          cat /tmp/robot-reports/dl_profile_report.txt || echo "(no report file generated)"
+          echo "=== Profile validation exit code: ${PROFILE_EXIT:-0} ==="
+
+          if [ "${PROFILE_EXIT:-0}" -eq 0 ]; then
+            echo "RESULT: ARCO is OWL 2 DL conformant."
+          else
+            echo "RESULT: ARCO has OWL 2 DL profile violations. See report above."
+          fi
+
+      - name: Upload profile report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owl2-dl-profile-report
+          path: /tmp/robot-reports/
+          if-no-files-found: warn
+
+      # Phase 2: HermiT DL reasoning
+      # Runs HermiT on the same merged ontology used in Phase 1.
+      # Confirms ontology is DL-consistent and reasoner terminates without error.
+      # Non-gating: step always exits 0 so CI passes regardless of outcome.
+      # Reasoned graph uploaded as artifact for later comparison vs owlrl output.
+      - name: Reason with HermiT (informational)
+        shell: bash
+        run: |
+          ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
+          mkdir -p /tmp/robot-reports
+
+          # --axiom-generators "ClassAssertion SubClass": materialize both individual
+          # type assertions and class subsumptions. ClassAssertion alone only fires
+          # on direct equivalentClass hits; SubClass is needed for the TBox side.
+          # --include-indirect true: propagate ClassAssertions through the inferred
+          # SubClass chain. Without this, Sentinel_ID_System : HighRiskSystem is
+          # not emitted even though AnnexIII1aApplicableSystem subClassOf HighRiskSystem
+          # is inferred and Sentinel : AnnexIII1aApplicableSystem is direct.
+          $ROBOT reason \
+            --reasoner hermit \
+            --axiom-generators "ClassAssertion SubClass" \
+            --include-indirect true \
+            --input /tmp/arco_merged.owl \
+            --output /tmp/robot-reports/arco_reasoned.owl \
+            2>&1 | tee /tmp/robot-reports/hermit_log.txt || REASON_EXIT=$?
+
+          echo "=== HermiT reasoning exit code: ${REASON_EXIT:-0} ==="
+
+          if [ "${REASON_EXIT:-0}" -eq 0 ]; then
+            echo "RESULT: ARCO is consistent under HermiT. Reasoned graph produced."
+            ls -la /tmp/robot-reports/arco_reasoned.owl
+          else
+            echo "RESULT: HermiT reported a problem. See log above."
+          fi
+
+      - name: Upload HermiT reasoned graph
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermit-reasoned-graph
+          path: |
+            /tmp/robot-reports/arco_reasoned.owl
+            /tmp/robot-reports/hermit_log.txt
+          if-no-files-found: warn
+
+      # Phase 3: classification diff -- HermiT vs owlrl
+      # Loads the HermiT-reasoned graph and runs ARCO's SPARQL ASK classification
+      # queries against it, then compares results to the expected owlrl baseline.
+      # Both reasoners should produce identical classifications for the Sentinel-ID
+      # system (which is the system under evaluation in the default pipeline run).
+      # Non-gating: prints DISAGREEMENT message but exits 0.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install rdflib
+        shell: bash
+        run: |
+          python -m pip install --quiet rdflib
+
+      - name: Compare HermiT classifications vs owlrl (informational)
+        shell: bash
+        run: |
+          python - << 'PYEOF'
+          import sys
+          import rdflib
+          from pathlib import Path
+
+          REASONING_DIR = Path('03_TECHNICAL_CORE/reasoning')
+          HERMIT_GRAPH = '/tmp/robot-reports/arco_reasoned.owl'
+
+          queries = {
+              'high_risk':    REASONING_DIR / 'check_high_risk_inference.sparql',
+              'annex_1a':     REASONING_DIR / 'check_annex_iii_1a_entailment.sparql',
+              'annex_5b':     REASONING_DIR / 'check_annex_iii_5b_entailment.sparql',
+              'intended_use': REASONING_DIR / 'check_intended_use.sparql',
+              'traceability': REASONING_DIR / 'check_assessment_traceability.sparql',
+              'obligation':   REASONING_DIR / 'check_obligation_link.sparql',
+              'reg_align':    REASONING_DIR / 'check_regulatory_alignment.sparql',
+          }
+
+          # owlrl baseline for Sentinel-ID system (default pipeline target)
+          expected = {
+              'high_risk':    True,
+              'annex_1a':     True,
+              'annex_5b':     False,
+              'intended_use': True,
+              'traceability': True,
+              'obligation':   True,
+              'reg_align':    True,
+          }
+
+          g = rdflib.Graph()
+          g.parse(HERMIT_GRAPH, format='xml')
+          print(f'HermiT-reasoned graph loaded: {len(g)} triples')
+          print()
+          print(f'{"Query":<15} {"HermiT":>8}  {"owlrl":>8}   Status')
+          print('-' * 50)
+
+          mismatches = []
+          for name, qpath in queries.items():
+              sparql = qpath.read_text()
+              result = bool(g.query(sparql))
+              exp = expected[name]
+              match = result == exp
+              if not match:
+                  mismatches.append((name, result, exp))
+              status = 'OK' if match else 'MISMATCH'
+              print(f'{name:<15} {str(result):>8}  {str(exp):>8}   {status}')
+
+          print()
+          if mismatches:
+              print(f'DISAGREEMENT: {len(mismatches)}/{len(queries)} queries mismatch')
+              for name, hermit_r, owlrl_r in mismatches:
+                  print(f'  - {name}: HermiT={hermit_r}, owlrl={owlrl_r}')
+              print('Investigate: RL incompleteness vs unexpected DL entailment.')
+          else:
+              print(f'FULL AGREEMENT: HermiT and owlrl agree on all {len(queries)}/{len(queries)} classifications.')
+          PYEOF

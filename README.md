@@ -4,12 +4,12 @@
 
 Companies are building AI systems without knowing whether those systems will satisfy the high-risk conditions of the EU AI Act and other regulatory frameworks. When that exposure surfaces after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
 
-ARCO moves that risk decision upstream. It is a pre-deployment classification engine that tells organizations — before deployment, before sunk costs, before regulatory exposure — whether a system satisfies ARCO's formal encoding of Annex III conditions, and exactly why.
+ARCO moves that risk decision upstream. It is a pre-deployment classification engine that tells organizations (before deployment, before sunk costs, before regulatory exposure) whether a system satisfies ARCO's formal encoding of Annex III conditions, and exactly why.
 
 The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable assessment grounded in formal logic and BFO-aligned, CCO-informed structure: same structured inputs, same classification, every time.
 
 **TL;DR**
-- ARCO is a deterministic regulatory classification framework aligned with BFO realist ontology and using local CCO stubs for governance vocabulary. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you — before you build — whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
+- ARCO is a deterministic regulatory classification framework aligned with BFO realist ontology and using local CCO stubs for governance vocabulary. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you, before you build, whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
 - Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology (CCO terms as local stubs), with no probabilistic scoring and no LLMs in the decision loop.
 - From a fresh clone, install the Python dependencies and run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from the repository root to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
 
@@ -17,22 +17,22 @@ The output is not a score, a confidence level, or an advisory opinion. It is a d
 
 | Annex III category | Capability (Gate 1) | Prescribed process (Gate 2) | Affected role (Gate 3) |
 |--------------------|---------------------|-----------------------------|------------------------|
-| 1(a) — Remote biometric identification | `BiometricIdentificationCapability` | `RemoteBiometricIdentificationProcess` | `NaturalPersonRole` |
-| 5(b) — Creditworthiness evaluation | `CreditworthinessEvaluationCapability` | `CreditworthinessEvaluationProcess` | `NaturalPersonRole` |
+| 1(a): Remote biometric identification | `BiometricIdentificationCapability` | `RemoteBiometricIdentificationProcess` | `NaturalPersonRole` |
+| 5(b): Creditworthiness evaluation | `CreditworthinessEvaluationCapability` | `CreditworthinessEvaluationProcess` | `NaturalPersonRole` |
 
-All three gates must be satisfied for category-specific Annex III applicability entailment. A system bearing only a biometric capability is **not** entailed as a creditworthiness system, and vice versa — cross-category isolation is formally enforced by the ontology, not asserted by hand. `HighRiskSystem` remains a Gate 1 latent-risk flag, not the full category-specific output.
+All three gates must be satisfied for category-specific Annex III applicability entailment. A system bearing only a biometric capability is **not** entailed as a creditworthiness system, and vice versa. Cross-category isolation is formally enforced by the ontology, not asserted by hand. `HighRiskSystem` remains a Gate 1 latent-risk flag, not the full category-specific output.
 
 ---
 
-[![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml)
+[![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml) [![ROBOT Validation](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml)
 
 ## What organizations get
 
-- **Regulatory clarity at design time** — know whether your system satisfies Annex III conditions before you build it, not after you deploy it
-- **Audit-ready evidence** — every classification traces back through components, capabilities, and regulatory criteria with no gaps
-- **Reduced regulatory exposure** — identify classification triggers while architecture changes are still cheap
-- **Repeatable, defensible determinations** — same system description in, same classification out, every time
-- **No probabilistic model in the determination path** — current assessments run on hand-authored structured instances; formal logic drives the classification
+- **Regulatory clarity at design time:** know whether your system satisfies Annex III conditions before you build it, not after you deploy it
+- **Audit-ready evidence:** every classification traces back through components, capabilities, and regulatory criteria with no gaps
+- **Reduced regulatory exposure:** identify classification triggers while architecture changes are still cheap
+- **Repeatable, defensible determinations:** same system description in, same classification out, every time
+- **No probabilistic model in the determination path:** current assessments run on hand-authored structured instances; formal logic drives the classification
 
 > **The core value:** Replace probabilistic "confidence" with audit-traceable logical assessment grounded in ontologically disciplined structure.
 
@@ -80,21 +80,23 @@ This determination is **derived**, not asserted. If any category-specific gate w
 
 The root cause: systems are built without an explicit model of **what exists**, **what those things are capable of**, and **which regulatory conditions those capabilities trigger**. Early modeling choices quietly lock in regulatory exposure, but because those choices are treated as technical configuration rather than structural commitments, they escape governance entirely.
 
-ARCO moves that risk decision upstream — to design time, where it costs a fraction of post-deployment remediation.
+ARCO moves that risk decision upstream, to design time, where it costs a fraction of post-deployment remediation.
 
 ---
 
 ## How it works
 
-**Input:** A system description modeled as instances — components, roles, capabilities, intended use context.
+**Input:** A system description modeled as instances: components, roles, capabilities, intended use context.
 
 **Process:**
 1. The system's structure is encoded in a formal ontology grounded in [BFO](https://basic-formal-ontology.org/) (the same foundational ontology used across biomedical, defense, and industrial standards)
-2. OWL-RL reasoning derives what the system is capable of and whether it meets the category-specific three-gate classification condition: capability (reality-side), prescribed process type (representation-side), and affected role category (representation-side). All three gates check specific content — not the existence of documentation alone.
+2. OWL-RL reasoning derives what the system is capable of and whether it meets the category-specific three-gate classification condition: capability (reality-side), prescribed process type (representation-side), and affected role category (representation-side). All three gates check specific content, not the existence of documentation alone.
 3. SHACL validation enforces documentary completeness
-4. SPARQL audit queries run on the reasoned graph as a downstream documentation layer — confirming that the right content is explicitly declared and that the law's process prescription aligns with the provider's documentation. These queries inspect what the reasoning produced; they do not produce the classification themselves.
+4. SPARQL audit queries run on the reasoned graph as a downstream documentation layer, confirming that the right content is explicitly declared and that the law's process prescription aligns with the provider's documentation. These queries inspect what the reasoning produced; they do not produce the classification themselves.
 
-**Output:** A formal condition assessment certificate with full evidence path — which component bears which capability, which Annex III condition it satisfies, and why.
+**Output:** A formal condition assessment certificate with full evidence path: which component bears which capability, which Annex III condition it satisfies, and why.
+
+**Independent verification:** A separate CI workflow runs a second validation pass using [ROBOT](https://robot.obolibrary.org/) (v1.9.10) and HermiT, a full OWL 2 DL reasoner, on every push to main and every pull request. This workflow is independent of the production pipeline and confirms three things. First, the ontology is OWL 2 DL conformant: the gate axioms, including the anonymous inverse property expressions used in Gates 2 and 3, are valid under the OWL 2 Description Logic profile. Second, the ontology is consistent under a DL reasoner with no contradictions found. Third, the production OWL-RL reasoner and HermiT agree on all seven classification queries for the Sentinel-ID system: same input, same output, both reasoners. OWL-RL is a restricted fragment of OWL-DL, so the agreement check confirms RL is not producing classifications the full DL specification would reject or missing ones it would require.
 
 The system is **agnostic by design**. New AI systems are evaluated by authoring new instance data against the same framework. The core ontology, validation rules, and classification logic do not change.
 
@@ -104,9 +106,9 @@ The system is **agnostic by design**. New AI systems are evaluated by authoring 
 
 Liability attaches to what a system **is able to do**, not only to what it happens to be doing. Modern regulation classifies by capability, not configuration.
 
-ARCO treats capability as something that **resolves from structure** — traced from system components through dispositions to regulatory conditions. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes. If they are present, the classification follows as a logical consequence.
+ARCO treats capability as something that **resolves from structure**, traced from system components through dispositions to regulatory conditions. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes. If they are present, the classification follows as a logical consequence.
 
-This makes ARCO fundamentally different from post-hoc tools that observe behavior or score risk probabilistically. The classification is deterministic, traceable, and stable — it changes only when the system's structure changes.
+This makes ARCO fundamentally different from post-hoc tools that observe behavior or score risk probabilistically. The classification is deterministic, traceable, and stable. It changes only when the system's structure changes.
 
 ---
 
@@ -129,7 +131,7 @@ This makes ARCO fundamentally different from post-hoc tools that observe behavio
 
 While this repository demonstrates ARCO against the EU AI Act, the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
 
-Once a system's structure exists, certain regulatory futures are locked in unless the structure changes. ARCO surfaces those commitments early — before they appear as audit findings, regulatory enforcement, forced redesigns, or reputational loss.
+Once a system's structure exists, certain regulatory futures are locked in unless the structure changes. ARCO surfaces those commitments early, before they appear as audit findings, regulatory enforcement, forced redesigns, or reputational loss.
 
 ---
 
@@ -200,8 +202,8 @@ The pipeline will:
 2. Run OWL-RL reasoning to materialize entailments (1434 asserted -> 4907 post-reasoning)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
-   - **Classification layer (OWL-RL):** SHACL conformance, `HighRiskSystem` latent-risk entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs
-   - **Audit documentation layer (SPARQL ASK on reasoned graph):** traceability, latent risk, intended use, obligation linkage, regulatory alignment — these inspect declared documentary content and confirm it matches what the classification requires
+   - **Classification layer (OWL-RL):** SHACL conformance, `HighRiskSystem` latent-risk entailment, Annex III 1(a) three-gate entailment (the formal classification outputs)
+   - **Audit documentation layer (SPARQL ASK on reasoned graph):** traceability, latent risk, intended use, obligation linkage, regulatory alignment (inspects declared documentary content and confirms it matches what the classification requires)
 5. Emit a formal condition assessment certificate with evidence path
 6. Write artifact files to `runs/demo/` (certificate, summary JSON, determination packet, evidence bindings, SHACL report, HTML view)
 
