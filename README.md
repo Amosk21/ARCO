@@ -11,7 +11,7 @@ The output is not a score, a confidence level, or an advisory opinion. It is a d
 **TL;DR**
 - ARCO is a deterministic regulatory classification framework aligned with BFO realist ontology and using local CCO stubs for governance vocabulary. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you — before you build — whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
 - Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology (CCO terms as local stubs), with no probabilistic scoring and no LLMs in the decision loop.
-- Run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
+- From a fresh clone, install the Python dependencies and run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from the repository root to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
 
 **What's modeled (current scope)**
 
@@ -65,7 +65,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
   OBLIGATION:              PASS
   REG. ALIGNED:            PASS
 
-  ENTAILED TRIPLES ADDED:  +3442
+  ENTAILED TRIPLES ADDED:  +3473
 
   Classification layer: PASS
   Audit layer:          PASS
@@ -166,13 +166,24 @@ This repository is kept intentionally narrow: the public surface is the working 
 
 - Python 3.10 or newer
 
-### Install dependencies
+### Fresh clone
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/Amosk21/ARCO.git
+cd ARCO
 ```
 
-### Run the pipeline
+### Create a local environment and install dependencies
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+The virtual environment is local-only and intentionally not committed to the repository.
+
+### Run the pipeline from the repository root
 
 ```bash
 python 03_TECHNICAL_CORE/scripts/run_pipeline.py
@@ -181,13 +192,13 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 The pipeline will:
 
 1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (1426 asserted → 4868 post-reasoning)
+2. Run OWL-RL reasoning to materialize entailments (1434 asserted -> 4907 post-reasoning)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
    - **Classification layer (OWL-RL):** SHACL conformance, `HighRiskSystem` latent-risk entailment, Annex III 1(a) three-gate entailment — these are the formal classification outputs
    - **Audit documentation layer (SPARQL ASK on reasoned graph):** traceability, latent risk, intended use, obligation linkage, regulatory alignment — these inspect declared documentary content and confirm it matches what the classification requires
 5. Emit a formal condition assessment certificate with evidence path
-6. Write artifact files to `runs/demo/` (certificate, summary JSON, evidence bindings, SHACL report)
+6. Write artifact files to `runs/demo/` (certificate, summary JSON, determination packet, evidence bindings, SHACL report, HTML view)
 
 ### Run in GitHub Actions
 
