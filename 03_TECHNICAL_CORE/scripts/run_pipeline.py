@@ -19,7 +19,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from rdflib import Graph
+from rdflib import Graph, URIRef
 from pyshacl import validate
 
 try:
@@ -263,7 +263,7 @@ def get_primary_arco_classes(annex_iii_1a_ok, annex_iii_5b_ok) -> list[str]:
 
 def format_primary_arco_classification(primary_classes: list[str]) -> str:
     if not primary_classes:
-        return "NONE (no category-specific Annex III applicability class entailed)"
+        return "No ARCO classification within currently modeled categories: Annex III 1(a) and 5(b)."
     return ", ".join(
         f"{cls} (ENTAILED, all three ARCO gates)" for cls in primary_classes
     )
@@ -357,36 +357,40 @@ def select_gate_evidence(g: Graph, system_local: str = SYSTEM_LOCAL) -> dict:
         "gate3": {"uss_uri": "", "role_uri": f"{ARCO_NS}NaturalPersonRole", "role_label": ""},
     }
 
+    # Exception contract: query *execution* failure must raise (it indicates a
+    # broken query or graph), but zero rows is a valid empty evidence result
+    # (a system that does not satisfy a gate has no rows for that gate). Do not
+    # let negative systems crash because gate evidence is absent.
     try:
         rows = list(g.query(_select_cap_type_label(system_local)))
-        if rows:
-            r = rows[0]
-            cap_uri = str(r[0]) if r[0] else ""
-            packet["gate1"]["cap_type_uri"] = cap_uri
-            packet["gate1"]["cap_type_label"] = str(r[1]) if r[1] else _short(cap_uri)
-    except Exception:
-        pass
+    except Exception as e:
+        raise RuntimeError(f"select_gate_evidence: gate1 (cap_type_label) query failed: {e}")
+    if rows:
+        r = rows[0]
+        cap_uri = str(r[0]) if r[0] else ""
+        packet["gate1"]["cap_type_uri"] = cap_uri
+        packet["gate1"]["cap_type_label"] = str(r[1]) if r[1] else _short(cap_uri)
 
     try:
         rows = list(g.query(_select_gate2_process(system_local)))
-        if rows:
-            r = rows[0]
-            packet["gate2"]["ius_uri"] = str(r[0]) if r[0] else ""
-            packet["gate2"]["process_uri"] = str(r[1]) if r[1] else ""
-            ptype_uri = str(r[2]) if r[2] else ""
-            packet["gate2"]["process_type_uri"] = ptype_uri
-            packet["gate2"]["process_type_label"] = str(r[3]) if r[3] else _short(ptype_uri)
-    except Exception:
-        pass
+    except Exception as e:
+        raise RuntimeError(f"select_gate_evidence: gate2 (process) query failed: {e}")
+    if rows:
+        r = rows[0]
+        packet["gate2"]["ius_uri"] = str(r[0]) if r[0] else ""
+        packet["gate2"]["process_uri"] = str(r[1]) if r[1] else ""
+        ptype_uri = str(r[2]) if r[2] else ""
+        packet["gate2"]["process_type_uri"] = ptype_uri
+        packet["gate2"]["process_type_label"] = str(r[3]) if r[3] else _short(ptype_uri)
 
     try:
         rows = list(g.query(_select_gate3_role(system_local)))
-        if rows:
-            r = rows[0]
-            packet["gate3"]["uss_uri"] = str(r[0]) if r[0] else ""
-            packet["gate3"]["role_label"] = str(r[1]) if r[1] else "Natural Person Role"
-    except Exception:
-        pass
+    except Exception as e:
+        raise RuntimeError(f"select_gate_evidence: gate3 (role) query failed: {e}")
+    if rows:
+        r = rows[0]
+        packet["gate3"]["uss_uri"] = str(r[0]) if r[0] else ""
+        packet["gate3"]["role_label"] = str(r[1]) if r[1] else "Natural Person Role"
 
     return packet
 
@@ -502,7 +506,11 @@ def write_html_view(
 
     # ── classification labels ──────────────────────────────────────
     is_high_risk = classification_mode in ("INFERRED", "ASSERTED")
-    result_label = "HighRiskSystem latent-risk flag" if is_high_risk else "NO ARCO CATEGORY OR LATENT-RISK FLAG"
+    result_label = (
+        "HighRiskSystem latent-risk flag"
+        if is_high_risk
+        else "No ARCO classification within currently modeled categories: Annex III 1(a) and 5(b)."
+    )
 
     # ── derive triggered Annex III categories from pipeline results ─
     triggered_categories = []
@@ -555,9 +563,11 @@ def write_html_view(
         )
     else:
         summary_text = (
-            f"{sys_display} has <strong>no category-specific ARCO classification</strong> "
-            f"and no HighRiskSystem latent-risk flag under ARCO's ontology encoding "
-            f"of EU AI Act Annex III based on current assertions."
+            f"{sys_display}: <strong>No ARCO classification within currently modeled "
+            f"categories: Annex III 1(a) and 5(b).</strong> No HighRiskSystem latent-risk "
+            f"flag was inferred under ARCO's ontology encoding of EU AI Act Annex III "
+            f"based on current assertions. ARCO does not currently model other Annex III "
+            f"categories; absence here is not a determination about those other categories."
         )
 
     if all_pass:
@@ -603,7 +613,8 @@ def write_html_view(
 
     headline_label = (
         "CATEGORY APPLICABLE" if has_applicable_category
-        else ("LATENT RISK ONLY" if is_high_risk else "NOT TRIGGERED")
+        else ("LATENT RISK ONLY" if is_high_risk
+              else "NO ARCO CATEGORY (1(a) OR 5(b))")
     )
 
     overall_badge = ('<span class="badge bp">ALL PASS</span>' if all_pass
@@ -1226,6 +1237,13 @@ section {{ scroll-margin-top: 1rem }}
       '<div class="cat-title">' + c["title"] + '</div></div>'
       for c in triggered_categories
     ) + "</div>" if triggered_categories else ""}
+    <p class="exec-text" style="font-size:0.85em;border-left:3px solid #888;padding-left:0.75rem;margin-top:1rem;color:#444">
+      <strong>Scope:</strong> ARCO assesses structured RDF instance data supplied to the
+      pipeline. It does not verify raw vendor documentation, the physical deployed system,
+      or legal sufficiency. ARCO currently models Annex III 1(a) (biometric identification)
+      and 5(b) (creditworthiness) only.
+    </p>
+    {("<p class='exec-text' style='font-size:0.85em;border-left:3px solid #c97a00;padding-left:0.75rem;margin-top:0.75rem;color:#5a3a00;background:#fff7e6'><strong>Derogation note:</strong> Article 6(3) derogation, if legally valid, may supersede Annex III high-risk treatment. ARCO flags the claim but does not evaluate it; human legal review is required.</p>") if (derogation_flagged and is_high_risk) else ""}
   </div>
 </section>
 
@@ -1410,6 +1428,33 @@ def main() -> None:
     g_source = load_union_graph(BFO_2020, CORE, GOV, INSTANCES)
     print(f"Triples loaded (asserted): {len(g_source)}")
 
+    # ── invalid --system fail-fast (before reasoning) ──────────────
+    # If --system names a local that is not asserted as rdf:type :System in
+    # the pre-reasoning graph, the pipeline produces nonsense gate evidence
+    # and risks emitting a misleading "NOT TRIGGERED" certificate for a
+    # system that was never actually loaded. Fail before OWL-RL runs.
+    _RDF_TYPE = URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+    _SYSTEM_CLS = URIRef(f"{ARCO_NS}System")
+    _system_iri = URIRef(f"{ARCO_NS}{SYSTEM_LOCAL}")
+    if (_system_iri, _RDF_TYPE, _SYSTEM_CLS) not in g_source:
+        print()
+        print(f"ERROR: --system '{SYSTEM_LOCAL}' is not asserted as :System in the loaded instance data.")
+        print(f"Looked up IRI: {_system_iri}")
+        try:
+            _available = sorted({
+                str(s).rsplit("#", 1)[-1] for s, _, _ in g_source.triples((None, _RDF_TYPE, _SYSTEM_CLS))
+            })
+        except Exception:
+            _available = []
+        if _available:
+            print("Available asserted :System local names in this instance file:")
+            for _name in _available:
+                print(f"  - {_name}")
+        print()
+        print("No new certificate was written. Existing runs/demo artifacts (if any) reflect")
+        print("a prior run and may be stale relative to the current invocation.")
+        raise SystemExit(2)
+
     # clone -> reason over the copy so we can compare pre vs post
     g = clone_graph(g_source)
 
@@ -1589,6 +1634,11 @@ def main() -> None:
     if obligation_ok is not None:
         print(f"  OBLIGATION:              {_pf(obligation_ok)}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
+    print()
+    print("  SCOPE: ARCO assesses structured RDF instance data supplied to the pipeline.")
+    print("         It does not verify raw vendor documentation, the physical deployed")
+    print("         system, or legal sufficiency. ARCO currently models Annex III 1(a)")
+    print("         (biometric identification) and 5(b) (creditworthiness) only.")
     print("=" * 72)
 
     # ---------------------------------------------------------------
@@ -1629,7 +1679,15 @@ def main() -> None:
     cert_lines.append("")
     cert_lines.append("  [exception flags — provider-submitted claims, human review required]")
     cert_lines.append(f"  ART. 6(3) DEROGATION:    {'FLAGGED — DerogationClaim artifact detected; human legal review required before treating this as a final determination' if derogation_flagged else 'NOT FLAGGED'}")
+    _cert_is_high_risk = classification_mode in ("INFERRED", "ASSERTED")
+    if derogation_flagged and _cert_is_high_risk:
+        cert_lines.append("                           NOTE: Article 6(3) derogation, if legally valid, may supersede Annex III high-risk treatment. ARCO flags the claim but does not evaluate it; human legal review is required.")
     cert_lines.append(f"  5(b) FRAUD EXCLUSION:    {'FLAGGED — FraudDetectionProcess artifact detected; human legal review required' if fraud_flagged else 'NOT FLAGGED'}")
+    cert_lines.append("")
+    cert_lines.append("  SCOPE: ARCO assesses structured RDF instance data supplied to the pipeline.")
+    cert_lines.append("         It does not verify raw vendor documentation, the physical deployed")
+    cert_lines.append("         system, or legal sufficiency. ARCO currently models Annex III 1(a)")
+    cert_lines.append("         (biometric identification) and 5(b) (creditworthiness) only.")
     cert_lines.append("=" * 72)
     (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
 
