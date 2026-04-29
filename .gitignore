@@ -88,8 +88,5 @@ docs/ARCO_DSQs_and_Scope.md
 docs/agent/ARCO_public_claims.md
 scripts/render_html_to_pdf_playwright.py
 
-# Keep only README-linked public diagrams in Git
+# Public diagrams are reviewed before being added to Git
 04_DIAGRAMS_AND_MODELS/*
-!04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png
-!04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png
-!04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png

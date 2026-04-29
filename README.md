@@ -139,16 +139,7 @@ Once a system's structure exists, certain regulatory futures are locked in unles
 The quickest way to evaluate the project is to run the deterministic reference assessment.
 → [`run_pipeline.py`](03_TECHNICAL_CORE/scripts/run_pipeline.py)
 
-**2. ARCO as a deployment gate**
-A one-page diagram showing how ARCO functions as a formal regulatory decision point before model deployment.
-→ [`arco_deployment_gate.png`](04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png)
-
-**3. EU AI Act classification models (reference diagrams)**
-Visual models showing how Article 6 and Annex III classification criteria are represented and evaluated within ARCO.
-→ [`EUAI_mmd_1.png`](04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png)
-→ [`EUAI_mmd_2.png`](04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png)
-
-**4. Inspect the core artifacts**
+**2. Inspect the core artifacts**
 The implementation is intentionally small: ontology files, SHACL validation, SPARQL audit queries, and Python orchestration.
 → [`03_TECHNICAL_CORE/`](03_TECHNICAL_CORE/)
 
@@ -156,7 +147,21 @@ The implementation is intentionally small: ontology files, SHACL validation, SPA
 
 ## Public repository scope
 
-This repository is kept intentionally narrow: the public surface is the working ontology, validation/audit artifacts, executable pipeline, CI configuration, and a small set of reference diagrams. Internal strategy notes, agent guardrails, sales drafts, generated run outputs, and local virtual environments are not part of the versioned source.
+This repository is kept intentionally narrow: the public surface is the working ontology, validation/audit artifacts, executable pipeline, and CI configuration. Internal strategy notes, agent guardrails, sales drafts, generated run outputs, local virtual environments, and unreviewed concept diagrams are not part of the versioned source.
+
+---
+
+## Current scope and planned hardening
+
+The current public implementation demonstrates ARCO on two EU AI Act Annex III categories: `1(a)` remote biometric identification and `5(b)` creditworthiness evaluation. The pipeline classifies structured RDF instance data; it does not ingest raw vendor documentation, inspect deployed systems, or issue legal approval to deploy.
+
+Near-term hardening work is intentionally scoped:
+
+- replace legacy concept diagrams with pipeline-accurate explanatory visuals
+- add gate-removal regression tests for the `5(b)` creditworthiness path
+- replace SPARQL placeholder substitution with bound system variables
+- document the Gate 3 regulatory-aboutness encoding convention
+- expand modeled Annex III categories only with corresponding ontology, SHACL, SPARQL, and regression coverage
 
 ---
 
