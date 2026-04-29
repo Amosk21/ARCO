@@ -1,4 +1,4 @@
-name: ROBOT Tooling — Smoke Test + OWL 2 DL Profile Validation + HermiT Reasoning
+name: ROBOT Tooling — Smoke Test + OWL 2 DL Profile Validation + HermiT Reasoning + Classification Diff
 
 # Phase 0: confirm ROBOT installs and runs in CI.
 # Phase 1: merge ARCO ontology files and run robot validate-profile --profile DL.
@@ -11,6 +11,11 @@ name: ROBOT Tooling — Smoke Test + OWL 2 DL Profile Validation + HermiT Reason
 #           Without --include-indirect true, ClassAssertion generator materializes
 #           direct equivalentClass hits only and misses transitive SubClass propagation.
 #           Result is informational only — Phase 2 does not gate CI.
+# Phase 3: run ARCO's SPARQL classification queries against the HermiT-reasoned graph
+#           and compare results to expected owlrl baseline.
+#           Confirms RL and DL reasoners agree on Sentinel-ID classifications.
+#           Disagreement would indicate either RL incompleteness or unexpected DL entailments.
+#           Result is informational only — Phase 3 does not gate CI.
 # This workflow is additive — it does not modify or replace any existing workflow.
 # It runs only on the tooling/** and experiment/** branches and on PRs to main.
 
@@ -156,3 +161,79 @@ jobs:
             /tmp/robot-reports/arco_reasoned.owl
             /tmp/robot-reports/hermit_log.txt
           if-no-files-found: warn
+
+      # Phase 3: classification diff — HermiT vs owlrl
+      # Loads the HermiT-reasoned graph and runs ARCO's SPARQL ASK classification
+      # queries against it, then compares results to the expected owlrl baseline.
+      # Both reasoners should produce identical classifications for the Sentinel-ID
+      # system (which is the system under evaluation in the default pipeline run).
+      # Non-gating: prints DISAGREEMENT message but exits 0.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install rdflib
+        shell: bash
+        run: |
+          python -m pip install --quiet rdflib
+
+      - name: Compare HermiT classifications vs owlrl (informational)
+        shell: bash
+        run: |
+          python - << 'PYEOF'
+          import sys
+          import rdflib
+          from pathlib import Path
+
+          REASONING_DIR = Path('03_TECHNICAL_CORE/reasoning')
+          HERMIT_GRAPH = '/tmp/robot-reports/arco_reasoned.owl'
+
+          queries = {
+              'high_risk':    REASONING_DIR / 'check_high_risk_inference.sparql',
+              'annex_1a':     REASONING_DIR / 'check_annex_iii_1a_entailment.sparql',
+              'annex_5b':     REASONING_DIR / 'check_annex_iii_5b_entailment.sparql',
+              'intended_use': REASONING_DIR / 'check_intended_use.sparql',
+              'traceability': REASONING_DIR / 'check_assessment_traceability.sparql',
+              'obligation':   REASONING_DIR / 'check_obligation_link.sparql',
+              'reg_align':    REASONING_DIR / 'check_regulatory_alignment.sparql',
+          }
+
+          # owlrl baseline for Sentinel-ID system (default pipeline target)
+          expected = {
+              'high_risk':    True,
+              'annex_1a':     True,
+              'annex_5b':     False,
+              'intended_use': True,
+              'traceability': True,
+              'obligation':   True,
+              'reg_align':    True,
+          }
+
+          g = rdflib.Graph()
+          g.parse(HERMIT_GRAPH, format='xml')
+          print(f'HermiT-reasoned graph loaded: {len(g)} triples')
+          print()
+          print(f'{"Query":<15} {"HermiT":>8}  {"owlrl":>8}   Status')
+          print('-' * 50)
+
+          mismatches = []
+          for name, qpath in queries.items():
+              sparql = qpath.read_text()
+              result = bool(g.query(sparql))
+              exp = expected[name]
+              match = result == exp
+              if not match:
+                  mismatches.append((name, result, exp))
+              status = 'OK' if match else 'MISMATCH'
+              print(f'{name:<15} {str(result):>8}  {str(exp):>8}   {status}')
+
+          print()
+          if mismatches:
+              print(f'DISAGREEMENT: {len(mismatches)}/{len(queries)} queries mismatch')
+              for name, hermit_r, owlrl_r in mismatches:
+                  print(f'  - {name}: HermiT={hermit_r}, owlrl={owlrl_r}')
+              print('Investigate: RL incompleteness vs unexpected DL entailment.')
+          else:
+              print(f'FULL AGREEMENT: HermiT and owlrl agree on all {len(queries)}/{len(queries)} classifications.')
+          PYEOF
