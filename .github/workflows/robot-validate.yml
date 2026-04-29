@@ -3,8 +3,13 @@ name: ROBOT Tooling — Smoke Test + OWL 2 DL Profile Validation + HermiT Reason
 # Phase 0: confirm ROBOT installs and runs in CI.
 # Phase 1: merge ARCO ontology files and run robot validate-profile --profile DL.
 #           Result is informational only — Phase 1 does not gate CI.
-# Phase 2: run robot reason --reasoner HermiT on merged ontology.
-#           Confirms DL reasoner terminates and ontology is consistent under HermiT.
+# Phase 2: run robot reason --reasoner HermiT with full ABox materialization.
+#           Flags used: --axiom-generators "ClassAssertion SubClass" --include-indirect true
+#           These are required for HermiT to propagate individual classifications
+#           through the inferred SubClass chain (e.g., AnnexIII1aApplicableSystem subClassOf
+#           HighRiskSystem → Sentinel_ID_System rdf:type HighRiskSystem).
+#           Without --include-indirect true, ClassAssertion generator materializes
+#           direct equivalentClass hits only and misses transitive SubClass propagation.
 #           Result is informational only — Phase 2 does not gate CI.
 # This workflow is additive — it does not modify or replace any existing workflow.
 # It runs only on the tooling/** and experiment/** branches and on PRs to main.
@@ -118,9 +123,17 @@ jobs:
           ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
           mkdir -p /tmp/robot-reports
 
-          # Capture exit code without failing the step
+          # --axiom-generators "ClassAssertion SubClass": materialize both individual
+          # type assertions and class subsumptions. ClassAssertion alone only fires
+          # on direct equivalentClass hits; SubClass is needed for the TBox side.
+          # --include-indirect true: propagate ClassAssertions through the inferred
+          # SubClass chain. Without this, Sentinel_ID_System : HighRiskSystem is
+          # not emitted even though AnnexIII1aApplicableSystem subClassOf HighRiskSystem
+          # is inferred and Sentinel : AnnexIII1aApplicableSystem is direct.
           $ROBOT reason \
             --reasoner hermit \
+            --axiom-generators "ClassAssertion SubClass" \
+            --include-indirect true \
             --input /tmp/arco_merged.owl \
             --output /tmp/robot-reports/arco_reasoned.owl \
             2>&1 | tee /tmp/robot-reports/hermit_log.txt || REASON_EXIT=$?
