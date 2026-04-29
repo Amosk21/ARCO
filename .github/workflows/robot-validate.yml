@@ -64,7 +64,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ROBOT="java -jar ~/.local/share/robot/robot.jar"
+          ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
           $ROBOT merge \
             --input "03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl" \
             --input "03_TECHNICAL_CORE/ontology/ARCO_core.ttl" \
@@ -76,7 +76,7 @@ jobs:
       - name: Validate OWL 2 DL profile (informational)
         shell: bash
         run: |
-          ROBOT="java -jar ~/.local/share/robot/robot.jar"
+          ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
           mkdir -p /tmp/robot-reports
 
           # Capture exit code without failing the step
