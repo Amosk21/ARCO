@@ -1,28 +1,28 @@
-name: ROBOT Tooling — Smoke Test + OWL 2 DL Profile Validation + HermiT Reasoning + Classification Diff
+name: ROBOT Validation
 
+# Independent DL validation using ROBOT (v1.9.10) and HermiT.
+# Runs alongside the production owlrl pipeline as a cross-check, not a replacement.
+#
 # Phase 0: confirm ROBOT installs and runs in CI.
 # Phase 1: merge ARCO ontology files and run robot validate-profile --profile DL.
-#           Result is informational only — Phase 1 does not gate CI.
+#           Confirms the ontology is OWL 2 DL conformant.
+#           Result is informational only -- Phase 1 does not gate CI.
 # Phase 2: run robot reason --reasoner HermiT with full ABox materialization.
-#           Flags used: --axiom-generators "ClassAssertion SubClass" --include-indirect true
-#           These are required for HermiT to propagate individual classifications
-#           through the inferred SubClass chain (e.g., AnnexIII1aApplicableSystem subClassOf
-#           HighRiskSystem → Sentinel_ID_System rdf:type HighRiskSystem).
-#           Without --include-indirect true, ClassAssertion generator materializes
-#           direct equivalentClass hits only and misses transitive SubClass propagation.
-#           Result is informational only — Phase 2 does not gate CI.
+#           Flags: --axiom-generators "ClassAssertion SubClass" --include-indirect true
+#           Required so HermiT propagates individual classifications through the
+#           inferred SubClass chain. Without --include-indirect true, ClassAssertion
+#           only materializes direct equivalentClass hits and misses transitive steps.
+#           Result is informational only -- Phase 2 does not gate CI.
 # Phase 3: run ARCO's SPARQL classification queries against the HermiT-reasoned graph
-#           and compare results to expected owlrl baseline.
-#           Confirms RL and DL reasoners agree on Sentinel-ID classifications.
-#           Disagreement would indicate either RL incompleteness or unexpected DL entailments.
-#           Result is informational only — Phase 3 does not gate CI.
-# This workflow is additive — it does not modify or replace any existing workflow.
-# It runs only on the tooling/** and experiment/** branches and on PRs to main.
+#           and compare to the owlrl baseline. Confirms both reasoners agree.
+#           Disagreement would indicate RL incompleteness or unexpected DL entailments.
+#           Result is informational only -- Phase 3 does not gate CI.
 
 on:
   workflow_dispatch:
   push:
     branches:
+      - 'main'
       - 'tooling/**'
       - 'experiment/**'
   pull_request:
@@ -106,7 +106,7 @@ jobs:
           if [ "${PROFILE_EXIT:-0}" -eq 0 ]; then
             echo "RESULT: ARCO is OWL 2 DL conformant."
           else
-            echo "RESULT: ARCO has OWL 2 DL profile violations — see report above."
+            echo "RESULT: ARCO has OWL 2 DL profile violations. See report above."
           fi
 
       - name: Upload profile report
@@ -149,7 +149,7 @@ jobs:
             echo "RESULT: ARCO is consistent under HermiT. Reasoned graph produced."
             ls -la /tmp/robot-reports/arco_reasoned.owl
           else
-            echo "RESULT: HermiT reported a problem — see log above."
+            echo "RESULT: HermiT reported a problem. See log above."
           fi
 
       - name: Upload HermiT reasoned graph
@@ -162,7 +162,7 @@ jobs:
             /tmp/robot-reports/hermit_log.txt
           if-no-files-found: warn
 
-      # Phase 3: classification diff — HermiT vs owlrl
+      # Phase 3: classification diff -- HermiT vs owlrl
       # Loads the HermiT-reasoned graph and runs ARCO's SPARQL ASK classification
       # queries against it, then compares results to the expected owlrl baseline.
       # Both reasoners should produce identical classifications for the Sentinel-ID
