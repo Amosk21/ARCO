@@ -1,0 +1,55 @@
+name: ROBOT Tooling Smoke Test
+
+# Phase 0 of the ROBOT integration plan: confirm ROBOT installs and runs in CI.
+# This workflow is additive — it does not modify or replace any existing workflow.
+# It runs only on the tooling/** and experiment/** branches and on PRs to main.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'tooling/**'
+      - 'experiment/**'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  robot-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      ROBOT_VERSION: v1.9.10
+      ROBOT_JAR_URL: https://github.com/ontodev/robot/releases/download/v1.9.10/robot.jar
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache ROBOT JAR
+        id: cache-robot
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/robot/robot.jar
+          key: robot-${{ env.ROBOT_VERSION }}
+
+      - name: Download ROBOT
+        if: steps.cache-robot.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/share/robot
+          curl -L -o ~/.local/share/robot/robot.jar "$ROBOT_JAR_URL"
+
+      - name: Verify ROBOT version
+        shell: bash
+        run: |
+          set -euo pipefail
+          java -jar ~/.local/share/robot/robot.jar --version
+          echo "ROBOT smoke test PASSED."
