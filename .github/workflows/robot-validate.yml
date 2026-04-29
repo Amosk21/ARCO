@@ -1,8 +1,11 @@
-name: ROBOT Tooling — Smoke Test + OWL 2 DL Profile Validation
+name: ROBOT Tooling — Smoke Test + OWL 2 DL Profile Validation + HermiT Reasoning
 
 # Phase 0: confirm ROBOT installs and runs in CI.
 # Phase 1: merge ARCO ontology files and run robot validate-profile --profile DL.
 #           Result is informational only — Phase 1 does not gate CI.
+# Phase 2: run robot reason --reasoner HermiT on merged ontology.
+#           Confirms DL reasoner terminates and ontology is consistent under HermiT.
+#           Result is informational only — Phase 2 does not gate CI.
 # This workflow is additive — it does not modify or replace any existing workflow.
 # It runs only on the tooling/** and experiment/** branches and on PRs to main.
 
@@ -102,4 +105,41 @@ jobs:
         with:
           name: owl2-dl-profile-report
           path: /tmp/robot-reports/
+          if-no-files-found: warn
+
+      # Phase 2: HermiT DL reasoning
+      # Runs HermiT on the same merged ontology used in Phase 1.
+      # Confirms ontology is DL-consistent and reasoner terminates without error.
+      # Non-gating: step always exits 0 so CI passes regardless of outcome.
+      # Reasoned graph uploaded as artifact for later comparison vs owlrl output.
+      - name: Reason with HermiT (informational)
+        shell: bash
+        run: |
+          ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
+          mkdir -p /tmp/robot-reports
+
+          # Capture exit code without failing the step
+          $ROBOT reason \
+            --reasoner hermit \
+            --input /tmp/arco_merged.owl \
+            --output /tmp/robot-reports/arco_reasoned.owl \
+            2>&1 | tee /tmp/robot-reports/hermit_log.txt || REASON_EXIT=$?
+
+          echo "=== HermiT reasoning exit code: ${REASON_EXIT:-0} ==="
+
+          if [ "${REASON_EXIT:-0}" -eq 0 ]; then
+            echo "RESULT: ARCO is consistent under HermiT. Reasoned graph produced."
+            ls -la /tmp/robot-reports/arco_reasoned.owl
+          else
+            echo "RESULT: HermiT reported a problem — see log above."
+          fi
+
+      - name: Upload HermiT reasoned graph
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermit-reasoned-graph
+          path: |
+            /tmp/robot-reports/arco_reasoned.owl
+            /tmp/robot-reports/hermit_log.txt
           if-no-files-found: warn
