@@ -72,7 +72,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
 ========================================================================
 ```
 
-This determination is **derived**, not asserted. If any category-specific gate were not present, the Annex III applicability class would not be inferred. Full case study: [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md)
+This determination is **derived**, not asserted. If any category-specific gate were not present, the Annex III applicability class would not be inferred. The reference pipeline writes the supporting certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
 
 ---
 
@@ -135,39 +135,28 @@ Once a system's structure exists, certain regulatory futures are locked in unles
 
 ## Orientation (5-minute entry point)
 
-**0. Executive overview (non-technical)**
-A concise, business-facing overview of ARCO's purpose, economic value, and positioning for decision-makers.
-→ [`EXEC_PITCH.md`](01_COMMERCIAL/EXEC_PITCH.md)
+**1. Run the reference pipeline**
+The quickest way to evaluate the project is to run the deterministic reference assessment.
+→ [`run_pipeline.py`](03_TECHNICAL_CORE/scripts/run_pipeline.py)
 
-**1. ARCO as a deployment gate**
+**2. ARCO as a deployment gate**
 A one-page diagram showing how ARCO functions as a formal regulatory decision point before model deployment.
 → [`arco_deployment_gate.png`](04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png)
 
-**2. EU AI Act classification models (reference diagrams)**
+**3. EU AI Act classification models (reference diagrams)**
 Visual models showing how Article 6 and Annex III classification criteria are represented and evaluated within ARCO.
 → [`EUAI_mmd_1.png`](04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png)
 → [`EUAI_mmd_2.png`](04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png)
 
+**4. Inspect the core artifacts**
+The implementation is intentionally small: ontology files, SHACL validation, SPARQL audit queries, and Python orchestration.
+→ [`03_TECHNICAL_CORE/`](03_TECHNICAL_CORE/)
+
 ---
 
-## Canonical documents
+## Public repository scope
 
-| Document | Purpose |
-|----------|---------|
-| [`EXEC_PITCH.md`](01_COMMERCIAL/EXEC_PITCH.md) | Why ARCO matters — business-facing overview |
-| [`ARCO_Regulatory_Determination_Case.md`](01_COMMERCIAL/ARCO_Regulatory_Determination_Case.md) | Concrete proof artifact — full worked determination |
-| [`TechnicalDeck.md`](02_SYSTEM_OVERVIEW/TechnicalDeck.md) | Technical architecture and system explanation |
-| [`run_pipeline.py`](03_TECHNICAL_CORE/scripts/run_pipeline.py) | Run the classification pipeline yourself |
-
-## Archived background documents
-
-Earlier narrative drafts and positioning documents are preserved in [`90_ARCHIVE/NARRATIVE_DRAFTS/`](90_ARCHIVE/NARRATIVE_DRAFTS/). These were useful during initial development but are not maintained as canonical references.
-
-- [`ARCO_Assurance_Engine.md`](90_ARCHIVE/NARRATIVE_DRAFTS/ARCO_Assurance_Engine.md)
-- [`ARCO_Pilot_Engagement_Scope.md`](90_ARCHIVE/NARRATIVE_DRAFTS/ARCO_Pilot_Engagement_Scope.md)
-- [`arco_positioning.md`](90_ARCHIVE/NARRATIVE_DRAFTS/arco_positioning.md)
-- [`Command_Center.md`](90_ARCHIVE/NARRATIVE_DRAFTS/Command_Center.md)
-- [`Glass_Box_Compliance_White_Paper.md`](90_ARCHIVE/NARRATIVE_DRAFTS/Glass_Box_Compliance_White_Paper.md)
+This repository is kept intentionally narrow: the public surface is the working ontology, validation/audit artifacts, executable pipeline, CI configuration, and a small set of reference diagrams. Internal strategy notes, agent guardrails, sales drafts, generated run outputs, and local virtual environments are not part of the versioned source.
 
 ---
 

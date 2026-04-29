@@ -29,12 +29,12 @@ jobs:
         run: |
           python 03_TECHNICAL_CORE/scripts/run_pipeline.py 2>&1 | tee pipeline_output.txt
 
-      - name: Assert certificate output
+      - name: Assert pipeline passed
         run: |
-          if grep -q "REGULATORY DETERMINATION CERTIFICATE" pipeline_output.txt; then
-            echo "Certificate block found."
+          if grep -q "ALL CHECKS PASSED" pipeline_output.txt; then
+            echo "Pipeline pass signal found."
           else
-            echo "FAIL: 'REGULATORY DETERMINATION CERTIFICATE' not found in pipeline output."
+            echo "FAIL: 'ALL CHECKS PASSED' not found in pipeline output."
             exit 1
           fi
 

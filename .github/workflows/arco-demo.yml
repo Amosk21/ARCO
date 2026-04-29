@@ -41,14 +41,14 @@ jobs:
           mkdir -p runs/demo
           python -u 03_TECHNICAL_CORE/scripts/run_pipeline.py 2>&1 | tee runs/demo/demo.log
 
-      - name: Assert certificate output
+      - name: Assert pipeline passed
         shell: bash
         run: |
           set -euo pipefail
-          if grep -q "REGULATORY DETERMINATION CERTIFICATE" runs/demo/demo.log; then
-            echo "Certificate block found in console output."
+          if grep -q "ALL CHECKS PASSED" runs/demo/demo.log; then
+            echo "Pipeline pass signal found in console output."
           else
-            echo "FAIL: 'REGULATORY DETERMINATION CERTIFICATE' not found in pipeline output."
+            echo "FAIL: 'ALL CHECKS PASSED' not found in pipeline output."
             exit 1
           fi
 

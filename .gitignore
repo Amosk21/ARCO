@@ -2,6 +2,9 @@
 .claude/
 .claude-code/
 
+# Obsidian knowledge base (local only, not versioned)
+KB/
+
 # Git metadata (huge)
 .git/
 
@@ -22,6 +25,13 @@ build/
 target/
 .cache/
 *.log
+graphify-out/
+graph-scopes/
+.graphify_chunks/
+.graphify_semantic_parts/
+.graphify_*.json
+.graphify_*
+._graphify_*
 
 # Large / binary / non-text
 *.png
@@ -42,3 +52,44 @@ target/
 *.csv
 data/
 tmp/
+
+# Local snapshots / scratch / one-off helpers
+design-local/
+_main_snapshot/
+_review_main/
+_tmp_*
+2604.04091v1_images/
+Alex_Moskowitz_resume_2026.html
+tmp_*.html
+AGENTS.md
+.graphifyignore
+
+# Local/session-only agent artifacts
+CLAUDE.md
+docs/agent/originals/
+docs/agent/COMPRESSION_LOG.md
+docs/agent/job_research_*.md
+docs/agent/graphify_scopes.md
+docs/agent/codex_full_pdf_intake_workflow.md
+
+# Session/reference material (not versioned)
+01_COMMERCIAL/
+02_SYSTEM_OVERVIEW/
+03_TECHNICAL_CORE/docs/
+05_TECHNICAL_IMPLEMENTATION/
+90_ARCHIVE/
+docs/agent/
+docs/certificate/
+BRIEF.md
+DESIGN_REVIEW_BRIEF.md
+ONTOLOGY_REVIEW.md
+LIMITATIONS.md
+docs/ARCO_DSQs_and_Scope.md
+docs/agent/ARCO_public_claims.md
+scripts/render_html_to_pdf_playwright.py
+
+# Keep only README-linked public diagrams in Git
+04_DIAGRAMS_AND_MODELS/*
+!04_DIAGRAMS_AND_MODELS/arco_deployment_gate.png
+!04_DIAGRAMS_AND_MODELS/EUAI_mmd_1.png
+!04_DIAGRAMS_AND_MODELS/EUAI_mmd_2.png
