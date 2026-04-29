@@ -38,6 +38,7 @@ CORE = ONTOLOGY_DIR / "ARCO_core.ttl"
 GOV = ONTOLOGY_DIR / "ARCO_governance_extension.ttl"
 INSTANCES = ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"
 BFO_2020 = ONTOLOGY_DIR / "imports" / "bfo-2020.owl"
+IAO_2026 = ONTOLOGY_DIR / "imports" / "iao.owl"
 
 SHAPES = VALIDATION_DIR / "assessment_documentation_shape.ttl"
 
@@ -1425,7 +1426,7 @@ def main() -> None:
 
     sub("LOAD")
     print("Loading: core ontology + governance extension + instance data")
-    g_source = load_union_graph(BFO_2020, CORE, GOV, INSTANCES)
+    g_source = load_union_graph(BFO_2020, IAO_2026, CORE, GOV, INSTANCES)
     print(f"Triples loaded (asserted): {len(g_source)}")
 
     # ── invalid --system fail-fast (before reasoning) ──────────────
