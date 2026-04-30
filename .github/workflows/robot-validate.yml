@@ -21,10 +21,7 @@ name: ROBOT Validation
 on:
   workflow_dispatch:
   push:
-    branches:
-      - 'main'
-      - 'tooling/**'
-      - 'experiment/**'
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
