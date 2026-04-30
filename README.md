@@ -114,16 +114,18 @@ This makes ARCO fundamentally different from post-hoc tools that observe behavio
 
 ## Foundational ontology versions
 
-| Ontology | Version / release | IRI namespace used |
-|----------|------------------|--------------------|
-| **BFO** | BFO 2020 (ISO/IEC 21838-2:2021) | `http://purl.obolibrary.org/obo/BFO_` |
-| **RO** | OBO Relation Ontology (current OBO release) | `http://purl.obolibrary.org/obo/RO_` |
-| **IAO** | Information Artifact Ontology (current OBO release) | `http://purl.obolibrary.org/obo/IAO_` |
-| **CCO** | CCO pre-integrated release (exact version unverified; local stubs) | `http://www.ontologyrepository.com/CommonCoreOntologies/` |
+| Ontology | Version / release | IRI namespace used | How it's loaded |
+|----------|------------------|--------------------|------------------|
+| **BFO** | BFO 2020 (ISO/IEC 21838-2:2021) | `http://purl.obolibrary.org/obo/BFO_` | Full ontology loaded from `03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl` |
+| **RO** | OBO Relations Ontology release `2025-12-17` | `http://purl.obolibrary.org/obo/RO_` | Full ontology loaded from `03_TECHNICAL_CORE/ontology/imports/ro.owl` |
+| **IAO** | Information Artifact Ontology release `2026-03-30` | `http://purl.obolibrary.org/obo/IAO_` | Full ontology loaded from `03_TECHNICAL_CORE/ontology/imports/iao.owl` |
+| **CCO** | CCO pre-integrated release (exact version unverified; local stubs) | `http://www.ontologyrepository.com/CommonCoreOntologies/` | Local stubs only — specific terms declared in `ARCO_governance_extension.ttl` |
 
 **BFO 2020** is the second edition of Basic Formal Ontology, standardized as ISO/IEC 21838-2:2021. ARCO uses the OBO Foundry numeric-ID namespace (`BFO_0000015`, `BFO_0000016`, etc.) that is definitive of this release. The earlier BFO 1.1 used a different IRI scheme (`http://www.ifomis.org/bfo/1.1/snap#`, `span#`) and is not used here.
 
-**CCO** terms are declared as local stubs rather than via a full `owl:imports` of the CCO modules. This means only the specific CCO classes and properties ARCO requires are declared in-file (`cco:Organization`, `cco:DirectiveInformationContentEntity`, `cco:prescribes`, `cco:has_output`, etc.), using the pre-integrated-release IRI namespace. The pipeline does not depend on fetching external CCO files at runtime.
+**RO** and **IAO** are loaded as full upstream releases. The pipeline pulls the entire `ro.owl` and `iao.owl` files into the reasoning graph alongside BFO. This was not always the case: earlier ARCO revisions referenced RO and IAO terms by IRI with only minimal local label declarations and no full `owl:imports`. The promotion from stub-style references to full-file imports was performed under independent verification (alignment audit, OWL 2 DL profile validation under ROBOT, and HermiT consistency check) and confirmed not to change any classification outputs. See `docs/agent/alignment_audit_RO_2026-04-29.md` and `docs/agent/alignment_audit_IAO_2026-04-29.md`.
+
+**CCO** terms remain declared as local stubs rather than via a full `owl:imports` of the CCO modules. Only the specific CCO classes and properties ARCO requires are declared in-file (`cco:Organization`, `cco:DirectiveInformationContentEntity`, `cco:prescribes`, `cco:has_output`, etc.), using the pre-integrated-release IRI namespace. The pipeline does not depend on fetching external CCO files at runtime.
 
 ---
 
