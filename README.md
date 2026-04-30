@@ -127,6 +127,20 @@ This makes ARCO fundamentally different from post-hoc tools that observe behavio
 
 **CCO** terms remain declared as local stubs rather than via a full `owl:imports` of the CCO modules. Only the specific CCO classes and properties ARCO requires are declared in-file (`cco:Organization`, `cco:DirectiveInformationContentEntity`, `cco:prescribes`, `cco:has_output`, etc.), using the pre-integrated-release IRI namespace. The pipeline does not depend on fetching external CCO files at runtime.
 
+### Why full upstream imports rather than slim MIREOT modules
+
+The conventional OBO Foundry pattern for depending on an external ontology is to extract a slim "import module" using a tool such as ROBOT's `extract` command (e.g. MIREOT, BOT, or STAR), pulling in only the specific terms a project references plus their ancestors. ARCO instead loads the complete upstream releases. This is a deliberate choice grounded in ARCO's role as a regulatory classification framework rather than a biological ontology fragment.
+
+Five reasons full imports are the right default for ARCO:
+
+1. **Audit traceability.** A reviewer, auditor, or regulator can verify with a single hash that ARCO uses BFO 2020, OBO Relations Ontology release `2025-12-17`, and Information Artifact Ontology release `2026-03-30` exactly as published — with no curation step in between. A MIREOT module would itself be an audit surface ("which axioms made the cut, why, and is the slice still consistent with the full upstream?"). Removing that step shortens the chain of trust.
+2. **No silent upstream drift.** When an upstream ontology adds a new property-chain axiom, strengthens a domain or range, or refines a class definition, the full import picks it up automatically on the next release pin. A slim module would freeze the previous slice and quietly miss the change. For a tool whose entire purpose is tracking formal definitions of regulated concepts, this matters.
+3. **Extensibility to new Annex III categories and to peer regulations.** Adding Annex III 1(b), 5(a), or 6 — or modeling GDPR Article 22, FDA pre-cert, NIS2, or sectoral safety regimes — will reach for additional BFO, RO, and IAO terms ARCO does not currently reference. With full imports those terms are already in scope; the only ontology engineering work is the new gate axioms. With slim modules every new category or domain triggers a module-rebuild step.
+4. **Cross-domain generalization is part of the architectural pitch.** The README and the underlying design claim that ARCO generalizes to any regulatory domain where obligations attach to capability, structure, and role. Full imports are consistent with that claim; per-domain slim modules quietly contradict it.
+5. **Stronger independent-reasoner verification.** The HermiT cross-check in CI exists to confirm that the production OWL-RL reasoner agrees with a full DL reasoner over the actual upstream axiomatization. Running HermiT against a slim module would only verify agreement over the axioms ARCO chose to import; running HermiT against the full ontologies verifies agreement over what the upstream specifications actually say.
+
+The cost ARCO accepts in exchange is operational, not logical: the HermiT step in the ROBOT validation workflow takes roughly thirty to forty minutes on the merged BFO + RO + IAO + ARCO ontology, and the production OWL-RL reasoner produces a larger entailed graph. Neither affects correctness, and both have been confirmed under CI on the consolidated branch. The conventional MIREOT counter-argument — sibling biological ontologies needing slim modules to avoid cyclic imports — does not apply here because ARCO has no such cycles to avoid.
+
 ---
 
 ## Beyond a single regulation
