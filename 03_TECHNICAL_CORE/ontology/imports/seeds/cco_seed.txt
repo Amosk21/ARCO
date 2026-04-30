@@ -1,0 +1,6 @@
+http://www.ontologyrepository.com/CommonCoreOntologies/Organization
+http://www.ontologyrepository.com/CommonCoreOntologies/DirectiveInformationContentEntity
+http://www.ontologyrepository.com/CommonCoreOntologies/DescriptiveInformationContentEntity
+http://www.ontologyrepository.com/CommonCoreOntologies/prescribes
+http://www.ontologyrepository.com/CommonCoreOntologies/has_output
+http://www.ontologyrepository.com/CommonCoreOntologies/Person

@@ -28,7 +28,7 @@ on:
 jobs:
   robot-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
 
     env:
       ROBOT_VERSION: v1.9.10
@@ -77,8 +77,9 @@ jobs:
           ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
           $ROBOT merge \
             --input "03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl" \
-            --input "03_TECHNICAL_CORE/ontology/imports/iao.owl" \
-            --input "03_TECHNICAL_CORE/ontology/imports/ro.owl" \
+            --input "03_TECHNICAL_CORE/ontology/imports/iao_bot.owl" \
+            --input "03_TECHNICAL_CORE/ontology/imports/ro_bot.owl" \
+            --input "03_TECHNICAL_CORE/ontology/imports/cco_bot.owl" \
             --input "03_TECHNICAL_CORE/ontology/ARCO_core.ttl" \
             --input "03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl" \
             --input "03_TECHNICAL_CORE/ontology/ARCO_instances_sentinel.ttl" \
