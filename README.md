@@ -6,11 +6,11 @@ Companies are building AI systems without knowing whether those systems will sat
 
 ARCO moves that risk decision upstream. It is a pre-deployment classification engine that tells organizations (before deployment, before sunk costs, before regulatory exposure) whether a system satisfies ARCO's formal encoding of Annex III conditions, and exactly why.
 
-The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable assessment grounded in formal logic and BFO-aligned, CCO-informed structure: same structured inputs, same classification, every time.
+The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable assessment grounded in formal logic and BFO/RO/IAO-aligned, CCO-informed structure: same structured inputs, same classification, every time.
 
 **TL;DR**
-- ARCO is a deterministic regulatory classification framework aligned with BFO 2020 and the OBO Foundry: BFO, the OBO Relations Ontology (RO), and the Information Artifact Ontology (IAO) are loaded as full upstream releases; CCO terms are declared as local stubs for governance vocabulary not yet covered by an imported ontology. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you, before you build, whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
-- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology (full BFO/RO/IAO upstream imports, CCO terms as local stubs), with no probabilistic scoring and no LLMs in the decision loop.
+- ARCO is a deterministic regulatory classification framework grounded in BFO 2020, with full upstream RO and IAO imports and local CCO stubs. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you, before you build, whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
+- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology, with no probabilistic scoring and no LLMs in the decision loop.
 - From a fresh clone, install the Python dependencies and run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from the repository root to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
 
 **What's modeled (current scope)**
@@ -33,8 +33,6 @@ All three gates must be satisfied for category-specific Annex III applicability 
 - **Reduced regulatory exposure:** identify classification triggers while architecture changes are still cheap
 - **Repeatable, defensible determinations:** same system description in, same classification out, every time
 - **No probabilistic model in the determination path:** current assessments run on hand-authored structured instances; formal logic drives the classification
-
-> **The core value:** Replace probabilistic "confidence" with audit-traceable logical assessment grounded in ontologically disciplined structure.
 
 ---
 
@@ -65,7 +63,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
   OBLIGATION:              PASS
   REG. ALIGNED:            PASS
 
-  ENTAILED TRIPLES ADDED:  +3473
+  ENTAILED TRIPLES ADDED:  +47888
 
   Classification layer: PASS
   Audit layer:          PASS
@@ -73,14 +71,6 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
 ```
 
 This determination is **derived**, not asserted. If any category-specific gate were not present, the Annex III applicability class would not be inferred. The reference pipeline writes the supporting certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
-
----
-
-## The problem ARCO solves
-
-The root cause: systems are built without an explicit model of **what exists**, **what those things are capable of**, and **which regulatory conditions those capabilities trigger**. Early modeling choices quietly lock in regulatory exposure, but because those choices are treated as technical configuration rather than structural commitments, they escape governance entirely.
-
-ARCO moves that risk decision upstream, to design time, where it costs a fraction of post-deployment remediation.
 
 ---
 
@@ -92,7 +82,7 @@ ARCO moves that risk decision upstream, to design time, where it costs a fractio
 1. The system's structure is encoded in a formal ontology grounded in [BFO](https://basic-formal-ontology.org/) (the same foundational ontology used across biomedical, defense, and industrial standards)
 2. OWL-RL reasoning derives what the system is capable of and whether it meets the category-specific three-gate classification condition: capability (reality-side), prescribed process type (representation-side), and affected role category (representation-side). All three gates check specific content, not the existence of documentation alone.
 3. SHACL validation enforces documentary completeness
-4. SPARQL audit queries run on the reasoned graph as a downstream documentation layer, confirming that the right content is explicitly declared and that the law's process prescription aligns with the provider's documentation. These queries inspect what the reasoning produced; they do not produce the classification themselves.
+4. SPARQL audit queries run on the reasoned graph to confirm that the right content is explicitly declared and that the law's process prescription aligns with the provider's documentation. These queries inspect what the reasoning produced; they do not produce the classification themselves.
 
 **Output:** A formal condition assessment certificate with full evidence path: which component bears which capability, which Annex III condition it satisfies, and why.
 
@@ -139,15 +129,7 @@ Five reasons full imports are the right default for ARCO:
 4. **Cross-domain generalization is part of the architectural pitch.** The README and the underlying design claim that ARCO generalizes to any regulatory domain where obligations attach to capability, structure, and role. Full imports are consistent with that claim; per-domain slim modules quietly contradict it.
 5. **Stronger independent-reasoner verification.** The HermiT cross-check in CI exists to confirm that the production OWL-RL reasoner agrees with a full DL reasoner over the actual upstream axiomatization. Running HermiT against a slim module would only verify agreement over the axioms ARCO chose to import; running HermiT against the full ontologies verifies agreement over what the upstream specifications actually say.
 
-The cost ARCO accepts in exchange is operational, not logical: the HermiT step in the ROBOT validation workflow takes roughly thirty to forty minutes on the merged BFO + RO + IAO + ARCO ontology, and the production OWL-RL reasoner produces a larger entailed graph. Neither affects correctness, and both have been confirmed under CI on the consolidated branch. The conventional MIREOT counter-argument — sibling biological ontologies needing slim modules to avoid cyclic imports — does not apply here because ARCO has no such cycles to avoid.
-
----
-
-## Beyond a single regulation
-
-While this repository demonstrates ARCO against the EU AI Act, the underlying approach generalizes to any domain where obligations attach to capability, structure, and role rather than observed behavior alone.
-
-Once a system's structure exists, certain regulatory futures are locked in unless the structure changes. ARCO surfaces those commitments early, before they appear as audit findings, regulatory enforcement, forced redesigns, or reputational loss.
+The cost is operational, not logical. A pipeline run on Sentinel-ID currently loads roughly 17266 asserted triples and produces roughly 65154 post-reasoning triples (about 47888 derived). The overwhelming majority of those derived triples come from OWL-RL closure over upstream axioms ARCO does not directly invoke: BFO upper-level subclass propagation, RO's property-chain and inverse-property axioms firing across every relation in the merged graph, and IAO's information-content-entity hierarchy. Only a small fraction is ARCO-specific (the gate-axiom entailments classifying a system as `HighRiskSystem` or `AnnexIII1aApplicableSystem`, plus supporting traceability triples). With slim MIREOT modules the same classification would emerge, but the post-reasoning graph would be perhaps an order of magnitude smaller because the bulk of upstream axiomatization would not be loaded. ARCO carries the larger graph deliberately: the inflation is observability cost, not reasoning complexity the gate axioms had to traverse. The HermiT step in CI takes roughly thirty to forty minutes on the merged ontology — slow, but informational and non-gating, and confirmed correct under both reasoners. The conventional MIREOT counter-argument (sibling biological ontologies needing slim modules to avoid cyclic imports) does not apply because ARCO has no such cycles.
 
 ---
 
@@ -215,7 +197,7 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 The pipeline will:
 
 1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (1434 asserted -> 4907 post-reasoning)
+2. Run OWL-RL reasoning to materialize entailments (17266 asserted -> 65154 post-reasoning, on the full BFO + RO + IAO + ARCO union)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
    - **Classification layer (OWL-RL):** SHACL conformance, `HighRiskSystem` latent-risk entailment, Annex III 1(a) three-gate entailment (the formal classification outputs)
