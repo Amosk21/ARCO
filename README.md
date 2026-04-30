@@ -6,7 +6,7 @@ Companies are building AI systems without knowing whether those systems will sat
 
 ARCO moves that risk decision upstream. It is a pre-deployment classification engine that tells organizations (before deployment, before sunk costs, before regulatory exposure) whether a system satisfies ARCO's formal encoding of Annex III conditions, and exactly why.
 
-The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable assessment grounded in formal logic and BFO-aligned, CCO-informed structure: same structured inputs, same classification, every time.
+The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable assessment grounded in formal logic and BFO/RO/IAO-aligned, CCO-informed structure (the OBO Foundry upper- and mid-level ontologies are loaded as full upstream releases): same structured inputs, same classification, every time.
 
 **TL;DR**
 - ARCO is a deterministic regulatory classification framework aligned with BFO 2020 and the OBO Foundry: BFO, the OBO Relations Ontology (RO), and the Information Artifact Ontology (IAO) are loaded as full upstream releases; CCO terms are declared as local stubs for governance vocabulary not yet covered by an imported ontology. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you, before you build, whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
@@ -65,7 +65,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
   OBLIGATION:              PASS
   REG. ALIGNED:            PASS
 
-  ENTAILED TRIPLES ADDED:  +3473
+  ENTAILED TRIPLES ADDED:  +47888
 
   Classification layer: PASS
   Audit layer:          PASS
@@ -215,7 +215,7 @@ python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 The pipeline will:
 
 1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (1434 asserted -> 4907 post-reasoning)
+2. Run OWL-RL reasoning to materialize entailments (17266 asserted -> 65154 post-reasoning, on the full BFO + RO + IAO + ARCO union)
 3. Validate documentary completeness with SHACL
 4. Run two layers of checks:
    - **Classification layer (OWL-RL):** SHACL conformance, `HighRiskSystem` latent-risk entailment, Annex III 1(a) three-gate entailment (the formal classification outputs)
