@@ -44,6 +44,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 ONTOLOGY_DIR = REPO_ROOT / "03_TECHNICAL_CORE" / "ontology"
 
 BFO_2020 = ONTOLOGY_DIR / "imports" / "bfo-2020.owl"
+IAO_2026 = ONTOLOGY_DIR / "imports" / "iao.owl"
+RO_2025 = ONTOLOGY_DIR / "imports" / "ro.owl"
 CORE = ONTOLOGY_DIR / "ARCO_core.ttl"
 GOV = ONTOLOGY_DIR / "ARCO_governance_extension.ttl"
 
@@ -114,7 +116,7 @@ SCENARIOS = [
 
 def load_and_reason(instance_file: Path) -> Graph:
     g = Graph()
-    for p in (BFO_2020, CORE, GOV, instance_file):
+    for p in (BFO_2020, IAO_2026, RO_2025, CORE, GOV, instance_file):
         if not p.exists():
             raise FileNotFoundError(f"Missing: {p}")
         fmt = "xml" if p.suffix == ".owl" else "turtle"

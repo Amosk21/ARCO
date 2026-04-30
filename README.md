@@ -9,8 +9,8 @@ ARCO moves that risk decision upstream. It is a pre-deployment classification en
 The output is not a score, a confidence level, or an advisory opinion. It is a deterministic, audit-traceable assessment grounded in formal logic and BFO-aligned, CCO-informed structure: same structured inputs, same classification, every time.
 
 **TL;DR**
-- ARCO is a deterministic regulatory classification framework aligned with BFO realist ontology and using local CCO stubs for governance vocabulary. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you, before you build, whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
-- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology (CCO terms as local stubs), with no probabilistic scoring and no LLMs in the decision loop.
+- ARCO is a deterministic regulatory classification framework aligned with BFO 2020 and the OBO Foundry: BFO, the OBO Relations Ontology (RO), and the Information Artifact Ontology (IAO) are loaded as full upstream releases; CCO terms are declared as local stubs for governance vocabulary not yet covered by an imported ontology. The current implementation demonstrates it against the EU AI Act: formal OWL-RL reasoning tells you, before you build, whether your system triggers high-risk conditions per ARCO's encoding of Article 6 and Annex III, and exactly why. The architecture generalizes to any regulatory domain where obligations attach to capability, structure, and role.
+- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology (full BFO/RO/IAO upstream imports, CCO terms as local stubs), with no probabilistic scoring and no LLMs in the decision loop.
 - From a fresh clone, install the Python dependencies and run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from the repository root to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
 
 **What's modeled (current scope)**
@@ -114,16 +114,32 @@ This makes ARCO fundamentally different from post-hoc tools that observe behavio
 
 ## Foundational ontology versions
 
-| Ontology | Version / release | IRI namespace used |
-|----------|------------------|--------------------|
-| **BFO** | BFO 2020 (ISO/IEC 21838-2:2021) | `http://purl.obolibrary.org/obo/BFO_` |
-| **RO** | OBO Relation Ontology (current OBO release) | `http://purl.obolibrary.org/obo/RO_` |
-| **IAO** | Information Artifact Ontology (current OBO release) | `http://purl.obolibrary.org/obo/IAO_` |
-| **CCO** | CCO pre-integrated release (exact version unverified; local stubs) | `http://www.ontologyrepository.com/CommonCoreOntologies/` |
+| Ontology | Version / release | IRI namespace used | How it's loaded |
+|----------|------------------|--------------------|------------------|
+| **BFO** | BFO 2020 (ISO/IEC 21838-2:2021) | `http://purl.obolibrary.org/obo/BFO_` | Full ontology loaded from `03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl` |
+| **RO** | OBO Relations Ontology release `2025-12-17` | `http://purl.obolibrary.org/obo/RO_` | Full ontology loaded from `03_TECHNICAL_CORE/ontology/imports/ro.owl` |
+| **IAO** | Information Artifact Ontology release `2026-03-30` | `http://purl.obolibrary.org/obo/IAO_` | Full ontology loaded from `03_TECHNICAL_CORE/ontology/imports/iao.owl` |
+| **CCO** | CCO pre-integrated release (exact version unverified; local stubs) | `http://www.ontologyrepository.com/CommonCoreOntologies/` | Local stubs only — specific terms declared in `ARCO_governance_extension.ttl` |
 
 **BFO 2020** is the second edition of Basic Formal Ontology, standardized as ISO/IEC 21838-2:2021. ARCO uses the OBO Foundry numeric-ID namespace (`BFO_0000015`, `BFO_0000016`, etc.) that is definitive of this release. The earlier BFO 1.1 used a different IRI scheme (`http://www.ifomis.org/bfo/1.1/snap#`, `span#`) and is not used here.
 
-**CCO** terms are declared as local stubs rather than via a full `owl:imports` of the CCO modules. This means only the specific CCO classes and properties ARCO requires are declared in-file (`cco:Organization`, `cco:DirectiveInformationContentEntity`, `cco:prescribes`, `cco:has_output`, etc.), using the pre-integrated-release IRI namespace. The pipeline does not depend on fetching external CCO files at runtime.
+**RO** and **IAO** are loaded as full upstream releases. The pipeline pulls the entire `ro.owl` and `iao.owl` files into the reasoning graph alongside BFO. This was not always the case: earlier ARCO revisions referenced RO and IAO terms by IRI with only minimal local label declarations and no full `owl:imports`. The promotion from stub-style references to full-file imports was performed under independent verification (alignment audit, OWL 2 DL profile validation under ROBOT, and HermiT consistency check) and confirmed not to change any classification outputs. See `docs/agent/alignment_audit_RO_2026-04-29.md` and `docs/agent/alignment_audit_IAO_2026-04-29.md`.
+
+**CCO** terms remain declared as local stubs rather than via a full `owl:imports` of the CCO modules. Only the specific CCO classes and properties ARCO requires are declared in-file (`cco:Organization`, `cco:DirectiveInformationContentEntity`, `cco:prescribes`, `cco:has_output`, etc.), using the pre-integrated-release IRI namespace. The pipeline does not depend on fetching external CCO files at runtime.
+
+### Why full upstream imports rather than slim MIREOT modules
+
+The conventional OBO Foundry pattern for depending on an external ontology is to extract a slim "import module" using a tool such as ROBOT's `extract` command (e.g. MIREOT, BOT, or STAR), pulling in only the specific terms a project references plus their ancestors. ARCO instead loads the complete upstream releases. This is a deliberate choice grounded in ARCO's role as a regulatory classification framework rather than a biological ontology fragment.
+
+Five reasons full imports are the right default for ARCO:
+
+1. **Audit traceability.** A reviewer, auditor, or regulator can verify with a single hash that ARCO uses BFO 2020, OBO Relations Ontology release `2025-12-17`, and Information Artifact Ontology release `2026-03-30` exactly as published — with no curation step in between. A MIREOT module would itself be an audit surface ("which axioms made the cut, why, and is the slice still consistent with the full upstream?"). Removing that step shortens the chain of trust.
+2. **No silent upstream drift.** When an upstream ontology adds a new property-chain axiom, strengthens a domain or range, or refines a class definition, the full import picks it up automatically on the next release pin. A slim module would freeze the previous slice and quietly miss the change. For a tool whose entire purpose is tracking formal definitions of regulated concepts, this matters.
+3. **Extensibility to new Annex III categories and to peer regulations.** Adding Annex III 1(b), 5(a), or 6 — or modeling GDPR Article 22, FDA pre-cert, NIS2, or sectoral safety regimes — will reach for additional BFO, RO, and IAO terms ARCO does not currently reference. With full imports those terms are already in scope; the only ontology engineering work is the new gate axioms. With slim modules every new category or domain triggers a module-rebuild step.
+4. **Cross-domain generalization is part of the architectural pitch.** The README and the underlying design claim that ARCO generalizes to any regulatory domain where obligations attach to capability, structure, and role. Full imports are consistent with that claim; per-domain slim modules quietly contradict it.
+5. **Stronger independent-reasoner verification.** The HermiT cross-check in CI exists to confirm that the production OWL-RL reasoner agrees with a full DL reasoner over the actual upstream axiomatization. Running HermiT against a slim module would only verify agreement over the axioms ARCO chose to import; running HermiT against the full ontologies verifies agreement over what the upstream specifications actually say.
+
+The cost ARCO accepts in exchange is operational, not logical: the HermiT step in the ROBOT validation workflow takes roughly thirty to forty minutes on the merged BFO + RO + IAO + ARCO ontology, and the production OWL-RL reasoner produces a larger entailed graph. Neither affects correctness, and both have been confirmed under CI on the consolidated branch. The conventional MIREOT counter-argument — sibling biological ontologies needing slim modules to avoid cyclic imports — does not apply here because ARCO has no such cycles to avoid.
 
 ---
 
