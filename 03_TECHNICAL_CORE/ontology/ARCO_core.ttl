@@ -9,7 +9,7 @@
 <https://arco.ai/ontology/core> rdf:type owl:Ontology ;
   rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned" ;
   rdfs:comment "Core ontology with OWL restrictions for computable reasoning + ICE-to-Reality grounding (IAO is_about) in an NCOR realism style. Uses ro:0000091 (has_disposition) per RO best practices." ;
-  owl:versionInfo "Foundational ontology alignment: BFO 2020 (ISO/IEC 21838-2:2021), bfo-core.owl loaded locally from 03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl. OBO Relations Ontology (RO) release 2025-12-17, ro.owl loaded locally from 03_TECHNICAL_CORE/ontology/imports/ro.owl. Information Artifact Ontology (IAO) release 2026-03-30, iao.owl loaded locally from 03_TECHNICAL_CORE/ontology/imports/iao.owl. CCO terms declared as local stubs in ARCO_governance_extension.ttl." ;
+  owl:versionInfo "Foundational ontology alignment: BFO 2020 (ISO/IEC 21838-2:2021) loaded as full upstream file from 03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl. OBO Relations Ontology (RO) release 2025-12-17, IAO release 2026-03-30, and CCO release v1.7-2024-11-03 are loaded as ROBOT BOT-extracted slim modules per the OBO Foundry / ODK standard pattern, from imports/ro_bot.owl, imports/iao_bot.owl, and imports/cco_bot.owl respectively. Seed term lists are version-controlled at 03_TECHNICAL_CORE/ontology/imports/seeds/. See README 'Foundational ontology versions' for the full table." ;
   owl:imports <../ontology/imports/bfo-2020.owl> .
 # NOTE: owl:imports uses a filesystem-relative path. rdflib does not follow
 # owl:imports automatically; BFO is loaded explicitly by load_union_graph().
