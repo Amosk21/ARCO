@@ -11,7 +11,7 @@
 a owl:Ontology ;
 rdfs:label "ARCO Governance Extension — Entailment-First Regulatory Classification" ;
 rdfs:comment "Governance, intended use, and regulatory classification layer. AnnexIII1aApplicableSystem is OWL-entailed from three gates: capability + intended use + use scenario. Demonstrated under owlrl." ;
-owl:versionInfo "Foundational ontology alignment: BFO 2020 (ISO/IEC 21838-2:2021), OBO Relations Ontology release 2025-12-17, and Information Artifact Ontology release 2026-03-30 are loaded as full upstream releases via ARCO_core.ttl. CCO terms (Organization, DirectiveInformationContentEntity, DescriptiveInformationContentEntity, prescribes, has_output, Person) remain declared as local stubs using IRI namespace http://www.ontologyrepository.com/CommonCoreOntologies/ (pre-integrated-release, exact version unverified). Full CCO import is not required; only the specific terms used are declared. Regulatory source: Regulation (EU) 2024/1689, official version of 13 June 2024; current ARCO encoding covers Article 6 / Annex III points 1(a) and 5(b)." ;
+owl:versionInfo "Foundational ontology alignment: BFO 2020 (ISO/IEC 21838-2:2021) loaded as a full upstream file via ARCO_core.ttl; OBO Relations Ontology release 2025-12-17, Information Artifact Ontology release 2026-03-30, and Common Core Ontologies release v1.7-2024-11-03 loaded as ROBOT BOT-extracted slim modules per the OBO Foundry / ODK standard pattern. CCO terms in this file (Organization, DirectiveInformationContentEntity, DescriptiveInformationContentEntity, prescribes, has_output, Person) use IRI namespace http://www.ontologyrepository.com/CommonCoreOntologies/ (pre-v2.0, matching the pinned cco_bot.owl). Two of the local declarations (DirectiveICE and DescriptiveICE rdfs:subClassOf iao:0000030) are bridging assertions that wire CCO's ICE hierarchy to IAO's iao:0000030 — the only stubs that do non-trivial work; the rest are redundant with cco_bot.owl and kept for in-file readability. Regulatory source: Regulation (EU) 2024/1689, official version of 13 June 2024; current ARCO encoding covers Article 6 / Annex III points 1(a) and 5(b)." ;
 owl:imports <https://arco.ai/ontology/core> .
 # NOTE: owl:imports references the core ontology IRI. rdflib does not follow
 # owl:imports automatically; all TTL files are loaded explicitly by the pipeline.
@@ -87,7 +87,21 @@ owl:imports <https://arco.ai/ontology/core> .
   ] .
 
 #################################################################
-# 3) CCO DECLARATIONS (local stubs — no full import)
+# 3) CCO DECLARATIONS — bridging assertions + redundant locals
+#
+# CCO is loaded as a ROBOT BOT-extracted slim module (cco_bot.owl) via
+# ARCO_core.ttl's import chain. Two of the declarations below do
+# non-trivial work as IAO/CCO bridging assertions:
+#   - cco:DirectiveInformationContentEntity rdfs:subClassOf iao:0000030
+#   - cco:DescriptiveInformationContentEntity rdfs:subClassOf iao:0000030
+# These wire CCO's ICE hierarchy to IAO's iao:0000030 (upstream CCO does
+# not formally link cco:InformationContentEntity to iao:0000030).
+#
+# The remaining declarations (cco:prescribes, cco:has_output, cco:Person,
+# cco:Organization) are redundant with cco_bot.owl. They are retained for
+# in-file readability so a reader can see the full set of CCO terms used
+# without cross-referencing the BOT module. A future cleanup may remove
+# them; see audit D2 in the 2026-05-01 technical-files audit.
 #################################################################
 
 cco:DirectiveInformationContentEntity rdf:type owl:Class ;
