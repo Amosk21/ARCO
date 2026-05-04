@@ -100,6 +100,12 @@ ARCO treats capability as something that **resolves from structure**, traced fro
 
 This makes ARCO fundamentally different from post-hoc tools that observe behavior or score risk probabilistically. The classification is deterministic, traceable, and stable. It changes only when the system's structure changes.
 
+### Datatype properties and the alignment rule
+
+ARCO's current scope is structural-only: the ontology and SHACL shapes contain zero datatype properties, and every relationship is between named IRIs rather than between an IRI and a literal value. This is a deliberate scope choice — every Annex III trigger ARCO encodes today is relational (presence of a disposition, link to a role, prescription of a process), so literals aren't required to model the regulatory question, and avoiding them keeps every claim in the audit trail citeable by URI.
+
+Quantitative thresholds (accuracy floors, false-positive rates, dataset sizes, dated audits) are out of scope until explicitly added. When they are, OWL `rdfs:range` and SHACL `sh:datatype` declarations on the same property must match exactly: OWL ranges are entailment rules — they *assert* a literal's type rather than checking it — while SHACL `sh:datatype` is the validator, so a mismatch produces silently inconsistent data that neither layer flags. Future datatype additions will land with paired range and shape declarations and a SPARQL audit query flagging any drift.
+
 ---
 
 ## Foundational ontology versions
