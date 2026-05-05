@@ -20,10 +20,10 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 # OWL classification is UNCHANGED by this flag. The flag fires after OWL-RL
 # reasoning is complete and does not affect any gate condition.
 #
-# The pipeline substitutes :Sentinel_ID_System with the actual system IRI
+# The pipeline binds ?system to the actual system IRI via initBindings
 # when --system is provided.
 
 ASK WHERE {
   ?claim rdf:type :DerogationClaim ;
-         iao:0000136 :Sentinel_ID_System .
+         iao:0000136 ?system .
 }

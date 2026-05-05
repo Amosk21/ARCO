@@ -3,12 +3,12 @@ PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 
 # Audit check: verifies that an AssessmentDocumentation exists for the system
 # and is linked to a RegulatoryContent condition.
-# Uses variables for the doc and condition IRIs so system IRI substitution
-# (via --system CLI arg) covers both sentinel and other Annex III systems.
+# The pipeline binds ?system to the actual system IRI via initBindings
+# (covers both sentinel and other Annex III systems via --system CLI arg).
 
 ASK WHERE {
   ?doc a :AssessmentDocumentation ;
-    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?system ;
     iao:0000136 ?condition .
   ?condition a :RegulatoryContent .
 }

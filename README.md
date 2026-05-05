@@ -157,7 +157,6 @@ Near-term hardening work is intentionally scoped:
 
 - replace legacy concept diagrams with pipeline-accurate explanatory visuals
 - add gate-removal regression tests for the `5(b)` creditworthiness path
-- replace SPARQL placeholder substitution with bound system variables
 - document the Gate 3 regulatory-aboutness encoding convention
 - expand modeled Annex III categories only with corresponding ontology, SHACL, SPARQL, and regression coverage
 

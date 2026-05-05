@@ -8,9 +8,9 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 #   Sentinel_ID_System (default): FALSE — no CreditworthinessEvaluationCapability; Gate 1 of 5(b) fails.
 #   CreditScorer_001: TRUE after reasoning — all three gates satisfied.
 #
-# The pipeline substitutes :Sentinel_ID_System with the actual system IRI when evaluating
+# The pipeline binds ?system to the actual system IRI via initBindings when evaluating
 # a different system (e.g., CreditScorer_001 via --system CLI argument).
 
 ASK WHERE {
-  :Sentinel_ID_System rdf:type :AnnexIII5bApplicableSystem .
+  ?system rdf:type :AnnexIII5bApplicableSystem .
 }

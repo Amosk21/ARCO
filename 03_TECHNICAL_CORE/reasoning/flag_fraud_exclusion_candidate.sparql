@@ -19,14 +19,14 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 # If TRUE, the certificate emits FLAGGED and directs human review.
 # OWL classification (AnnexIII5bApplicableSystem) is UNCHANGED by this flag.
 #
-# The pipeline substitutes :Sentinel_ID_System with the actual system IRI
+# The pipeline binds ?system to the actual system IRI via initBindings
 # when --system is provided.
 
 ASK WHERE {
-  :Sentinel_ID_System rdf:type :AnnexIII5bApplicableSystem .
+  ?system rdf:type :AnnexIII5bApplicableSystem .
 
   ?ius rdf:type :IntendedUseSpecification ;
-       iao:0000136 :Sentinel_ID_System ;
+       iao:0000136 ?system ;
        cco:prescribes ?proc .
 
   ?proc rdf:type :FraudDetectionProcess .

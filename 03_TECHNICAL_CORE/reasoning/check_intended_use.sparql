@@ -14,17 +14,17 @@ PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 # Gate 3 audit: a UseScenarioSpecification is_about the system AND is_about
 # :NaturalPersonRole (the role category — universal across current Annex III categories).
 #
-# The pipeline substitutes :Sentinel_ID_System with the actual system IRI when
-# --system is provided.
+# The pipeline binds ?system to the actual system IRI via initBindings
+# when --system is provided.
 
 ASK WHERE {
   # Gate 2 audit: intended use — a directive ICE prescribes a process instance for this system
   ?ius a :IntendedUseSpecification ;
     cco:prescribes ?process ;
-    iao:0000136 :Sentinel_ID_System .
+    iao:0000136 ?system .
 
   # Gate 3 audit: use scenario — natural person role is declared for this system
   ?uss a :UseScenarioSpecification ;
-    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?system ;
     iao:0000136 :NaturalPersonRole .
 }

@@ -122,14 +122,13 @@ def run_sparql_ask_from_file(data_graph: Graph, query_path: Path) -> bool:
         raise RuntimeError(f"SPARQL query failed: {query_path}\n{e}")
 
 def run_sparql_ask_for_system(data_graph: Graph, query_path: Path, system_local: str) -> bool:
-    """Run a SPARQL ASK file query, substituting the sentinel placeholder with the actual system IRI."""
+    """Run a SPARQL ASK file query, binding ?system to the system IRI via initBindings."""
     if not query_path.exists():
         raise FileNotFoundError(f"Missing SPARQL query file: {query_path}")
     q = query_path.read_text(encoding="utf-8").strip()
-    if system_local != "Sentinel_ID_System":
-        q = q.replace(":Sentinel_ID_System", f":{system_local}")
+    system_iri = URIRef(f"{ARCO_NS}{system_local}")
     try:
-        result = data_graph.query(q)
+        result = data_graph.query(q, initBindings={"system": system_iri})
         if isinstance(result, bool):
             return result
         rows = list(result)

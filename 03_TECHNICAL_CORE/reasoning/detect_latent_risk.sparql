@@ -19,7 +19,7 @@ PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
 #################################################################
 
 ASK WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
+  ?system bfo:0000051 ?component .
   ?component ro:0000091 ?disposition .
   ?disposition a :AnnexIIITriggeringCapability .
 }
