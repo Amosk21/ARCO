@@ -2,7 +2,7 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-> **Note.** ARCO is a research-grade applied ontology and reference pipeline. It currently encodes EU Regulation 2024/1689 (AI Act) Annex III categories 1(a) (remote biometric identification) and 5(b) (creditworthiness evaluation). The architecture is designed to generalize to other regulatory regimes; the implementation is intentionally bounded. ARCO produces structured evidence for human review and does not replace legal review. The encoded interpretation of the regulatory text has not been externally reviewed by qualified counsel or by the EU AI Office.
+> **Note.** ARCO is a research-grade applied ontology and reference pipeline. It currently encodes EU Regulation 2024/1689 (AI Act) Annex III categories 1(a) (remote biometric identification) and 5(b) (creditworthiness evaluation). The architecture is designed to generalize to other regulatory regimes; the implementation is intentionally bounded. The encoded interpretation of the regulatory text has not been externally reviewed by qualified counsel or by the EU AI Office.
 
 Companies are building AI systems without knowing whether those systems will satisfy the high-risk conditions of the EU AI Act. When that exposure surfaces after deployment, the costs are real: redesign, retraining, administrative fines under Regulation (EU) 2024/1689 Article 99 (up to 3% of worldwide annual turnover or €15M for high-risk operator obligations, up to 7% or €35M for Article 5 prohibited practices), forced withdrawal, and reputational damage.
 
