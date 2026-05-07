@@ -1317,6 +1317,7 @@ section {{ scroll-margin-top: 1rem }}
   </table>
 
   <div class="triples">OWL-RL entailed triples added: <span>+{inferred_added}</span></div>
+  <p style="margin:0.25rem 0 1rem 0; font-size:0.85em; color:#555;">Most are upper-ontology subclass and inverse-property closure across BFO/RO/IAO/CCO. The load-bearing classification entailments are the small subset shown above (system <code>rdf:type</code> assignments plus the supporting subclass and inverse-aboutness triples the gates depend on).</p>
 
   <h3 style="margin-top:1.5rem">Raw Pipeline Outputs</h3>
   <details>
@@ -1637,6 +1638,11 @@ def main() -> None:
     if obligation_ok is not None:
         print(f"  OBLIGATION:              {_pf(obligation_ok)}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
+    print(f"                           Most are upper-ontology subclass and inverse-property")
+    print(f"                           closure across BFO/RO/IAO/CCO. The load-bearing")
+    print(f"                           classification entailments are the small subset above")
+    print(f"                           (system rdf:type assignments plus the supporting subclass")
+    print(f"                           and inverse-aboutness triples the gates depend on).")
     print()
     print("  SCOPE: ARCO assesses structured RDF instance data supplied to the pipeline.")
     print("         It does not verify raw vendor documentation, the physical deployed")
@@ -1679,6 +1685,11 @@ def main() -> None:
     if obligation_ok is not None:
         cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
+    cert_lines.append(f"                           Most are upper-ontology subclass and inverse-property")
+    cert_lines.append(f"                           closure across BFO/RO/IAO/CCO. The load-bearing")
+    cert_lines.append(f"                           classification entailments are the small subset above")
+    cert_lines.append(f"                           (system rdf:type assignments plus the supporting subclass")
+    cert_lines.append(f"                           and inverse-aboutness triples the gates depend on).")
     cert_lines.append("")
     cert_lines.append("  [exception flags — provider-submitted claims, human review required]")
     cert_lines.append(f"  ART. 6(3) DEROGATION:    {'FLAGGED — DerogationClaim artifact detected; human legal review required before treating this as a final determination' if derogation_flagged else 'NOT FLAGGED'}")
