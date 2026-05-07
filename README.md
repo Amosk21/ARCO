@@ -13,6 +13,8 @@ The output is not a score, a confidence level, or an advisory opinion. It is a d
 - Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO-aligned ontology, with no probabilistic scoring and no LLMs in the decision loop.
 - From a fresh clone, install the Python dependencies and run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from the repository root to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
 
+Bounded working example. Currently models two EU AI Act Annex III categories (1(a) remote biometric identification, 5(b) creditworthiness evaluation). Architecture generalizes; implementation is intentionally small.
+
 **What's modeled (current scope)**
 
 | Annex III category | Capability (Gate 1) | Prescribed process (Gate 2) | Affected role (Gate 3) |
