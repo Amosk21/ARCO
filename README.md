@@ -1,4 +1,4 @@
-# ARCO
+# ARCO [Research Project]
 
 **Assurance & Regulatory Classification Ontology Engine**
 
