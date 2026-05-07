@@ -1,6 +1,6 @@
 # ARCO
 
-**Assurance & Regulatory Classification Ontology**
+**Assurance & Regulatory Classification Ontology Engine**
 
 Companies are building AI systems without knowing whether those systems will satisfy the high-risk conditions of the EU AI Act and other regulatory frameworks. When that exposure surfaces after deployment, the costs are severe: redesign, retraining, fines (up to 6% of global revenue), forced withdrawal, reputational damage.
 
