@@ -82,7 +82,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
   OBLIGATION:              PASS
   REG. ALIGNED:            PASS
 
-  ENTAILED TRIPLES ADDED:  +19771
+  ENTAILED TRIPLES ADDED:  +19862
 
   Classification layer: PASS
   Audit layer:          PASS
@@ -91,7 +91,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
 
 This determination is **derived**, not asserted. If any category-specific gate were not present, the Annex III applicability class would not be inferred. The reference pipeline writes the supporting certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
 
-**Why so many entailed triples?** The `+19771` figure reflects the depth of the upper-ontology hierarchy ARCO grounds in. Most of those derived triples are housekeeping under OWL 2 RL semantics: subclass closure across BFO, RO, IAO, and CCO; inverse-property materialization (every `is_about` assertion produces its inverse triple); property-characteristic propagation; and domain/range inferences. The actually load-bearing classification triples are a small subset, including:
+**Why so many entailed triples?** The `+19862` figure reflects the depth of the upper-ontology hierarchy ARCO grounds in. Most of those derived triples are housekeeping under OWL 2 RL semantics: subclass closure across BFO, RO, IAO, and CCO; inverse-property materialization (every `is_about` assertion produces its inverse triple); property-characteristic propagation; and domain/range inferences. The actually load-bearing classification triples are a small subset, including:
 
 - `:Sentinel_ID_System rdf:type :HighRiskSystem` (entailed via the Gate-1 bridge axiom)
 - `:Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem` (entailed via the three-gate `equivalentClass` axiom)

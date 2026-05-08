@@ -55,17 +55,14 @@
 # Gate 2: IntendedUseSpecification must cco:prescribes a token
 # typed as :CreditworthinessEvaluationProcess — the Gate 2
 # type-check target for AnnexIII5bApplicableSystem.
-# Gate 3: UseScenarioSpecification must iao:0000136 some token typed as
-# :NaturalPersonRole. owl:someValuesFrom requires an instance of the class.
-# Documentary aboutness only; role-bearer is deferred to deployment-time.
+# Gate 3: UseScenarioSpecification (a Designative ICE) must
+# cco:designates :NaturalPersonRole — designation references the
+# role universal directly via a typed designation property whose
+# range admits universals. No role-bearer required.
 #################################################################
 
 :CreditScorer_EvalProcess_Token rdf:type :CreditworthinessEvaluationProcess ;
   rdfs:label "Credit Scorer Evaluation Process Token" .
-
-:CreditScorer_NaturalPerson_Role_001 rdf:type :NaturalPersonRole ;
-  rdfs:label "Credit Scorer Natural Person Role Token" ;
-  rdfs:comment "Role token for Gate 3: iao:is_about filler typed as NaturalPersonRole. owl:someValuesFrom in the gate axiom requires an instance of the class, not the class IRI." .
 
 :CreditScorer_IntendedUse_001 rdf:type :IntendedUseSpecification ;
   rdfs:label "Credit Scorer Intended Use: Creditworthiness Evaluation" ;
@@ -74,8 +71,9 @@
 
 :CreditScorer_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Credit Scorer Use Scenario: Natural Person Applicants" ;
+  rdfs:comment "Designative ICE: is_about the system, designates :NaturalPersonRole as the affected role category via cco:designates." ;
   iao:0000136 :CreditScorer_001 ;
-  iao:0000136 :CreditScorer_NaturalPerson_Role_001 .
+  cco:designates :NaturalPersonRole .
 
 #################################################################
 # 3) COMPLIANCE DETERMINATION

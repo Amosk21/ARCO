@@ -57,13 +57,11 @@
 :Kiosk_VerificationProcess_Token rdf:type :BiometricVerificationProcess ;
   rdfs:label "Kiosk Verification Process Token" .
 
-:Kiosk_NaturalPerson_Role_001 rdf:type :NaturalPersonRole ;
-  rdfs:label "Kiosk Natural Person Role Token" .
-
 :Kiosk_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Kiosk Use Scenario: Verification of Natural Persons" ;
+  rdfs:comment "Designative ICE: is_about the system, designates :NaturalPersonRole. Gate 3 is satisfied; the kiosk still does NOT entail AnnexIII1aApplicableSystem because Gate 1 fails (BiometricVerificationCapability is not in AnnexIIITriggeringCapability)." ;
   iao:0000136 :VerificationKiosk_001 ;
-  iao:0000136 :Kiosk_NaturalPerson_Role_001 .
+  cco:designates :NaturalPersonRole .
 
 #################################################################
 # 3) COMPLIANCE DETERMINATION (descriptive ICE — not high-risk)

@@ -56,9 +56,6 @@
 :FlagTest_Biometric_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess ;
   rdfs:label "Flag Test Remote Biometric Identification Process Token" .
 
-:FlagTest_Biometric_NaturalPerson_Role_001 rdf:type :NaturalPersonRole ;
-  rdfs:label "Flag Test Biometric Natural Person Role Token" .
-
 :FlagTest_Biometric_IntendedUse rdf:type :IntendedUseSpecification ;
   rdfs:label "Flag Test Biometric Intended Use" ;
   cco:prescribes :FlagTest_Biometric_RBIP_Process ;
@@ -67,7 +64,7 @@
 :FlagTest_Biometric_UseScenario rdf:type :UseScenarioSpecification ;
   rdfs:label "Flag Test Biometric Use Scenario" ;
   iao:0000136 :FlagTest_BiometricSystem_WithDerogationClaim ;
-  iao:0000136 :FlagTest_Biometric_NaturalPerson_Role_001 .
+  cco:designates :NaturalPersonRole .
 
 # Provider-submitted DerogationClaim — triggers the audit flag
 :FlagTest_DerogationClaim_001 rdf:type :DerogationClaim ;
@@ -135,13 +132,10 @@
   cco:prescribes :FlagTest_Credit_FraudProcess ;
   iao:0000136 :FlagTest_CreditSystem_WithFraudProcess .
 
-:FlagTest_Credit_NaturalPerson_Role_001 rdf:type :NaturalPersonRole ;
-  rdfs:label "Flag Test Credit Natural Person Role Token" .
-
 :FlagTest_Credit_UseScenario rdf:type :UseScenarioSpecification ;
   rdfs:label "Flag Test Credit Use Scenario" ;
   iao:0000136 :FlagTest_CreditSystem_WithFraudProcess ;
-  iao:0000136 :FlagTest_Credit_NaturalPerson_Role_001 .
+  cco:designates :NaturalPersonRole .
 
 # Minimal documentation for SHACL compliance
 :FlagTest_Credit_ProviderOrg rdf:type :ProviderOrganization ;

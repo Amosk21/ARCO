@@ -56,12 +56,13 @@ GATE_REMOVALS = {
         CCO["prescribes"],                   # cco:prescribes
         ARCO["Sentinel_RBIP_Process"],       # the typed process token (not the class IRI)
     ),
-    # Gate 3 must require iao:is_about a NaturalPersonRole token, not just existence of USS.
-    # Triple references the role token individual, not the class IRI (mirrors Gate 2 pattern).
+    # Gate 3 must require cco:designates :NaturalPersonRole. The use scenario
+    # spec designates the affected role universal (class-level designation via
+    # the typed CCO designation property; same shape as Gate 2 with cco:prescribes).
     "gate3_missing_role": (
         ARCO["Sentinel_UseScenario_001"],
-        IAO["0000136"],                      # is_about
-        ARCO["Sentinel_NaturalPerson_Role_001"],   # the typed role token
+        CCO["designates"],
+        ARCO["NaturalPersonRole"],           # the role universal as designation target
     ),
 }
 
@@ -108,19 +109,19 @@ GATE_MUTATIONS = {
             "HighRiskSystem": True,               # capability unchanged
         },
     },
-    "gate3_wrong_role_type": {
+    "gate3_wrong_designation_target": {
         "remove": (
             ARCO["Sentinel_UseScenario_001"],
-            IAO["0000136"],
-            ARCO["Sentinel_NaturalPerson_Role_001"],  # the typed role token
+            CCO["designates"],
+            ARCO["NaturalPersonRole"],          # the regulated role universal
         ),
         "add": (
             ARCO["Sentinel_UseScenario_001"],
-            IAO["0000136"],
-            ARCO["SomeOtherRole"],              # wrong role (not typed as NaturalPersonRole)
+            CCO["designates"],
+            ARCO["SomeOtherRole"],              # wrong target (not the regulated role)
         ),
         "expected": {
-            "AnnexIII1aApplicableSystem": False,  # Gate 3 fails: wrong role
+            "AnnexIII1aApplicableSystem": False,  # Gate 3 fails: wrong designation target
             "HighRiskSystem": True,               # capability unchanged
         },
     },

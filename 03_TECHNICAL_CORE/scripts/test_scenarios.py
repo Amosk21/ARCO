@@ -34,7 +34,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from rdflib import Graph, Namespace
+from rdflib import Graph, Namespace, URIRef
 
 try:
     import owlrl
@@ -114,6 +114,37 @@ SCENARIOS = [
             "AnnexIII5bApplicableSystem": False,
         },
     },
+    # Flag-detection scenarios — entailment plus exception-flag SPARQL ASKs.
+    {
+        "name": "FlagTest_BiometricSystem_WithDerogationClaim",
+        "label": "FLAG: Biometric + Article 6(3) DerogationClaim",
+        "instances": ONTOLOGY_DIR / "ARCO_instances_flag_tests.ttl",
+        "system": ARCO["FlagTest_BiometricSystem_WithDerogationClaim"],
+        "expected": {
+            "HighRiskSystem": True,
+            "AnnexIII1aApplicableSystem": True,
+            "AnnexIII5bApplicableSystem": False,
+        },
+        "expected_flags": {
+            "DerogationClaim": True,
+            "FraudDetectionProcess": False,
+        },
+    },
+    {
+        "name": "FlagTest_CreditSystem_WithFraudProcess",
+        "label": "FLAG: Credit + 5(b) FraudDetectionProcess",
+        "instances": ONTOLOGY_DIR / "ARCO_instances_flag_tests.ttl",
+        "system": ARCO["FlagTest_CreditSystem_WithFraudProcess"],
+        "expected": {
+            "HighRiskSystem": True,
+            "AnnexIII1aApplicableSystem": False,
+            "AnnexIII5bApplicableSystem": True,
+        },
+        "expected_flags": {
+            "DerogationClaim": False,
+            "FraudDetectionProcess": True,
+        },
+    },
 ]
 
 
@@ -131,6 +162,35 @@ def load_and_reason(instance_file: Path) -> Graph:
 
 def check_type(g: Graph, individual, cls_name: str) -> bool:
     return (individual, RDF_NS["type"], ARCO[cls_name]) in g
+
+
+IAO_IS_ABOUT = URIRef("http://purl.obolibrary.org/obo/IAO_0000136")
+CCO_PRESCRIBES = URIRef("http://www.ontologyrepository.com/CommonCoreOntologies/prescribes")
+
+
+def has_derogation_claim_for(g: Graph, system) -> bool:
+    """A DerogationClaim individual is_about the given system."""
+    for claim, _, _ in g.triples((None, RDF_NS["type"], ARCO["DerogationClaim"])):
+        if (claim, IAO_IS_ABOUT, system) in g:
+            return True
+    return False
+
+
+def has_fraud_process_for(g: Graph, system) -> bool:
+    """An IntendedUseSpecification is_about the given system AND prescribes a FraudDetectionProcess."""
+    for ius, _, _ in g.triples((None, IAO_IS_ABOUT, system)):
+        if (ius, RDF_NS["type"], ARCO["IntendedUseSpecification"]) not in g:
+            continue
+        for _, _, process in g.triples((ius, CCO_PRESCRIBES, None)):
+            if (process, RDF_NS["type"], ARCO["FraudDetectionProcess"]) in g:
+                return True
+    return False
+
+
+FLAG_CHECKS = {
+    "DerogationClaim": has_derogation_claim_for,
+    "FraudDetectionProcess": has_fraud_process_for,
+}
 
 
 def main() -> None:
@@ -155,6 +215,21 @@ def main() -> None:
             print(f"  {cls_name}: {actual} (expected {expected}) [{status}]")
             if not ok:
                 all_pass = False
+
+        expected_flags = scenario.get("expected_flags")
+        if expected_flags is not None:
+            for flag_cls, expected in expected_flags.items():
+                checker = FLAG_CHECKS.get(flag_cls)
+                if checker is None:
+                    print(f"  {flag_cls}: no checker registered [FAIL]")
+                    all_pass = False
+                    continue
+                actual = checker(g, system)
+                ok = actual == expected
+                status = "OK" if ok else "FAIL"
+                print(f"  {flag_cls} for system: {actual} (expected {expected}) [{status}]")
+                if not ok:
+                    all_pass = False
 
     print()
     print("=" * 72)

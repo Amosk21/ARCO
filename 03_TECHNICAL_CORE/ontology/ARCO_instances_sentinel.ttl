@@ -62,10 +62,6 @@
   rdfs:label "Sentinel Remote Biometric Identification Process" ;
   rdfs:comment "Process token for Gate 2: cco:prescribes filler typed as RemoteBiometricIdentificationProcess. owl:someValuesFrom in the gate axiom requires an instance of the class, not the class IRI." .
 
-:Sentinel_NaturalPerson_Role_001 rdf:type :NaturalPersonRole ;
-  rdfs:label "Sentinel Natural Person Role Token" ;
-  rdfs:comment "Role token for Gate 3: iao:is_about filler typed as NaturalPersonRole. owl:someValuesFrom in the gate axiom requires an instance of the class, not the class IRI." .
-
 :Sentinel_IntendedUse_001 rdf:type :IntendedUseSpecification ;
   rdfs:label "Sentinel Intended Use: Remote Biometric Identification" ;
   cco:prescribes :Sentinel_RBIP_Process ;
@@ -74,10 +70,11 @@
 
 :Sentinel_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Sentinel Use Scenario: Biometric ID of Natural Persons" ;
+  rdfs:comment "Designative ICE: is_about the system, designates the :NaturalPersonRole universal via cco:designates (a typed designation property whose range admits universals). Gate 3 satisfaction does not require a role-bearer token; designation by inscription naming the regulated role category is sufficient." ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :RemoteBiometricIdentificationProcess ;
   iao:0000136 cco:Person ;
-  iao:0000136 :Sentinel_NaturalPerson_Role_001 .
+  cco:designates :NaturalPersonRole .
 
 #################################################################
 # 3) OPERATIONAL LAYER (realization + outputs)
