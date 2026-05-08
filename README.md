@@ -129,6 +129,48 @@ flowchart LR
 
 **Legend.** Green box → reality side (BFO disposition borne by an independent continuant). Blue box → representation side (IAO information content entity describing the system). Gates 2 and 3 use the anonymous inverse-aboutness wrapper `[owl:inverseOf iao:0000136]` so the restriction is on the system itself, not on the spec. Gate 2 uses `owl:someValuesFrom`: the prescribed process must be a typed instance of the regulated class. Gate 3 uses `owl:hasValue` against the role universal class IRI (designation by inscription per Smith and Ceusters 2015 "Aboutness," CEUR Vol-1515; the universal is named, not a role-bearer instance). The same shape applies to `:AnnexIII5bApplicableSystem` with `:CreditworthinessEvaluationCapability` / `:CreditworthinessEvaluationProcess` substituted in Gates 1 and 2. **Gate independence is verified by `03_TECHNICAL_CORE/scripts/test_gate_removal.py`**: removing any one of the three triples causes the classification entailment to fail.
 
+### The Reality / Representation cut
+
+ARCO commits to a clean separation: dispositions, roles, and processes are real (BFO continuants, occurrents, and universals). Specifications and determinations are information content entities ABOUT the system, not parts of it. The cut is what makes compliance claims falsifiable: you can disagree about whether a disposition is present, but you cannot conflate "the documentation says the system has the disposition" with "the system has the disposition."
+
+```mermaid
+flowchart TB
+    subgraph REPR["Representation side - IAO information content entities (real GDCs whose role is representational)"]
+        REG[":RegulatoryContent<br/>(Directive ICE) regulatory text passage"]
+        IUS[":IntendedUseSpecification<br/>(Directive ICE)"]
+        USS[":UseScenarioSpecification<br/>(Designative ICE)"]
+        CD[":ComplianceDetermination<br/>(Descriptive ICE)"]
+        HRD[":HighRiskDetermination<br/>(Descriptive ICE)"]
+    end
+
+    subgraph REALITY["Reality side - BFO continuants, processes, universals"]
+        SYS[":System<br/>(object aggregate, bfo:0000027)"]
+        HW[":HardwareComponent"]
+        DISP[":CapabilityDisposition<br/>inhering in the component"]
+        PROC[":RemoteBiometricIdentificationProcess<br/>(regulated process class)"]
+        ROLE[":NaturalPersonRole<br/>(role universal; tokens inhere in<br/>persons at deployment)"]
+        PROV[":ProviderOrganization"]
+        PROVR[":ProviderRole"]
+    end
+
+    SYS -->|bfo:has_part| HW
+    HW -->|ro:has_disposition| DISP
+    PROV -->|ro:has_role| PROVR
+
+    REG -.iao:is_about.-> SYS
+    IUS -.iao:is_about.-> SYS
+    IUS ==>|cco:prescribes someValuesFrom| PROC
+    USS -.iao:is_about.-> SYS
+    USS ==>|cco:designates hasValue| ROLE
+    CD -.iao:is_about.-> SYS
+    HRD -.iao:is_about.-> SYS
+
+    style REALITY fill:#eaf3ea
+    style REPR fill:#eef2fb
+```
+
+**Legend.** Solid arrow → reality-side relation (`bfo:has_part`, `ro:has_disposition`, `ro:has_role`). Dotted arrow → reference-style aboutness (`iao:is_about`, used to anchor any ICE to its referent). Thick arrow `==>` → cross-cut constraint with a typed CCO property (`cco:prescribes` typing the prescribed process; `cco:designates` naming the role universal as designation target). Information Content Entities are themselves real entities (generically dependent continuants per BFO 2020); the "Representation side" label denotes their *role in the model* (representing reality) rather than lower ontological status — see Smith and Ceusters 2010 "Ontological Realism" §3.2. The choice to model `:System` as `bfo:ObjectAggregate` rather than as a unitary Object is documented as arguable in [LIMITATIONS.md §3.4](LIMITATIONS.md).
+
 ---
 
 ## What ARCO is, and what it is not
