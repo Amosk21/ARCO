@@ -24,6 +24,77 @@ The output is not a score, a confidence level, or an advisory opinion. Most AI g
 
 All three gates must be satisfied for category-specific Annex III applicability entailment. A system bearing only a biometric capability is **not** entailed as a creditworthiness system, and vice versa. Cross-category isolation is formally enforced by the ontology, not asserted by hand. `HighRiskSystem` remains a Gate 1 latent-risk flag, not the full category-specific output.
 
+### Class hierarchy at a glance
+
+```mermaid
+flowchart TB
+    subgraph BFO_TIER[BFO 2020 and IAO upper categories]
+        BFO_OA[bfo:ObjectAggregate]
+        BFO_OBJ[bfo:Object]
+        BFO_DISP[bfo:Disposition]
+        IAO_ICE[iao:InformationContentEntity]
+    end
+
+    subgraph CCO_TIER[CCO ICE specializations]
+        CCO_DIR[cco:DirectiveICE]
+        CCO_DESIG[cco:DesignativeICE]
+    end
+
+    subgraph REALITY[Reality side - dispositions in independent continuants]
+        SYS[:System]
+        SC[:SystemComponent]
+        HW[:HardwareComponent]
+        CAP[:CapabilityDisposition]
+        BIC[:BiometricIdentificationCapability]
+        BVC[:BiometricVerificationCapability]
+        CEC[:CreditworthinessEvaluationCapability]
+        ATC[":AnnexIIITriggeringCapability<br/><i>defined class</i>"]
+    end
+
+    subgraph REPR[Representation side - ICEs about systems]
+        IUS[:IntendedUseSpecification]
+        USS[:UseScenarioSpecification]
+    end
+
+    subgraph REG[Entailed regulatory determinations]
+        HRS[":HighRiskSystem<br/><i>Gate 1 latent flag</i>"]
+        AIII1A[:AnnexIII1aApplicableSystem]
+        AIII5B[:AnnexIII5bApplicableSystem]
+    end
+
+    SYS --> BFO_OA
+    SC --> BFO_OBJ
+    HW --> SC
+    CAP --> BFO_DISP
+    BIC --> CAP
+    BVC --> CAP
+    CEC --> CAP
+    CCO_DIR --> IAO_ICE
+    CCO_DESIG --> IAO_ICE
+    IUS --> CCO_DIR
+    USS --> CCO_DESIG
+
+    HRS -.entailed.-> SYS
+    AIII1A --> SYS
+    AIII5B --> SYS
+
+    BIC -.unionOf.-> ATC
+    CEC -.unionOf.-> ATC
+
+    BIC === BVC
+    BIC === CEC
+    BVC === CEC
+
+    style REALITY fill:#eaf3ea
+    style REPR fill:#eef2fb
+    style REG fill:#fbf2e8
+    style BFO_TIER fill:#f5f5f5
+    style CCO_TIER fill:#f5f5f5
+    style ATC stroke:#444,stroke-width:2px,stroke-dasharray:3 3
+```
+
+**Legend.** Solid arrow → `rdfs:subClassOf` (child points to parent, OBO Foundry convention). Dotted arrow labeled `unionOf` → member of the `owl:equivalentClass owl:unionOf` defining `:AnnexIIITriggeringCapability`. Dotted arrow labeled `entailed` → membership entailed via `owl:equivalentClass` intersection rather than asserted as a subclass (`:HighRiskSystem` is the example: not asserted as a subclass of `:System`; entailed when the bridge axiom fires). Thick line `===` → `owl:disjointWith`. `:BiometricVerificationCapability` is intentionally NOT a member of `:AnnexIIITriggeringCapability` per Article 3(36) (one-to-one verification is out of scope of Annex III 1(a)); the disjointness edges visualize the formal exclusion.
+
 ---
 
 ## What ARCO is, and what it is not
