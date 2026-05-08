@@ -3,10 +3,13 @@ PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 
 # Checks that a compliance obligation links the system to a provider role.
 # This is the "who bears responsibility" foundation.
+#
+# The ?system variable is bound by the caller (rdflib initBindings or ROBOT
+# --initial-binding) to the system IRI under evaluation.
 
 ASK WHERE {
   ?obligation a :ComplianceObligationSpecification ;
-    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?system ;
     iao:0000136 ?role .
   ?role a :ProviderRole .
 }

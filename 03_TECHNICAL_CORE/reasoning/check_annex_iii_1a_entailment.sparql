@@ -4,7 +4,11 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 # Audit check: confirms the reasoner inferred Annex III 1(a) applicability.
 # Classification itself is an OWL entailment — this just verifies it materialized.
 # Should be FALSE before reasoning, TRUE after.
+#
+# The ?system variable is bound by the caller (rdflib initBindings or
+# ROBOT --initial-binding) to the system IRI under evaluation. The query is
+# directly reusable outside the pipeline by any caller that binds ?system.
 
 ASK WHERE {
-  :Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem .
+  ?system rdf:type :AnnexIII1aApplicableSystem .
 }

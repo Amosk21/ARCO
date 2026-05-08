@@ -122,16 +122,24 @@ def run_sparql_ask_from_file(data_graph: Graph, query_path: Path) -> bool:
         raise RuntimeError(f"SPARQL query failed: {query_path}\n{e}")
 
 def run_sparql_ask_for_system(data_graph: Graph, query_path: Path, system_local: str) -> bool:
-    """Run a SPARQL ASK file query, substituting the sentinel placeholder with the actual system IRI."""
+    """Run a SPARQL ASK file query with the system IRI bound to ?system via initBindings.
+
+    The on-disk query file uses a ?system variable rather than a hardcoded IRI,
+    so the same file is reusable by any caller (the ROBOT/HermiT cross-check
+    workflow, external auditors) by binding ?system at query time. This avoids
+    string substitution, which is fragile against substring collisions in
+    future class IRIs.
+    """
     if not query_path.exists():
         raise FileNotFoundError(f"Missing SPARQL query file: {query_path}")
     q = query_path.read_text(encoding="utf-8").strip()
-    if system_local != "Sentinel_ID_System":
-        q = q.replace(":Sentinel_ID_System", f":{system_local}")
+    system_iri = URIRef(f"{ARCO_NS}{system_local}")
     try:
-        result = data_graph.query(q)
+        result = data_graph.query(q, initBindings={"system": system_iri})
         if isinstance(result, bool):
             return result
+        if hasattr(result, "askAnswer") and result.askAnswer is not None:
+            return bool(result.askAnswer)
         rows = list(result)
         return bool(rows[0]) if rows else False
     except Exception as e:
