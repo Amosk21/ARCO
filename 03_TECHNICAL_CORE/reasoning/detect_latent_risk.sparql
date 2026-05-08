@@ -16,10 +16,13 @@ PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
 # AnnexIIITriggeringCapability is entailed by OWL-RL subclass reasoning
 # for all registered capability subclasses (e.g. BiometricIdentificationCapability,
 # CreditworthinessEvaluationCapability).
+#
+# The ?system variable is bound by the caller (rdflib initBindings or ROBOT
+# --initial-binding) to the system IRI under evaluation.
 #################################################################
 
 ASK WHERE {
-  :Sentinel_ID_System bfo:0000051 ?component .
+  ?system bfo:0000051 ?component .
   ?component ro:0000091 ?disposition .
   ?disposition a :AnnexIIITriggeringCapability .
 }

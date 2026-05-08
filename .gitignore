@@ -83,7 +83,6 @@ docs/certificate/
 BRIEF.md
 DESIGN_REVIEW_BRIEF.md
 ONTOLOGY_REVIEW.md
-LIMITATIONS.md
 docs/ARCO_DSQs_and_Scope.md
 docs/agent/ARCO_public_claims.md
 scripts/render_html_to_pdf_playwright.py

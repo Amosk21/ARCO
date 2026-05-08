@@ -22,7 +22,7 @@
 # 1) REGULATORY LAYER — exclusion documentation
 #################################################################
 
-:AnnexIII_Condition_Q1_Exclusion rdf:type :RegulatoryContent ;
+:AnnexIII_Condition_1a_Exclusion rdf:type :RegulatoryContent ;
   rdfs:label "Annex III 1(a) — Verification Exclusion Note" ;
   rdfs:comment "Documents the 1:1 verification exclusion from Annex III 1(a). Recital 22 and Art. 3(41): only 1:N remote biometric identification triggers the Annex III classification." ;
   iao:0000136 :BiometricVerificationCapability ;
@@ -59,8 +59,9 @@
 
 :Kiosk_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Kiosk Use Scenario: Verification of Natural Persons" ;
+  rdfs:comment "Designative ICE: is_about the system, designates :NaturalPersonRole. Gate 3 is satisfied; the kiosk still does NOT entail AnnexIII1aApplicableSystem because Gate 1 fails (BiometricVerificationCapability is not in AnnexIIITriggeringCapability)." ;
   iao:0000136 :VerificationKiosk_001 ;
-  iao:0000136 :NaturalPersonRole .
+  cco:designates :NaturalPersonRole .
 
 #################################################################
 # 3) COMPLIANCE DETERMINATION (descriptive ICE — not high-risk)
@@ -74,7 +75,7 @@
   rdfs:label "Kiosk Compliance Determination: NOT Annex III 1(a)" ;
   rdfs:comment "Documents the non-entailment: AnnexIII1aApplicableSystem is not inferred for VerificationKiosk_001 because BiometricVerificationCapability is not in AnnexIIITriggeringCapability. Gate 1 fails." ;
   iao:0000136 :VerificationKiosk_001 ;
-  iao:0000136 :AnnexIII_Condition_Q1_Exclusion .
+  iao:0000136 :AnnexIII_Condition_1a_Exclusion .
 
 #################################################################
 # 4) PROVIDER + DOCUMENTATION WORKFLOW
@@ -97,4 +98,4 @@
 :KioskAssessmentDoc_001 rdf:type :AssessmentDocumentation ;
   rdfs:label "Kiosk Assessment Documentation 001" ;
   iao:0000136 :VerificationKiosk_001 ;
-  iao:0000136 :AnnexIII_Condition_Q1_Exclusion .
+  iao:0000136 :AnnexIII_Condition_1a_Exclusion .

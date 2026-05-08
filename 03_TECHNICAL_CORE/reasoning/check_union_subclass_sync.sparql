@@ -1,0 +1,67 @@
+PREFIX :    <https://arco.ai/ontology/core#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+
+# AUDIT LAYER ONLY — guard, not classification gate.
+#
+# PURPOSE: Verify bidirectional consistency between the two ways
+# AnnexIIITriggeringCapability membership is expressed in
+# ARCO_governance_extension.ttl:
+#
+#   (a) the necessary-and-sufficient owl:equivalentClass owl:unionOf list
+#       (load-bearing for OWL-RL classification), and
+#   (b) the per-member explicit rdfs:subClassOf :AnnexIIITriggeringCapability
+#       assertions (kept for in-file readability / OBO Foundry convention).
+#
+# Either side without the other is a drift bug: a class added to the union
+# but missing the explicit subclass assertion (or vice versa) will silently
+# diverge from the documented extension protocol in the governance file.
+#
+# This guard runs on the reasoned graph (post-OWL-RL). It does NOT affect
+# OWL classification; it is a documentary consistency check the pipeline
+# surfaces alongside the other audit-layer SPARQL ASKs.
+#
+# This query is graph-level (no system parameter); it inspects the
+# ontology axioms directly.
+#
+# RETURNS TRUE iff:
+#   for every named class C in the owl:unionOf list of
+#     :AnnexIIITriggeringCapability owl:equivalentClass [...],
+#     C rdfs:subClassOf :AnnexIIITriggeringCapability is in the graph, AND
+#   for every named class C in the graph asserted as
+#     C rdfs:subClassOf :AnnexIIITriggeringCapability (excluding the class
+#     itself and blank-node restrictions / union nodes),
+#     C is a member of that owl:unionOf list.
+
+ASK WHERE {
+  # Locate the equivalentClass union list. (There is exactly one in the
+  # current file; if a future edit duplicates it, both lists are checked
+  # — every union member from any equivalentClass list must satisfy the
+  # rule.)
+  :AnnexIIITriggeringCapability owl:equivalentClass ?eq .
+  ?eq owl:unionOf ?list .
+
+  # Direction 1: every union member has the explicit subclass assertion.
+  FILTER NOT EXISTS {
+    ?list rdf:rest*/rdf:first ?u .
+    FILTER NOT EXISTS {
+      ?u rdfs:subClassOf :AnnexIIITriggeringCapability .
+    }
+  }
+
+  # Direction 2: every named (non-blank) class explicitly asserted as
+  # rdfs:subClassOf :AnnexIIITriggeringCapability is a union member.
+  # Excludes :AnnexIIITriggeringCapability itself (reflexive entailment),
+  # owl:Nothing (universal subclass, OWL-RL inferred), and blank nodes
+  # (union/restriction class expressions added by OWL-RL materialization).
+  FILTER NOT EXISTS {
+    ?explicit rdfs:subClassOf :AnnexIIITriggeringCapability .
+    FILTER(!isBlank(?explicit))
+    FILTER(?explicit != :AnnexIIITriggeringCapability)
+    FILTER(?explicit != <http://www.w3.org/2002/07/owl#Nothing>)
+    FILTER NOT EXISTS {
+      ?list rdf:rest*/rdf:first ?explicit .
+    }
+  }
+}

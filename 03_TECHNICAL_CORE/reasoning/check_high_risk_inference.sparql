@@ -7,10 +7,10 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 # PURPOSE: Verify that the reasoner inferred the high-risk classification.
 #
 # EXPECTED RESULT:
-#   - BEFORE reasoning: FALSE (Sentinel_ID_System is only typed as :System)
+#   - BEFORE reasoning: FALSE (system is only typed as :System)
 #   - AFTER reasoning:  TRUE  (reasoner infers :HighRiskSystem membership)
 #
-# INFERENCE CHAIN (using ro:0000091 has_disposition):
+# INFERENCE CHAIN (Sentinel example, using ro:0000091 has_disposition):
 #   1. Sentinel_ID_System rdf:type :System
 #   2. Sentinel_ID_System bfo:0000051 (has_part) Sentinel_FaceID_Module
 #   3. Sentinel_FaceID_Module ro:0000091 (has_disposition) Sentinel_FaceID_Disposition
@@ -18,8 +18,11 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 #   5. :BiometricIdentificationCapability subClassOf :AnnexIIITriggeringCapability (via direct subclassing)
 #   6. :HighRiskSystem equivalentClass :System AND (bfo:0000051 some (:SystemComponent AND ro:0000091 some :AnnexIIITriggeringCapability))
 #   => Sentinel_ID_System rdf:type :HighRiskSystem (INFERRED)
+#
+# The ?system variable is bound by the caller (rdflib initBindings or ROBOT
+# --initial-binding) to the system IRI under evaluation.
 #################################################################
 
 ASK WHERE {
-    :Sentinel_ID_System rdf:type :HighRiskSystem .
+    ?system rdf:type :HighRiskSystem .
 }

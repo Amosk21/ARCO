@@ -59,7 +59,7 @@
 :Decoy_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Decoy Use Scenario" ;
   iao:0000136 :DecoySystem_001 ;
-  iao:0000136 :NaturalPersonRole .
+  cco:designates :NaturalPersonRole .
 
 #################################################################
 # DOCUMENTARY INFRASTRUCTURE (traceability, obligation)
@@ -82,10 +82,10 @@
 :DecoyAssessmentDoc_001 rdf:type :AssessmentDocumentation ;
   rdfs:label "Decoy Assessment Documentation" ;
   iao:0000136 :DecoySystem_001 ;
-  iao:0000136 :AnnexIII_Condition_Q1 .
+  iao:0000136 :AnnexIII_Condition_1a .
 
 :DecoyObligation_001 rdf:type :ComplianceObligationSpecification ;
   rdfs:label "Decoy Compliance Obligation" ;
   iao:0000136 :DecoySystem_001 ;
   iao:0000136 :DecoyProviderRole_001 ;
-  iao:0000136 :AnnexIII_Condition_Q1 .
+  iao:0000136 :AnnexIII_Condition_1a .

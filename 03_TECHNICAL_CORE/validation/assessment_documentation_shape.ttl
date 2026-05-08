@@ -85,22 +85,18 @@
   sh:qualifiedMinCount 1 ;
   sh:message "UseScenarioSpecification must be about at least one System." .
 
-# PUNNING DEPENDENCY: :NaturalPersonRole is used as an individual (OWL 2
-# punning) but this shape validates its class-side triple (rdfs:subClassOf
-# bfo:0000023). This works because rdfs:subClassOf triples exist on the
-# class-name IRI. If this shape were changed to sh:class bfo:0000023, it
-# would fail — NaturalPersonRole has no rdf:type bfo:0000023 as an individual.
-:PS_UseScenario_IsAboutRole
+# Gate 3 alignment: the cco:designates filler must be the :NaturalPersonRole
+# universal. Gate 3 in ARCO_governance_extension.ttl uses owl:hasValue on
+# cco:designates with the role universal as the target, so the documentary
+# value is the class IRI itself (admitted by cco:designates whose range is
+# bfo:0000001, which includes universals). This is NOT punning in Smith's
+# sense: cco:designates is a typed designation property whose canonical use
+# case includes naming a universal by inscription.
+:PS_UseScenario_DesignatesRole
   a sh:PropertyShape ;
-  sh:path iao:0000136 ;
-  sh:qualifiedValueShape [
-    sh:property [
-      sh:path rdfs:subClassOf ;
-      sh:hasValue bfo:0000023
-    ]
-  ] ;
-  sh:qualifiedMinCount 1 ;
-  sh:message "UseScenarioSpecification must be about at least one Role subclass (affected entity)." .
+  sh:path cco:designates ;
+  sh:hasValue :NaturalPersonRole ;
+  sh:message "UseScenarioSpecification must designate :NaturalPersonRole via cco:designates." .
 
 :PS_ObligationSpec_IsAbout
   a sh:PropertyShape ;
@@ -178,10 +174,10 @@
 :UseScenarioSpecificationShape
   a sh:NodeShape ;
   sh:name "Use Scenario Specification Completeness" ;
-  sh:description "Enforces that a UseScenarioSpecification is about both a System and a Role subclass, capturing the deployment context required for scenario-based Annex III classification." ;
+  sh:description "Enforces that a UseScenarioSpecification is about a System and designates a Role universal (NaturalPersonRole), capturing the deployment context required for scenario-based Annex III classification." ;
   sh:targetClass :UseScenarioSpecification ;
   sh:property :PS_UseScenario_IsAboutSystem ;
-  sh:property :PS_UseScenario_IsAboutRole .
+  sh:property :PS_UseScenario_DesignatesRole .
 
 # --- Obligation ---
 

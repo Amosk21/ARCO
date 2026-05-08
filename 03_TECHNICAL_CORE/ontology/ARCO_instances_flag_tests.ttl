@@ -64,7 +64,7 @@
 :FlagTest_Biometric_UseScenario rdf:type :UseScenarioSpecification ;
   rdfs:label "Flag Test Biometric Use Scenario" ;
   iao:0000136 :FlagTest_BiometricSystem_WithDerogationClaim ;
-  iao:0000136 :NaturalPersonRole .
+  cco:designates :NaturalPersonRole .
 
 # Provider-submitted DerogationClaim — triggers the audit flag
 :FlagTest_DerogationClaim_001 rdf:type :DerogationClaim ;
@@ -135,7 +135,7 @@
 :FlagTest_Credit_UseScenario rdf:type :UseScenarioSpecification ;
   rdfs:label "Flag Test Credit Use Scenario" ;
   iao:0000136 :FlagTest_CreditSystem_WithFraudProcess ;
-  iao:0000136 :NaturalPersonRole .
+  cco:designates :NaturalPersonRole .
 
 # Minimal documentation for SHACL compliance
 :FlagTest_Credit_ProviderOrg rdf:type :ProviderOrganization ;

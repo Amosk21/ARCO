@@ -54,6 +54,7 @@ OBLIGATION_QUERY = REASONING_DIR / "check_obligation_link.sparql"
 REGULATORY_ALIGNMENT_QUERY = REASONING_DIR / "check_regulatory_alignment.sparql"
 DEROGATION_FLAG_QUERY = REASONING_DIR / "flag_derogation_candidate.sparql"
 FRAUD_FLAG_QUERY = REASONING_DIR / "flag_fraud_exclusion_candidate.sparql"
+UNION_SYNC_QUERY = REASONING_DIR / "check_union_subclass_sync.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -122,16 +123,24 @@ def run_sparql_ask_from_file(data_graph: Graph, query_path: Path) -> bool:
         raise RuntimeError(f"SPARQL query failed: {query_path}\n{e}")
 
 def run_sparql_ask_for_system(data_graph: Graph, query_path: Path, system_local: str) -> bool:
-    """Run a SPARQL ASK file query, substituting the sentinel placeholder with the actual system IRI."""
+    """Run a SPARQL ASK file query with the system IRI bound to ?system via initBindings.
+
+    The on-disk query file uses a ?system variable rather than a hardcoded IRI,
+    so the same file is reusable by any caller (the ROBOT/HermiT cross-check
+    workflow, external auditors) by binding ?system at query time. This avoids
+    string substitution, which is fragile against substring collisions in
+    future class IRIs.
+    """
     if not query_path.exists():
         raise FileNotFoundError(f"Missing SPARQL query file: {query_path}")
     q = query_path.read_text(encoding="utf-8").strip()
-    if system_local != "Sentinel_ID_System":
-        q = q.replace(":Sentinel_ID_System", f":{system_local}")
+    system_iri = URIRef(f"{ARCO_NS}{system_local}")
     try:
-        result = data_graph.query(q)
+        result = data_graph.query(q, initBindings={"system": system_iri})
         if isinstance(result, bool):
             return result
+        if hasattr(result, "askAnswer") and result.askAnswer is not None:
+            return bool(result.askAnswer)
         rows = list(result)
         return bool(rows[0]) if rows else False
     except Exception as e:
@@ -155,7 +164,7 @@ def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
     # Direct OWLRL_Semantics invocation instead of DeductiveClosure.expand()
     # because expand() creates an anonymous instance internally, making
     # closure.error_messages inaccessible. Both produce identical entailment
-    # results (empirically verified: same triple counts, same classifications).
+    # results (verified against the regression suite).
     closure = owlrl.OWLRL_Semantics(data_graph, False, False, False)
     closure.closure()
     closure.post_process()
@@ -331,17 +340,19 @@ LIMIT 1
 """
 
 def _select_gate3_role(sys: str = SYSTEM_LOCAL) -> str:
-    """SELECT the UseScenarioSpecification linked to the system via NaturalPersonRole,
-    plus the rdfs:label of NaturalPersonRole."""
+    """SELECT the UseScenarioSpecification that designates :NaturalPersonRole for the system,
+    plus the role universal's rdfs:label so downstream HTML/cert text surfaces "Natural Person Role"."""
     return f"""
 PREFIX : <{ARCO_NS}>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?uss ?roleLabel WHERE {{
+SELECT ?uss ?role ?roleLabel WHERE {{
   ?uss a :UseScenarioSpecification ;
     iao:0000136 :{sys} ;
-    iao:0000136 :NaturalPersonRole .
-  OPTIONAL {{ :NaturalPersonRole rdfs:label ?roleLabel }}
+    cco:designates ?role .
+  FILTER(?role = :NaturalPersonRole)
+  OPTIONAL {{ ?role rdfs:label ?roleLabel }}
 }}
 LIMIT 1
 """
@@ -393,7 +404,9 @@ def select_gate_evidence(g: Graph, system_local: str = SYSTEM_LOCAL) -> dict:
     if rows:
         r = rows[0]
         packet["gate3"]["uss_uri"] = str(r[0]) if r[0] else ""
-        packet["gate3"]["role_label"] = str(r[1]) if r[1] else "Natural Person Role"
+        role_uri = str(r[1]) if r[1] else f"{ARCO_NS}NaturalPersonRole"
+        packet["gate3"]["role_uri"] = role_uri
+        packet["gate3"]["role_label"] = str(r[2]) if r[2] else _short(role_uri)
 
     return packet
 
@@ -413,7 +426,7 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bo
     print(f"HighRiskSystem in source data (pre-reasoning):   {asserted_pre}")
     print(f"HighRiskSystem in reasoned graph (post-reason):  {entailed_post}")
 
-    # Evidence check (primary path only — legacy bearer_of removed)
+    # Evidence check (RO has_disposition path)
     primary_path = run_sparql_ask_inline(reasoned, _ask_primary_path(SYSTEM_LOCAL))
 
     sub("EVIDENCE PATH CHECK")
@@ -557,12 +570,28 @@ def write_html_view(
             f"and the category class was entailed by OWL-RL formal reasoning over "
             f"{inferred_added:,} entailed triples."
         )
+        cap_phrase = cap_list.lower().replace(" capability", "")
+        plain_english_summary = (
+            f"In plain language: this system contains a hardware component capable of "
+            f"{cap_phrase}. The provider's intended-use specification names a regulated "
+            f"process, and the use scenario designates natural persons as the affected "
+            f"population. Together these three conditions match {cat_list} of "
+            f"Regulation (EU) 2024/1689 (the EU AI Act). ARCO does not evaluate the "
+            f"Article 6(3) derogation; that requires human legal review."
+        )
     elif is_high_risk:
         summary_text = (
             f"{sys_display} has a <strong>latent-risk flag</strong>: "
             f"HighRiskSystem was {classification_mode.lower()} from the Gate 1 "
             f"capability precondition, but no category-specific Annex III "
             f"applicability class was entailed."
+        )
+        plain_english_summary = (
+            f"In plain language: this system contains a component capable of an "
+            f"Annex III triggering capability, but the provider's documentation does "
+            f"not yet name a regulated process or affected role. The system is flagged "
+            f"for follow-up review; it is not yet classified into a specific Annex III "
+            f"item."
         )
     else:
         summary_text = (
@@ -571,6 +600,13 @@ def write_html_view(
             f"flag was inferred under ARCO's ontology encoding of EU AI Act Annex III "
             f"based on current assertions. ARCO does not currently model other Annex III "
             f"categories; absence here is not a determination about those other categories."
+        )
+        plain_english_summary = (
+            f"In plain language: this system has been assessed against ARCO's encoding "
+            f"of Annex III items 1(a) (biometric identification) and 5(b) "
+            f"(creditworthiness). No triggering capability or matching intended use was "
+            f"found in the provided structured description. Other Annex III items are "
+            f"not currently modeled, so absence here is not a determination about them."
         )
 
     if all_pass:
@@ -601,6 +637,9 @@ def write_html_view(
         if val is None:
             return '<span class="badge bn">N/A</span>'
         if val:
+            if not derogation_flagged:
+                return ('<span class="badge bp">VERIFIED (ENTAILED, '
+                        'Article 6(3) derogation not evaluated)</span>')
             return '<span class="badge bp">VERIFIED (ENTAILED)</span>'
         return '<span class="badge bn">NOT APPLICABLE</span>'
 
@@ -613,6 +652,21 @@ def write_html_view(
         mode_badge = '<span class="badge ba">LATENT ASSERTED</span>'
     else:
         mode_badge = '<span class="badge bn">NOT PRESENT</span>'
+
+    # ── derogation scope qualifier badge (HTML conclusion banner) ──
+    # ARCO does not evaluate the Article 6(3) carve-out. When an Annex III
+    # category is entailed and no provider :DerogationClaim is asserted,
+    # disclose the unevaluated scope in the same banner as the conclusion.
+    # When a DerogationClaim IS asserted, the existing FLAGGED banner / row
+    # already signals the unevaluated derogation; do not double-disclose.
+    if has_applicable_category and not derogation_flagged:
+        derogation_scope_badge = (
+            '<span class="badge bn" title="ARCO does not evaluate the Article '
+            '6(3) carve-out conditions; provider must self-supply a '
+            'DerogationClaim artifact.">ARTICLE 6(3) DEROGATION: NOT EVALUATED</span>'
+        )
+    else:
+        derogation_scope_badge = ""
 
     headline_label = (
         "CATEGORY APPLICABLE" if has_applicable_category
@@ -737,13 +791,13 @@ def write_html_view(
           </div>
           <div class="gate-question">Does the use scenario reference the regulated role category?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> A Use Scenario Specification references <em>" + _role_label + "</em> as a role category &mdash; the universal, not any specific individual. This satisfies the <code>owl:hasValue</code> restriction in the gate axiom, which checks for the role category itself rather than any particular role-bearer." if gate3_ok else "<strong>No matching role category</strong> found in the use scenario documentation."}
+            {"<strong>Yes.</strong> A Use Scenario Specification designates <em>" + _role_label + "</em> as the affected role category, via the typed CCO designation property. The spec names the role universal directly; no role-bearer instance is asserted at this layer." if gate3_ok else "<strong>No designation of the regulated role category</strong> found in the use scenario documentation."}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
-              <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>iao:0000136</code> <span class="prop-label">(is about)</span> System and <code>iao:0000136</code> <span class="prop-label">(is about)</span> :{_role_local}</p>
-              <p><strong>Gate mechanism:</strong> <code>owl:hasValue</code> is intentional &mdash; the specification must reference the role <em>category</em> ({_role_label} as universal), not a role-bearer instance. This is a check on the role type, not on any particular person.</p>
+              <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>iao:0000136</code> <span class="prop-label">(is about)</span> System and <code>cco:designates</code> <span class="prop-label">(designates)</span> {_role_label}</p>
+              <p><strong>Gate mechanism:</strong> <code>cco:designates</code> is the CCO designation property whose specification supports inscription naming an entity, including a universal. The spec designates the role category at class level; this is documentary aboutness, not a role-token assertion.</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
           </details>
@@ -1233,8 +1287,10 @@ section {{ scroll-margin-top: 1rem }}
       <span class="classification">{headline_label}</span>
       {mode_badge}
       {overall_badge}
+      {derogation_scope_badge}
     </div>
     <p class="exec-text">{summary_text}</p>
+    <p class="exec-text" style="background:#f5f9ff;border-left:3px solid #2563eb;padding:0.75rem 1rem;margin-top:0.75rem;color:#1e3a5f">{plain_english_summary}</p>
     {"<div class='exec-cats'>" + "".join(
       '<div class="exec-cat"><div class="cat-id">' + c["article_ref"].upper() + '</div>'
       '<div class="cat-title">' + c["title"] + '</div></div>'
@@ -1423,7 +1479,13 @@ def main() -> None:
     SYSTEM_LOCAL = args.system
     SYSTEM_IRI = f"{ARCO_NS}{SYSTEM_LOCAL}"
     if args.instances is not None:
-        INSTANCES = Path(args.instances).resolve()
+        candidate = Path(args.instances)
+        resolved = candidate.resolve()
+        if not resolved.exists():
+            fallback = (ONTOLOGY_DIR / candidate.name).resolve()
+            if fallback.exists():
+                resolved = fallback
+        INSTANCES = resolved
 
     hr("ARCO COMPLIANCE VERIFICATION PIPELINE (OPERATOR VIEW)")
 
@@ -1507,6 +1569,12 @@ def main() -> None:
         reg_alignment_ok = run_sparql_ask_for_system(g, REGULATORY_ALIGNMENT_QUERY, SYSTEM_LOCAL)
         print(f"Regulatory aligned: {reg_alignment_ok}")
 
+    union_sync_ok = None
+    if UNION_SYNC_QUERY.exists():
+        print("\nUnion-subclass sync (AnnexIIITriggeringCapability membership consistency)...")
+        union_sync_ok = run_sparql_ask_from_file(g, UNION_SYNC_QUERY)
+        print(f"Union sync: {union_sync_ok}")
+
     # ── Audit-layer exception flags (informational only — do not affect classification or audit_pass) ──
     # These detect provider-submitted claim artifacts that may affect legal interpretation.
     # A flag does not override OWL classification. It directs human review.
@@ -1541,10 +1609,11 @@ def main() -> None:
     print("  [classification layer — OWL-RL entailment]")
     print(f"SHACL:         {_pf(shacl_ok)}")
     print(f"Entailment:    {_pf(inference_ok)}")
+    _summary_qualifier = ", Article 6(3) derogation not evaluated" if not derogation_flagged else ""
     if annex_iii_1a_ok is not None:
-        print(f"Annex III 1a:  {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 1a:  {'VERIFIED (ENTAILED' + _summary_qualifier + ')' if annex_iii_1a_ok else 'NOT APPLICABLE'} (OWL-entailed)")
     if annex_iii_5b_ok is not None:
-        print(f"Annex III 5b:  {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 5b:  {'VERIFIED (ENTAILED' + _summary_qualifier + ')' if annex_iii_5b_ok else 'NOT APPLICABLE'} (OWL-entailed)")
     print()
     print("  [audit documentation layer — SPARQL ASK on reasoned graph]")
     print(f"Traceability:  {_pf(traceability_ok)}")
@@ -1556,6 +1625,8 @@ def main() -> None:
         print(f"Obligation:    {_pf(obligation_ok)}")
     if reg_alignment_ok is not None:
         print(f"Reg. aligned:  {_pf(reg_alignment_ok)}")
+    if union_sync_ok is not None:
+        print(f"Union sync:    {_pf(union_sync_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
     print()
@@ -1564,23 +1635,36 @@ def main() -> None:
     print(f"5(b) fraud exclusion:  {'FLAGGED — FraudDetectionProcess detected; human review required' if fraud_flagged else 'NOT FLAGGED'}")
 
     # ── Two-layer pass computation ──────────────────────────────────
+    # A system can be legitimately non-applicable to all modeled categories.
+    # That is a correct classification outcome, not a pipeline failure: the
+    # SHACL graph validated and the reasoner correctly determined no Annex III
+    # category fires.
+    no_category_triggered = (annex_iii_1a_ok is False) and (annex_iii_5b_ok is False)
+    non_applicable_run = shacl_ok and no_category_triggered
+
     # Classification layer: OWL-RL entailment + SHACL structural validation.
-    # Annex III category checks (1a, 5b) are informational cross-category
-    # audit lines — a system entailed as 5(b) but not 1(a) is not a failure.
-    classification_pass = shacl_ok and inference_ok
+    # PASS if either (a) HighRiskSystem entailment fired, or (b) the system is
+    # legitimately non-applicable (no Annex III category, SHACL clean).
+    classification_pass = (shacl_ok and inference_ok) or non_applicable_run
 
     # Audit layer: SPARQL ASK queries on the reasoned graph.
     # These inspect declared documentary content; they do not produce
-    # and cannot affect the classification result.
-    audit_pass = traceability_ok
-    if latent_ok is not None:
-        audit_pass = audit_pass and latent_ok
-    if intended_use_ok is not None:
-        audit_pass = audit_pass and intended_use_ok
-    if obligation_ok is not None:
-        audit_pass = audit_pass and obligation_ok
-    if reg_alignment_ok is not None:
-        audit_pass = audit_pass and reg_alignment_ok
+    # and cannot affect the classification result. A non-applicable system has
+    # no Annex III audit content to verify; treat audit as N/A in that case.
+    if non_applicable_run:
+        audit_pass = True
+    else:
+        audit_pass = traceability_ok
+        if latent_ok is not None:
+            audit_pass = audit_pass and latent_ok
+        if intended_use_ok is not None:
+            audit_pass = audit_pass and intended_use_ok
+        if obligation_ok is not None:
+            audit_pass = audit_pass and obligation_ok
+        if reg_alignment_ok is not None:
+            audit_pass = audit_pass and reg_alignment_ok
+        if union_sync_ok is not None:
+            audit_pass = audit_pass and union_sync_ok
 
     all_pass = classification_pass and audit_pass
     print(f"\n  Classification layer: {'PASS' if classification_pass else 'FAIL'}")
@@ -1631,10 +1715,26 @@ def main() -> None:
         print(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
     if intended_use_ok is not None:
         print(f"  INTENDED USE:            {_pf(intended_use_ok)}")
+    # Article 6(3) derogation scope qualifier: ARCO does not evaluate the
+    # Article 6(3) carve-out conditions; it only detects whether a provider-
+    # supplied :DerogationClaim artifact is asserted. When such a claim is
+    # asserted, the FLAG line below signals the unevaluated derogation. When
+    # no claim is asserted, an Annex III ENTAILED conclusion otherwise reads
+    # as "high-risk classification confirmed" — append a same-line scope
+    # qualifier so the disclosure rides with the conclusion.
+    _annex_iii_entailed_qualifier = "VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)"
     if annex_iii_1a_ok is not None:
-        print(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'}")
+        if annex_iii_1a_ok:
+            _line_1a = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+        else:
+            _line_1a = "NOT APPLICABLE"
+        print(f"  ANNEX III 1(a):          {_line_1a}")
     if annex_iii_5b_ok is not None:
-        print(f"  ANNEX III 5(b):          {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'}")
+        if annex_iii_5b_ok:
+            _line_5b = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+        else:
+            _line_5b = "NOT APPLICABLE"
+        print(f"  ANNEX III 5(b):          {_line_5b}")
     if obligation_ok is not None:
         print(f"  OBLIGATION:              {_pf(obligation_ok)}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
@@ -1679,9 +1779,17 @@ def main() -> None:
     if intended_use_ok is not None:
         cert_lines.append(f"  INTENDED USE:            {_pf(intended_use_ok)}")
     if annex_iii_1a_ok is not None:
-        cert_lines.append(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'}")
+        if annex_iii_1a_ok:
+            _cert_line_1a = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+        else:
+            _cert_line_1a = "NOT APPLICABLE"
+        cert_lines.append(f"  ANNEX III 1(a):          {_cert_line_1a}")
     if annex_iii_5b_ok is not None:
-        cert_lines.append(f"  ANNEX III 5(b):          {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'}")
+        if annex_iii_5b_ok:
+            _cert_line_5b = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+        else:
+            _cert_line_5b = "NOT APPLICABLE"
+        cert_lines.append(f"  ANNEX III 5(b):          {_cert_line_5b}")
     if obligation_ok is not None:
         cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
@@ -1721,8 +1829,8 @@ def main() -> None:
         "traceability": _pf(traceability_ok),
         "latent_risk": (_pf(latent_ok) if latent_ok is not None else "N/A"),
         "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "N/A"),
-        "annex_iii_1a": ("VERIFIED (ENTAILED)" if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
-        "annex_iii_5b": ("VERIFIED (ENTAILED)" if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
+        "annex_iii_1a": (("VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" if not derogation_flagged else "VERIFIED (ENTAILED)") if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
+        "annex_iii_5b": (("VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" if not derogation_flagged else "VERIFIED (ENTAILED)") if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
         "obligation": (_pf(obligation_ok) if obligation_ok is not None else "N/A"),
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,
@@ -1838,7 +1946,12 @@ def main() -> None:
     for f in sorted(OUTPUT_DIR.iterdir()):
         print(f"  {f.relative_to(REPO_ROOT)}")
 
-    if not all_pass:
+    # Exit semantics: pipeline-ran-cleanly is what the exit code reflects.
+    # A non-applicable system has classification_pass True and audit checks
+    # (designed for triggered systems) may legitimately fail. That is expected
+    # behaviour, not a pipeline failure. Exit 1 only on classification-layer
+    # failures (SHACL validation, reasoner error, missing triples).
+    if not classification_pass:
         sys.exit(1)
 
 

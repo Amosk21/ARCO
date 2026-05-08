@@ -227,10 +227,17 @@ jobs:
           print(f'{"Query":<15} {"HermiT":>8}  {"owlrl":>8}   Status')
           print('-' * 50)
 
+          # Bind ?system to the Sentinel IRI for queries that use the
+          # parameterized template. Without initBindings, ?system is unbound,
+          # which would silently match any system in the graph and corrupt
+          # the OWL-RL vs HermiT cross-check the moment additional instance
+          # files are merged.
+          SENTINEL_IRI = rdflib.URIRef('https://arco.ai/ontology/core#Sentinel_ID_System')
+
           mismatches = []
           for name, qpath in queries.items():
               sparql = qpath.read_text()
-              result = bool(g.query(sparql))
+              result = bool(g.query(sparql, initBindings={'system': SENTINEL_IRI}))
               exp = expected[name]
               match = result == exp
               if not match:

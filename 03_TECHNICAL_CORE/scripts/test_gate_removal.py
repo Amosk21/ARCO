@@ -48,7 +48,7 @@ GATE_REMOVALS = {
         IAO["0000136"],                      # is_about
         ARCO["Sentinel_ID_System"],
     ),
-    # Content-based gate failures (Gap A regression tests):
+    # Content-based gate failures:
     # Gate 2 must require cco:prescribes an instance of the regulated process class, not just
     # existence of IUS. Triple references the token individual, not the class IRI.
     "gate2_prescribes_removed": (
@@ -56,11 +56,13 @@ GATE_REMOVALS = {
         CCO["prescribes"],                   # cco:prescribes
         ARCO["Sentinel_RBIP_Process"],       # the typed process token (not the class IRI)
     ),
-    # Gate 3 must require iao:is_about NaturalPersonRole, not just existence of USS.
+    # Gate 3 must require cco:designates :NaturalPersonRole. The use scenario
+    # spec designates the affected role universal (class-level designation via
+    # the typed CCO designation property; same shape as Gate 2 with cco:prescribes).
     "gate3_missing_role": (
         ARCO["Sentinel_UseScenario_001"],
-        IAO["0000136"],                      # is_about
-        ARCO["NaturalPersonRole"],
+        CCO["designates"],
+        ARCO["NaturalPersonRole"],           # the role universal as designation target
     ),
 }
 
@@ -107,19 +109,19 @@ GATE_MUTATIONS = {
             "HighRiskSystem": True,               # capability unchanged
         },
     },
-    "gate3_wrong_role_type": {
+    "gate3_wrong_designation_target": {
         "remove": (
             ARCO["Sentinel_UseScenario_001"],
-            IAO["0000136"],
-            ARCO["NaturalPersonRole"],
+            CCO["designates"],
+            ARCO["NaturalPersonRole"],          # the regulated role universal
         ),
         "add": (
             ARCO["Sentinel_UseScenario_001"],
-            IAO["0000136"],
-            ARCO["SomeOtherRole"],              # wrong role
+            CCO["designates"],
+            ARCO["SomeOtherRole"],              # wrong target (not the regulated role)
         ),
         "expected": {
-            "AnnexIII1aApplicableSystem": False,  # Gate 3 fails: wrong role
+            "AnnexIII1aApplicableSystem": False,  # Gate 3 fails: wrong designation target
             "HighRiskSystem": True,               # capability unchanged
         },
     },
@@ -234,7 +236,7 @@ def main() -> None:
             print(f"  {cls_name}: {actual} (expected {expected_val}) [{status}]")
 
     # Mutation tests: wrong content (not just absence) also breaks the gate
-    print("\n--- CONTENT-MUTATION TESTS (Gap A regression) ---")
+    print("\n--- CONTENT-MUTATION TESTS ---")
     for gate_name, mutation in GATE_MUTATIONS.items():
         print(f"\n--- {gate_name.upper()} ---")
         result = run_mutation_test(gate_name, mutation)

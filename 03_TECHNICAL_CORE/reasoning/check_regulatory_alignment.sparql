@@ -18,13 +18,13 @@ PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 # The rdf:type check is on asserted triples (intentional — auditors want explicit
 # declaration, not entailment to a broader supertype).
 #
-# The pipeline substitutes :Sentinel_ID_System with the actual system IRI when
-# --system is provided.
+# The ?system variable is bound by the caller (rdflib initBindings or ROBOT
+# --initial-binding) to the system IRI under evaluation.
 
 ASK WHERE {
   # Find the regulatory condition documented for this system
   ?doc a :AssessmentDocumentation ;
-    iao:0000136 :Sentinel_ID_System ;
+    iao:0000136 ?system ;
     iao:0000136 ?condition .
   ?condition a :RegulatoryContent ;
     cco:prescribes ?prescribedByLaw .
@@ -32,7 +32,7 @@ ASK WHERE {
   # What process instance the provider's IUS prescribes for this system
   ?ius a :IntendedUseSpecification ;
     cco:prescribes ?process ;
-    iao:0000136 :Sentinel_ID_System .
+    iao:0000136 ?system .
 
   # Alignment: either the process is typed as the regulated class (Pattern A — sentinel),
   # or the process IS the prescribed token (Pattern B — credit scorer).
