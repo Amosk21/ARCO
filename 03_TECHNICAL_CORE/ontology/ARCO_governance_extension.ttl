@@ -6,6 +6,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos:<http://www.w3.org/2004/02/skos/core#> .
 
 <https://arco.ai/ontology/governance>
 a owl:Ontology ;
@@ -43,6 +44,7 @@ owl:imports <https://arco.ai/ontology/core> .
 
 :ProviderOrganization rdf:type owl:Class ;
   rdfs:label "Provider Organization" ;
+  skos:definition "An organization that develops or places an AI system on the market under the EU AI Act."@en ;
   rdfs:subClassOf cco:Organization ;
   rdfs:subClassOf [
     a owl:Restriction ;
@@ -52,10 +54,12 @@ owl:imports <https://arco.ai/ontology/core> .
 
 :ProviderRole rdf:type owl:Class ;
   rdfs:label "Provider Role" ;
+  skos:definition "The role of providing an AI system, borne by a provider organization."@en ;
   rdfs:subClassOf bfo:0000023 .   # Role
 
 :DeployerRole rdf:type owl:Class ;
   rdfs:label "Deployer Role" ;
+  skos:definition "The role of deploying an AI system, borne by an entity that uses the system under its own authority. Distinct from provider, which develops or places the system on the market."@en ;
   rdfs:comment "Role borne by an entity that deploys an AI system. Distinct from provider (who develops/places on market)." ;
   rdfs:subClassOf bfo:0000023 .   # Role
 
@@ -65,6 +69,7 @@ owl:imports <https://arco.ai/ontology/core> .
 
 :AssessmentDocumentationProcess rdf:type owl:Class ;
   rdfs:label "Assessment Documentation Process" ;
+  skos:definition "A process by which a provider documents the outcome of an Annex III applicability assessment for an AI system, producing assessment documentation as its output."@en ;
   rdfs:subClassOf bfo:0000015 ; # Process
   rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,
@@ -73,6 +78,7 @@ owl:imports <https://arco.ai/ontology/core> .
 
 :AssessmentDocumentation rdf:type owl:Class ;
   rdfs:label "Assessment Documentation" ;
+  skos:definition "A documentation artifact recording an Annex III applicability assessment. Refers to the system assessed and the regulatory content applied."@en ;
   rdfs:comment "A documentation artifact produced by the assessment documentation process; traceable to the assessed system and the regulatory content applied." ;
   rdfs:subClassOf :InformationOutput ;
   rdfs:subClassOf [
@@ -173,6 +179,7 @@ cco:Organization rdf:type owl:Class ;
 
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
   rdfs:label "Annex III Triggering Capability" ;
+  skos:definition "A capability whose presence in an AI system component triggers Annex III applicability under Regulation (EU) 2024/1689. Membership is the union of capability classes named by Annex III, fixed by the regulation rather than by any single shared physical property."@en ;
   rdfs:comment "Defined class. The owl:equivalentClass axiom (union of member capability classes) is the necessary-and-sufficient definition; extension is fixed by the listed members, not by primitive subsumption. Each member is a real BFO capability disposition; the GROUPING is by extrinsic regulatory criterion (Article 6 of Regulation (EU) 2024/1689) rather than mind-independent natural kind. The rdfs:subClassOf :CapabilityDisposition assertion is entailed by the union (each member is a CapabilityDisposition) and stated for in-file readability and tooling that ignores equivalentClass. Adding a new Annex III capability category requires (a) adding the new class to the union and (b) asserting rdfs:subClassOf :AnnexIIITriggeringCapability for the same readability reason." ;
   rdfs:subClassOf :CapabilityDisposition ;
   owl:equivalentClass [
@@ -192,6 +199,7 @@ cco:Organization rdf:type owl:Class ;
 
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "Annex III Capability-Precondition Flag" ;
+  skos:definition "An AI system flagged as carrying a capability that triggers Annex III. This is a latent-risk indicator that fires from Gate 1 alone (capability precondition); the full Annex III applicability classification requires all three gates and is recorded by the category-specific applicable-system classes."@en ;
   rdfs:comment "Latent-risk flag. Membership is satisfied by Gate 1 alone: the system has a SystemComponent that bears a disposition belonging to AnnexIIITriggeringCapability. This class is INFERRED by the reasoner and presented in the certificate as LATENT-RISK FLAG. It is NOT the full legal high-risk category — that requires all three gates (capability + intended use + use scenario) and is captured by the category-specific classes (AnnexIII1aApplicableSystem, AnnexIII5bApplicableSystem). The IRI is retained as :HighRiskSystem for backward compatibility with downstream consumers; the rdfs:label and this comment reflect what the axiom actually entails." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
@@ -225,6 +233,7 @@ cco:Organization rdf:type owl:Class ;
 
 :IntendedUseSpecification rdf:type owl:Class ;
   rdfs:label "Intended Use Specification" ;
+  skos:definition "A specification document stating the process the AI system is intended to perform. Anchored to the EU AI Act Article 3(12) definition of intended purpose, which references instructions for use, promotional or sales material, and technical documentation."@en ;
   rdfs:comment "A directive ICE that prescribes the process type an AI system is intended to realize. Class-level restrictions enforce that it prescribes some Process and is about some System. The specific process type (e.g., biometric identification) is on the instance, not the class." ;
   rdfs:subClassOf cco:DirectiveInformationContentEntity ;
   rdfs:subClassOf [
@@ -240,6 +249,7 @@ cco:Organization rdf:type owl:Class ;
 
 :UseScenarioSpecification rdf:type owl:Class ;
   rdfs:label "Use Scenario Specification" ;
+  skos:definition "A specification document stating the use scenario for an AI system, including which role category is affected (for example, natural persons). Designates the affected role universal by name."@en ;
   rdfs:comment "A Designative ICE that constrains the realization context by designating the affected role universal. iao:is_about anchors aboutness to the system; cco:designates carries the typed designation of the affected role category (e.g., :NaturalPersonRole) at the universal level. Modeled as cco:DesignativeInformationContentEntity (not Directive) because the artifact identifies WHICH role category is affected; CCO declares Designative and Directive ICE disjoint, so this class cannot be both. The specific designated role universal (e.g., NaturalPersonRole) is the value of cco:designates on the instance; class-level restriction here only requires aboutness to a System." ;
   rdfs:subClassOf cco:DesignativeInformationContentEntity ;
   rdfs:subClassOf [
@@ -250,31 +260,37 @@ cco:Organization rdf:type owl:Class ;
 
 :RemoteBiometricIdentificationProcess rdf:type owl:Class ;
   rdfs:label "Remote Biometric Identification Process" ;
+  skos:definition "A biometric identification process operating remotely against a stored reference set. The regulated process type for Annex III 1(a)."@en ;
   rdfs:comment "1:N biometric identification process regulated under Annex III 1(a). Has a real causal core (biometric feature extraction + matching at distance) but its type-boundary is partly constituted by regulatory fiat. Modeled as a BFO Process subclass; used as the Gate 2 type-check target for AnnexIII1aApplicableSystem. DISCLOSURE: Regulation (EU) 2024/1689 distinguishes real-time remote biometric identification in publicly accessible spaces for law enforcement (Article 5 prohibition with conditional derogations) from post remote biometric identification subject to Annex III high-risk duties. ARCO does NOT currently model the real-time/post distinction or law-enforcement deployer context; this rdfs:comment is disclosure only and does not change Gate 2 evaluation." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
 :BiometricVerificationProcess rdf:type owl:Class ;
   rdfs:label "Biometric Verification Process" ;
+  skos:definition "A biometric verification process operating one-to-one against a claimed identity. Out of scope of Annex III 1(a)."@en ;
   rdfs:comment "1:1 biometric verification process. Confirms a claimed identity against a single reference. NOT RemoteBiometricIdentificationProcess — verification is not a subtype of identification. NOT regulated under Annex III 1(a)." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
 :CreditworthinessEvaluationProcess rdf:type owl:Class ;
   rdfs:label "Creditworthiness Evaluation Process" ;
+  skos:definition "A process that evaluates a person's creditworthiness or assigns a credit score. The regulated process type for Annex III 5(b)."@en ;
   rdfs:comment "Process of evaluating the creditworthiness of natural persons or establishing their credit score for access to financial or public services. Regulated under Annex III 5(b). Used as the Gate 2 type-check target for AnnexIII5bApplicableSystem." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
 :NaturalPersonRole rdf:type owl:Class ;
   rdfs:label "Natural Person Role" ;
+  skos:definition "The role of being a natural person whose interests are affected by an AI system's deployment. The affected role category named by Annex III items targeting natural persons."@en ;
   rdfs:comment "Legal designation under EU law. Not a biological kind — modeled as a BFO Role." ;
   rdfs:subClassOf bfo:0000023 . # Role
 
 :FraudDetectionProcess rdf:type owl:Class ;
   rdfs:label "Fraud Detection Process" ;
+  skos:definition "A process whose intended purpose is detecting financial fraud. Annex III 5(b) excludes systems used for fraud detection from creditworthiness applicability; the audit layer flags potential exclusions for human review."@en ;
   rdfs:comment "Process whose primary purpose is detecting financial fraud. Relevant to the 5(b) fraud exclusion (Annex III 5(b) second clause: 'with the exception of AI systems used for the purpose of detecting financial fraud'). A system whose IntendedUseSpecification prescribes a FraudDetectionProcess token — and which is also classified as AnnexIII5bApplicableSystem — may qualify for the fraud exclusion. This class is used by the audit-layer SPARQL flag only; it does not participate in any OWL gate condition. Provider-declared: this classification cannot be verified by the ontology." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
 :DerogationClaim rdf:type owl:Class ;
   rdfs:label "Derogation Claim" ;
+  skos:definition "A provider-submitted claim that an AI system qualifies for the Article 6(3) derogation from high-risk classification. Recorded as documentation; the validity of the claim requires human legal review and is not evaluated by the ontology."@en ;
   rdfs:comment "PROVIDER-ASSERTED ARTIFACT. A descriptive ICE representing a provider's claim that their system qualifies for the Article 6(3) derogation ('shall not be considered to be high-risk where it does not pose a significant risk of harm'). This class is used by the audit-layer SPARQL flag only; it does NOT affect OWL classification. The ontology cannot evaluate whether a derogation claim is valid — that requires human legal judgment. When a DerogationClaim is_about a classified system, the audit layer emits a FLAGGED notice directing human review. NEVER use this class as a gate condition or in an equivalentClass axiom." ;
   rdfs:subClassOf cco:DescriptiveInformationContentEntity .
 
@@ -292,6 +308,7 @@ cco:Organization rdf:type owl:Class ;
 
 :ComplianceObligationSpecification rdf:type owl:Class ;
   rdfs:label "Compliance Obligation Specification" ;
+  skos:definition "A specification document identifying which compliance obligations a provider bears for a given AI system under specific regulatory content."@en ;
   rdfs:comment "A directive ICE specifying that a particular role-bearer has compliance obligations for a system. Aboutness links to the system and the responsible role." ;
   rdfs:subClassOf cco:DirectiveInformationContentEntity ;
   rdfs:subClassOf [
@@ -343,6 +360,7 @@ cco:Organization rdf:type owl:Class ;
 
 :AnnexIII1aApplicableSystem rdf:type owl:Class ;
   rdfs:label "Annex III 1(a) Applicable System" ;
+  skos:definition "An AI system that satisfies all three gates for Annex III 1(a) (biometric identification): a component bearing a triggering capability, an intended use prescribing a remote biometric identification process, and a use scenario designating natural persons as the affected role."@en ;
   rdfs:comment """System that meets Annex III 1(a) conditions via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :RemoteBiometricIdentificationProcess. Uses owl:someValuesFrom for genuine type-checking; any correctly typed process token satisfies the gate.
@@ -435,6 +453,7 @@ cco:Organization rdf:type owl:Class ;
 
 :AnnexIII5bApplicableSystem rdf:type owl:Class ;
   rdfs:label "Annex III 5(b) Applicable System" ;
+  skos:definition "An AI system that satisfies all three gates for Annex III 5(b) (creditworthiness): a component bearing a triggering capability, an intended use prescribing a creditworthiness evaluation process, and a use scenario designating natural persons as the affected role."@en ;
   rdfs:comment """System meeting Annex III 5(b) conditions via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition CreditworthinessEvaluationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :CreditworthinessEvaluationProcess. Same pattern as 1(a); any correctly typed process token satisfies the gate.
