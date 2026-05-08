@@ -171,6 +171,46 @@ flowchart TB
 
 **Legend.** Solid arrow → reality-side relation (`bfo:has_part`, `ro:has_disposition`, `ro:has_role`). Dotted arrow → reference-style aboutness (`iao:is_about`, used to anchor any ICE to its referent). Thick arrow `==>` → cross-cut constraint with a typed CCO property (`cco:prescribes` typing the prescribed process; `cco:designates` naming the role universal as designation target). Information Content Entities are themselves real entities (generically dependent continuants per BFO 2020); the "Representation side" label denotes their *role in the model* (representing reality) rather than lower ontological status — see Smith and Ceusters 2010 "Ontological Realism" §3.2. The choice to model `:System` as `bfo:ObjectAggregate` rather than as a unitary Object is documented as arguable in [LIMITATIONS.md §3.4](LIMITATIONS.md).
 
+### End-to-end walkthrough: Sentinel test fixture
+
+```mermaid
+flowchart TB
+    subgraph ASSERTED["1. Asserted (three-gate inputs from ARCO_instances_sentinel.ttl)"]
+        direction LR
+        SYS[":Sentinel_ID_System<br/><i>a :System</i>"]
+        MOD[":Sentinel_FaceID_Module<br/><i>a :HardwareComponent</i>"]
+        DISP[":Sentinel_FaceID_Disposition<br/><i>a :BiometricIdentificationCapability</i>"]
+        IUS[":Sentinel_IntendedUse_001<br/><i>a :IntendedUseSpecification</i>"]
+        PROC[":Sentinel_RBIP_Process<br/><i>prescribed process token,<br/>a :RemoteBiometricIdentificationProcess</i>"]
+        USS[":Sentinel_UseScenario_001<br/><i>a :UseScenarioSpecification</i>"]
+        NPR(((":NaturalPersonRole<br/><i>class IRI<br/>designated by USS</i>")))
+        SYS -->|bfo:has_part| MOD
+        MOD -->|ro:has_disposition| DISP
+        IUS -->|iao:is_about| SYS
+        IUS -->|cco:prescribes| PROC
+        USS -->|iao:is_about| SYS
+        USS -->|cco:designates| NPR
+    end
+    subgraph ENTAILED["2. Entailed by OWL-RL (no LLM, no rules engine; mechanical entailment)"]
+        E1[":Sentinel_FaceID_Disposition a :AnnexIIITriggeringCapability<br/>(via owl:unionOf membership; reality side)"]
+        E2[":Sentinel_ID_System a :HighRiskSystem<br/>(via Gate 1 bridge axiom; reality side: capability precondition)"]
+        E3[":Sentinel_ID_System a :AnnexIII1aApplicableSystem<br/>(via three-gate equivalentClass intersection;<br/>Gate 1 reality + Gates 2/3 representation)"]
+    end
+    subgraph CERT["3. Pipeline emits two artifacts"]
+        TXT["certificate.txt:<br/>PRIMARY: AnnexIII1aApplicableSystem<br/>LATENT-RISK FLAG: HighRiskSystem<br/>ANNEX III 1(a): VERIFIED<br/>(ENTAILED, Article 6(3) derogation not evaluated)"]
+        AUDIT["Audit-layer SPARQL ASKs independently confirm:<br/>traceability PASS, intended-use PASS,<br/>regulatory-alignment PASS, union-sync PASS<br/><i>two-layer cross-check, not just reasoner output</i>"]
+    end
+    ASSERTED ==>|OWL-RL three-gate axiom| ENTAILED
+    ENTAILED ==> TXT
+    ENTAILED ==> AUDIT
+
+    style ASSERTED fill:#f5f9ff
+    style ENTAILED fill:#fbf2e8
+    style CERT fill:#fff7e6
+```
+
+**Caption.** `Sentinel_ID_System` is the in-repo test fixture, not a real product. The same pipeline runs on any typed instance: `CreditScorer_001` (correctly entailed as `:AnnexIII5bApplicableSystem`), `VerificationKiosk_001` (correctly NOT entailed as Annex III 1(a) because verification is one-to-one, out of scope of Annex III 1(a) per Article 3(36)), and the gate-removal regression suite (one triple removed at a time, classification confirmed to fail). The Sentinel fixture intentionally omits provider-side modeling (`ProviderOrganization`, `AssessmentDocumentation`, `DerogationClaim`, etc.) from this view to keep the three-gate trace clear; those instances exist in the same fixture and feed the audit-layer SPARQL ASKs separately. Bearer simplification: `:HardwareComponent` stands in for the hardware-plus-concretized-software amalgam (per Beverley et al. "Capabilities" arXiv:2405.00183 §4.1: software qua pattern is not a continuant capable of bearing dispositions). This is a known modeling boundary, documented in LIMITATIONS.md §3.5.
+
 ---
 
 ## What ARCO is, and what it is not
