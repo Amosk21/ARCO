@@ -8,11 +8,11 @@ Companies are building AI systems without knowing whether those systems will sat
 
 ARCO moves the classification decision upstream. Before deployment, the pipeline tells organizations whether a structured description of a system satisfies ARCO's formal encoding of Annex III conditions, and exactly why.
 
-The output is not a score, a confidence level, or an advisory opinion. Most AI governance asks what a system does. ARCO asks what a system formally is — its dispositions, the processes it is prescribed to participate in, and the role categories it affects — and entails the classification by formal logic from that structure. The result is a deterministic, audit-traceable assessment grounded in BFO/RO/IAO/CCO-aligned structure: same structured inputs, same classification, every run.
+The output is not a score, a confidence level, or an advisory opinion. Most AI governance asks what a system does. ARCO asks what a system formally is — its dispositions, the processes it is prescribed to participate in, and the role categories it affects — and entails the classification by formal logic from that structure. The result is a deterministic gate evaluation over hand-reviewed structured inputs, audit-traceable and grounded in BFO/RO/IAO/CCO-aligned structure: same structured inputs, same classification, every run.
 
 **TL;DR**
 - ARCO tells you, before deployment, whether a structured description of your system triggers EU AI Act high-risk conditions per ARCO's formal encoding of Article 6 and Annex III, and exactly why. The architecture is designed to generalize to regulatory domains where obligations attach to capability, prescribed process, and affected role; the current encoding is EU AI Act-specific.
-- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO 2020-grounded ontology, with RO, IAO, and CCO loaded as ROBOT BOT-extracted slim modules per the OBO Foundry / ODK standard pattern (version-pinned, reproducible from seed files in the repo). No probabilistic scoring, no LLMs in the decision loop.
+- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO 2020-grounded ontology, with RO, IAO, and CCO loaded as ROBOT BOT-extracted slim modules per the OBO Foundry / ODK standard pattern (version-pinned, reproducible from seed files in the repo). No probabilistic scoring; the classification runs on hand-reviewed structured RDF, not directly on LLM output. (See LIMITATIONS.md on upstream extraction.)
 - From a fresh clone, install the Python dependencies and run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from the repository root to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
 
 **What's modeled (current scope)**
@@ -150,7 +150,7 @@ ARCO treats capability as something that **resolves from structure**, traced fro
 
 This makes ARCO different from two adjacent categories of tool. **Post-hoc behavioral monitors** — red-teaming, content moderation, runtime policy enforcement — observe what a deployed system does. They cannot tell you whether a system *is* high-risk before it ships; they assume that classification has already happened. **Probabilistic scorers** — risk-rating LLMs, fine-tuned classifiers — produce confidence levels, not entailments. Regulators audit chains of reasoning, not probability distributions. ARCO produces the chain.
 
-The classification is deterministic, traceable, and stable. It changes only when the system's structure changes.
+Given the hand-reviewed structured input, the classification is deterministic, traceable, and stable. It changes only when the structured description of the system changes.
 
 ---
 
