@@ -26,6 +26,39 @@ All three gates must be satisfied for category-specific Annex III applicability 
 
 ---
 
+## What ARCO is, and what it is not
+
+ARCO is a **reference implementation** of a BFO 2020-aligned regulatory classification ontology. It demonstrates an architectural pattern (capability dispositions in independent continuants; intended-use as Directive ICE; use scenario as Designative ICE; three-gate `owl:equivalentClass` classification; two-layer separation between OWL-RL entailment and SPARQL ASK audit; HermiT OWL 2 DL cross-check on every commit) and exercises that pattern against a bounded scope of EU AI Act Annex III. The pattern is intended to be forked and adapted, not deployed as-is.
+
+**What ARCO does today:**
+
+- Deterministic OWL-RL classification of two Annex III items (1(a) biometric identification, 5(b) creditworthiness) given typed RDF instance data.
+- HermiT OWL 2 DL agreement on seven sentinel queries in CI, on every commit (independent reasoner, not the same engine that produces the classification).
+- Documented competency questions (CQ1-CQ12 in `docs/COMPETENCY_QUESTIONS.md`), each mapped to its layer (OWL-RL OWA, SHACL CWA, or SPARQL ASK post-reasoning audit), its regulatory anchor, and the file that answers it.
+- Reusable SPARQL queries with `?system` parameterization, callable across any system instance.
+- MCP plugin (`mcp/`) exposing the pipeline as typed tools for any LLM client.
+
+**What ARCO does NOT do, and why a real EU AI Act deployment needs more:**
+
+- **Documentary source anchoring per Article 3(12).** ARCO models `:IntendedUseSpecification` as a Directive ICE but does not yet require provenance back to instructions for use, technical documentation, or promotional material (the source classes Article 3(12) names). For a real determination, intended use must trace to specific clauses in specific documents.
+- **Article 6(3) derogation evaluation.** ARCO flags the existence of a `:DerogationClaim` artifact for human review; it does not evaluate the four conditions (a)-(d) or the no-profiling proviso. A defensible determination must.
+- **Real-time vs post remote biometric identification distinction.** Article 5 prohibition (real-time RBI in publicly accessible spaces by law enforcement, with narrow derogations) and Annex III 1(a) high-risk (post RBI) are different regulatory regimes. ARCO currently collapses both into one capability class.
+- **Provider vs deployer obligation chain.** ARCO has `:ProviderRole` and `:DeployerRole` but does not entail the Article 16 (provider) and Article 26 (deployer) obligation sets from a positive classification. A client deploying a third-party system needs to know which obligations attach to which actor.
+- **Coverage of Annex III items beyond 1(a) and 5(b).** Annex III has eight high-risk areas. ARCO models two.
+- **Per-deployment instance authoring from real provider documentation.** The current pattern requires a human (LLM-assisted) to type RDF describing a system. ARCO does not ingest unstructured vendor docs and produce the classification from them.
+
+**Producing a defensible client-facing determination for a real AI deployment requires:**
+
+1. A specific worked use case grounded in real provider documentation.
+2. Documentary anchoring of intended use to source-document IRIs that resolve to actual published documents.
+3. Article 6(3) derogation evaluation against the four named conditions.
+4. Provider/deployer obligation entailment from the positive classification.
+5. External legal counsel review. The encoded interpretation of regulatory text in this repository has not been externally reviewed by qualified counsel or by the EU AI Office.
+
+The architectural pattern ARCO demonstrates is reusable. The current scope is bounded. Closing the gap from "reference implementation" to "deployable compliance tool" is a distinct phase of work, not a finishing pass on the current artifact.
+
+---
+
 [![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml) [![ROBOT Validation](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml)
 
 ---
