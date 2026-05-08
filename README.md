@@ -95,6 +95,40 @@ flowchart TB
 
 **Legend.** Solid arrow → `rdfs:subClassOf` (child points to parent, OBO Foundry convention). Dotted arrow labeled `unionOf` → member of the `owl:equivalentClass owl:unionOf` defining `:AnnexIIITriggeringCapability`. Dotted arrow labeled `entailed` → membership entailed via `owl:equivalentClass` intersection rather than asserted as a subclass (`:HighRiskSystem` is the example: not asserted as a subclass of `:System`; entailed when the bridge axiom fires). Thick line `===` → `owl:disjointWith`. `:BiometricVerificationCapability` is intentionally NOT a member of `:AnnexIIITriggeringCapability` per Article 3(36) (one-to-one verification is out of scope of Annex III 1(a)); the disjointness edges visualize the formal exclusion.
 
+### The three-gate axiom (Annex III 1(a))
+
+```mermaid
+flowchart LR
+    SYSTEM[":System x<br/>(also a conjunct)"]
+
+    subgraph G1["Gate 1 - Reality side: capability"]
+        G1D["x bfo:has_part some<br/>(:SystemComponent and<br/>ro:has_disposition some<br/>:BiometricIdentificationCapability)<br/><br/><i>the system actually contains a component<br/>capable of biometric identification</i>"]
+    end
+
+    subgraph G2["Gate 2 - Representation side: prescribed process"]
+        G2D["x [inverseOf iao:is_about] some<br/>(:IntendedUseSpecification and<br/>cco:prescribes <b>someValuesFrom</b><br/>:RemoteBiometricIdentificationProcess)<br/><br/><i>the documented intended use<br/>prescribes the regulated process type</i>"]
+    end
+
+    subgraph G3["Gate 3 - Representation side: designated role"]
+        G3D["x [inverseOf iao:is_about] some<br/>(:UseScenarioSpecification and<br/>cco:designates <b>hasValue</b><br/>:NaturalPersonRole)<br/><br/><i>the use scenario designates natural<br/>persons as the affected role universal</i>"]
+    end
+
+    SYSTEM --> G1
+    SYSTEM --> G2
+    SYSTEM --> G3
+    G1 --> CONJ{"ALL THREE REQUIRED<br/>owl:equivalentClass<br/>owl:intersectionOf"}
+    G2 --> CONJ
+    G3 --> CONJ
+    CONJ --> RESULT[":AnnexIII1aApplicableSystem<br/><i>high-risk under Annex III 1(a)</i><br/>entailed by OWL-RL"]
+
+    style G1 fill:#eaf3ea
+    style G2 fill:#eef2fb
+    style G3 fill:#eef2fb
+    style RESULT fill:#fbf2e8
+```
+
+**Legend.** Green box → reality side (BFO disposition borne by an independent continuant). Blue box → representation side (IAO information content entity describing the system). Gates 2 and 3 use the anonymous inverse-aboutness wrapper `[owl:inverseOf iao:0000136]` so the restriction is on the system itself, not on the spec. Gate 2 uses `owl:someValuesFrom`: the prescribed process must be a typed instance of the regulated class. Gate 3 uses `owl:hasValue` against the role universal class IRI (designation by inscription per Smith and Ceusters 2015 "Aboutness," CEUR Vol-1515; the universal is named, not a role-bearer instance). The same shape applies to `:AnnexIII5bApplicableSystem` with `:CreditworthinessEvaluationCapability` / `:CreditworthinessEvaluationProcess` substituted in Gates 1 and 2. **Gate independence is verified by `03_TECHNICAL_CORE/scripts/test_gate_removal.py`**: removing any one of the three triples causes the classification entailment to fail.
+
 ---
 
 ## What ARCO is, and what it is not
