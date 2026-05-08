@@ -55,6 +55,8 @@ ARCO is a **reference implementation** of a BFO 2020-aligned regulatory classifi
 4. Provider/deployer obligation entailment from the positive classification.
 5. External legal counsel review. The encoded interpretation of regulatory text in this repository has not been externally reviewed by qualified counsel or by the EU AI Office.
 
+A worked walkthrough of one such use case (Bank Y deploys Vendor X's credit-scoring API for EU consumer loans) is in [docs/REFERENCE_USE_CASE.md](docs/REFERENCE_USE_CASE.md). It compares ARCO's current certificate to what a defensible determination would actually say, and enumerates the concrete gaps closing the difference.
+
 The architectural pattern ARCO demonstrates is reusable. The current scope is bounded. Closing the gap from "reference implementation" to "deployable compliance tool" is a distinct phase of work, not a finishing pass on the current artifact.
 
 ---
