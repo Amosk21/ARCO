@@ -8,7 +8,7 @@
 @prefix skos:<http://www.w3.org/2004/02/skos/core#> .
 
 <https://arco.ai/ontology/core> rdf:type owl:Ontology ;
-  rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned" ;
+  rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned"@en ;
   rdfs:comment "Core ontology with OWL restrictions for computable reasoning, with ICE-to-reality grounding via IAO is_about following BFO realist conventions. Uses ro:0000091 (has_disposition) per RO best practices." ;
   owl:versionInfo "Foundational ontology alignment: BFO 2020 (ISO/IEC 21838-2:2021) loaded as full upstream file from 03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl. OBO Relations Ontology (RO) release 2025-12-17, IAO release 2026-03-30, and CCO release v1.7-2024-11-03 are loaded as ROBOT BOT-extracted slim modules per the OBO Foundry / ODK standard pattern, from imports/ro_bot.owl, imports/iao_bot.owl, and imports/cco_bot.owl respectively. Seed term lists are version-controlled at 03_TECHNICAL_CORE/ontology/imports/seeds/. See README 'Foundational ontology versions' for the full table." ;
   owl:imports <../ontology/imports/bfo-2020.owl> .
@@ -44,8 +44,8 @@
 #################################################################
 
 :System rdf:type owl:Class ;
-  rdfs:label "AI System" ;
-  skos:definition "An AI system that can be assessed against EU AI Act Annex III applicability conditions."@en ;
+  rdfs:label "AI System"@en ;
+  skos:definition "An object aggregate of one or more material components, used in ARCO as the assessment target for EU AI Act Annex III gates. The class itself does not formally restrict to AI; the AI scope is supplied by the use case and by the disposition kinds the components bear."@en ;
   rdfs:subClassOf bfo:0000027 ; # Object Aggregate
   rdfs:subClassOf [
     a owl:Restriction ;
@@ -54,13 +54,13 @@
   ] .
 
 :SystemComponent rdf:type owl:Class ;
-  rdfs:label "System Component" ;
+  rdfs:label "System Component"@en ;
   skos:definition "A material part of an AI system. Software is not a system component; it is information content that runs on hardware."@en ;
   rdfs:comment "Material component of an AI system (bfo:Object). Software is NOT a SystemComponent — it is an ICE (see SoftwareArtifact). has_part between an ObjectAggregate and an ICE would be a BFO category error." ;
   rdfs:subClassOf bfo:0000030 . # Object
 
 :HardwareComponent rdf:type owl:Class ;
-  rdfs:label "Hardware Component" ;
+  rdfs:label "Hardware Component"@en ;
   skos:definition "A physical part of an AI system, such as a sensor module, processor, or integrated unit, that bears the system's capabilities."@en ;
   rdfs:subClassOf :SystemComponent ;
   rdfs:subClassOf [
@@ -70,24 +70,24 @@
   ] .
 
 :CapabilityDisposition rdf:type owl:Class ;
-  rdfs:label "AI Capability Disposition" ;
-  skos:definition "A capability of an AI system component, modeled as a BFO disposition. Examples: the capability to identify a person from a face image, or to evaluate a credit score."@en ;
+  rdfs:label "AI Capability Disposition"@en ;
+  skos:definition "A disposition borne by a system component whose realization is the component participating in a process that produces the capability's output. ARCO subclasses this to enumerate capability kinds named by Annex III (biometric identification, creditworthiness evaluation, and others)."@en ;
   rdfs:subClassOf bfo:0000016 . # Disposition
 
 :BiometricIdentificationCapability rdf:type owl:Class ;
-  rdfs:label "Biometric Identification Capability" ;
+  rdfs:label "Biometric Identification Capability"@en ;
   skos:definition "The capability to identify an unknown person from biometric data by comparing a sample against many candidates (one-to-many matching). Triggers Annex III 1(a)."@en ;
   rdfs:comment "1:N biometric identification capability. Realizations identify an unknown individual against a population database. Triggers Annex III 1(a). NOT the same as 1:1 verification (see BiometricVerificationCapability)." ;
   rdfs:subClassOf :CapabilityDisposition .
 
 :BiometricVerificationCapability rdf:type owl:Class ;
-  rdfs:label "Biometric Verification Capability" ;
+  rdfs:label "Biometric Verification Capability"@en ;
   skos:definition "The capability to confirm a claimed identity by comparing biometric data against a single reference (one-to-one matching). Out of scope of Annex III 1(a) per Article 3(36)."@en ;
   rdfs:comment "1:1 biometric verification capability. Realizations confirm whether a presented individual matches a claimed identity. NOT subClassOf BiometricIdentificationCapability — verification is not a species of identification. NOT in AnnexIIITriggeringCapability. Does not trigger Annex III 1(a)." ;
   rdfs:subClassOf :CapabilityDisposition .
 
 :CreditworthinessEvaluationCapability rdf:type owl:Class ;
-  rdfs:label "Creditworthiness Evaluation Capability" ;
+  rdfs:label "Creditworthiness Evaluation Capability"@en ;
   skos:definition "The capability to evaluate a person's creditworthiness or assign a credit score for access to financial or public services. Triggers Annex III 5(b)."@en ;
   rdfs:comment "Capability to evaluate creditworthiness of natural persons or establish their credit score, for access to financial or public services. Reality-side disposition (the hardware genuinely has this capacity). Regulatory grouping (AnnexIIITriggeringCapability) is asserted in the governance extension. Triggers Annex III 5(b)." ;
   rdfs:subClassOf :CapabilityDisposition .
@@ -100,7 +100,7 @@
 :BiometricVerificationCapability owl:disjointWith :CreditworthinessEvaluationCapability .
 
 :OperationalProcess rdf:type owl:Class ;
-  rdfs:label "Operational Process" ;
+  rdfs:label "Operational Process"@en ;
   skos:definition "A process in which an AI system realizes one or more of its capabilities at deployment."@en ;
   rdfs:subClassOf bfo:0000015 ; # Process
   rdfs:subClassOf
@@ -112,29 +112,29 @@
 #################################################################
 
 :SoftwareArtifact rdf:type owl:Class ;
-  rdfs:label "Software Artifact" ;
+  rdfs:label "Software Artifact"@en ;
   skos:definition "Software content (model weights, code, configuration) used by an AI system. Modeled as information content rather than a physical part, so dispositions inhere in the hardware that runs the software."@en ;
   rdfs:comment "Software as a generically dependent continuant (ICE). Dispositions inhere in the material bearer that concretizes the software, not in the software artifact itself. Software relates to systems via concretization in material components, not via parthood. Do not type software as SystemComponent." ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :InformationOutput rdf:type owl:Class ;
-  rdfs:label "Information Output" ;
+  rdfs:label "Information Output"@en ;
   skos:definition "An information artifact produced as the output of a process, such as an assessment report or a determination record."@en ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :RegulatoryContent rdf:type owl:Class ;
-  rdfs:label "Regulatory Content" ;
+  rdfs:label "Regulatory Content"@en ;
   skos:definition "An information artifact representing a passage of regulatory text, such as an Annex III item or a specific Article condition."@en ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :ComplianceDetermination rdf:type owl:Class ;
-  rdfs:label "Compliance Determination Result" ;
+  rdfs:label "Compliance Determination Result"@en ;
   skos:definition "A record of the outcome of a compliance assessment for a specific AI system, such as a classification of high-risk or non-applicable."@en ;
   rdfs:comment "Structured result of a compliance assessment (e.g., High-Risk, Limited-Risk, Prohibited)." ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :HighRiskDetermination rdf:type owl:Class ;
-  rdfs:label "High-Risk Determination" ;
+  rdfs:label "High-Risk Determination"@en ;
   skos:definition "A compliance determination that records a system as high-risk under Annex III."@en ;
   rdfs:comment "A compliance determination that classifies a system as high-risk. Can be asserted when documenting an inferred HighRiskSystem classification." ;
   rdfs:subClassOf :ComplianceDetermination .
