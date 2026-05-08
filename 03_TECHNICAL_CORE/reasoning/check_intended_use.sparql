@@ -12,7 +12,8 @@ PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 # confirms the prescribed process token exists.
 #
 # Gate 3 audit: a UseScenarioSpecification is_about the system AND is_about
-# :NaturalPersonRole (the role category — universal across current Annex III categories).
+# an instance typed as :NaturalPersonRole (a role token; the OWL gate axiom
+# enforces the type via owl:someValuesFrom).
 #
 # The pipeline substitutes :Sentinel_ID_System with the actual system IRI when
 # --system is provided.
@@ -23,8 +24,9 @@ ASK WHERE {
     cco:prescribes ?process ;
     iao:0000136 :Sentinel_ID_System .
 
-  # Gate 3 audit: use scenario — natural person role is declared for this system
+  # Gate 3 audit: use scenario — a NaturalPersonRole token is declared for this system
   ?uss a :UseScenarioSpecification ;
     iao:0000136 :Sentinel_ID_System ;
-    iao:0000136 :NaturalPersonRole .
+    iao:0000136 ?role .
+  ?role a :NaturalPersonRole .
 }

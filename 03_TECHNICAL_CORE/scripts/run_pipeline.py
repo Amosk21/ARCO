@@ -331,17 +331,18 @@ LIMIT 1
 """
 
 def _select_gate3_role(sys: str = SYSTEM_LOCAL) -> str:
-    """SELECT the UseScenarioSpecification linked to the system via NaturalPersonRole,
-    plus the rdfs:label of NaturalPersonRole."""
+    """SELECT the UseScenarioSpecification linked to the system via a NaturalPersonRole token,
+    plus the role token's rdfs:label (or NaturalPersonRole's class label as fallback)."""
     return f"""
 PREFIX : <{ARCO_NS}>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?uss ?roleLabel WHERE {{
+SELECT ?uss ?role ?roleLabel WHERE {{
   ?uss a :UseScenarioSpecification ;
     iao:0000136 :{sys} ;
-    iao:0000136 :NaturalPersonRole .
-  OPTIONAL {{ :NaturalPersonRole rdfs:label ?roleLabel }}
+    iao:0000136 ?role .
+  ?role a :NaturalPersonRole .
+  OPTIONAL {{ ?role rdfs:label ?roleLabel }}
 }}
 LIMIT 1
 """
@@ -393,7 +394,9 @@ def select_gate_evidence(g: Graph, system_local: str = SYSTEM_LOCAL) -> dict:
     if rows:
         r = rows[0]
         packet["gate3"]["uss_uri"] = str(r[0]) if r[0] else ""
-        packet["gate3"]["role_label"] = str(r[1]) if r[1] else "Natural Person Role"
+        role_uri = str(r[1]) if r[1] else f"{ARCO_NS}NaturalPersonRole"
+        packet["gate3"]["role_uri"] = role_uri
+        packet["gate3"]["role_label"] = str(r[2]) if r[2] else _short(role_uri)
 
     return packet
 
@@ -737,13 +740,13 @@ def write_html_view(
           </div>
           <div class="gate-question">Does the use scenario reference the regulated role category?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> A Use Scenario Specification references <em>" + _role_label + "</em> as a role category &mdash; the universal, not any specific individual. This satisfies the <code>owl:hasValue</code> restriction in the gate axiom, which checks for the role category itself rather than any particular role-bearer." if gate3_ok else "<strong>No matching role category</strong> found in the use scenario documentation."}
+            {"<strong>Yes.</strong> A Use Scenario Specification is about a role token typed as <em>" + _role_label + "</em>. This is not a class-IRI mention &mdash; the role token must be an instance of the regulated role class for this gate to be satisfied." if gate3_ok else "<strong>No matching role category</strong> found in the use scenario documentation."}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
-              <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>iao:0000136</code> <span class="prop-label">(is about)</span> System and <code>iao:0000136</code> <span class="prop-label">(is about)</span> :{_role_local}</p>
-              <p><strong>Gate mechanism:</strong> <code>owl:hasValue</code> is intentional &mdash; the specification must reference the role <em>category</em> ({_role_label} as universal), not a role-bearer instance. This is a check on the role type, not on any particular person.</p>
+              <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>iao:0000136</code> <span class="prop-label">(is about)</span> System and <code>iao:0000136</code> <span class="prop-label">(is about)</span> some {_role_label}</p>
+              <p><strong>Gate mechanism:</strong> <code>owl:someValuesFrom</code> performs genuine type-checking &mdash; the role token bound by <code>iao:0000136</code> must be an instance of the regulated role class, not a bare class-IRI mention. Gate 3 is a documentary aboutness check; bearer of the role is not asserted at this layer.</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
           </details>

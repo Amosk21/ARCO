@@ -57,10 +57,13 @@
 :Kiosk_VerificationProcess_Token rdf:type :BiometricVerificationProcess ;
   rdfs:label "Kiosk Verification Process Token" .
 
+:Kiosk_NaturalPerson_Role_001 rdf:type :NaturalPersonRole ;
+  rdfs:label "Kiosk Natural Person Role Token" .
+
 :Kiosk_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Kiosk Use Scenario: Verification of Natural Persons" ;
   iao:0000136 :VerificationKiosk_001 ;
-  iao:0000136 :NaturalPersonRole .
+  iao:0000136 :Kiosk_NaturalPerson_Role_001 .
 
 #################################################################
 # 3) COMPLIANCE DETERMINATION (descriptive ICE — not high-risk)

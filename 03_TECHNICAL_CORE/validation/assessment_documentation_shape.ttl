@@ -85,22 +85,18 @@
   sh:qualifiedMinCount 1 ;
   sh:message "UseScenarioSpecification must be about at least one System." .
 
-# PUNNING DEPENDENCY: :NaturalPersonRole is used as an individual (OWL 2
-# punning) but this shape validates its class-side triple (rdfs:subClassOf
-# bfo:0000023). This works because rdfs:subClassOf triples exist on the
-# class-name IRI. If this shape were changed to sh:class bfo:0000023, it
-# would fail — NaturalPersonRole has no rdf:type bfo:0000023 as an individual.
+# Gate 3 alignment: the iao:is_about filler must be a Role TOKEN — a typed
+# individual. Gate 3 in ARCO_governance_extension.ttl uses owl:someValuesFrom
+# :NaturalPersonRole, so the documentary value must be an instance, not the
+# bare class IRI. After OWL-RL reasoning, NaturalPersonRole instances are
+# entailed as bfo:0000023 (Role) instances via rdfs:subClassOf, so sh:class
+# bfo:0000023 covers any Role subclass token.
 :PS_UseScenario_IsAboutRole
   a sh:PropertyShape ;
   sh:path iao:0000136 ;
-  sh:qualifiedValueShape [
-    sh:property [
-      sh:path rdfs:subClassOf ;
-      sh:hasValue bfo:0000023
-    ]
-  ] ;
+  sh:qualifiedValueShape [ sh:class bfo:0000023 ] ;
   sh:qualifiedMinCount 1 ;
-  sh:message "UseScenarioSpecification must be about at least one Role subclass (affected entity)." .
+  sh:message "UseScenarioSpecification must be about at least one Role token (typed individual, e.g., a NaturalPersonRole instance)." .
 
 :PS_ObligationSpec_IsAbout
   a sh:PropertyShape ;

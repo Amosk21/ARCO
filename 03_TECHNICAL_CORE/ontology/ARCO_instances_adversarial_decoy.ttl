@@ -51,6 +51,9 @@
 :Decoy_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess ;
   rdfs:label "Decoy RBIP Process Token" .
 
+:Decoy_NaturalPerson_Role_001 rdf:type :NaturalPersonRole ;
+  rdfs:label "Decoy Natural Person Role Token" .
+
 :Decoy_IntendedUse_001 rdf:type :IntendedUseSpecification ;
   rdfs:label "Decoy Intended Use" ;
   cco:prescribes :Decoy_RBIP_Process ;
@@ -59,7 +62,7 @@
 :Decoy_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Decoy Use Scenario" ;
   iao:0000136 :DecoySystem_001 ;
-  iao:0000136 :NaturalPersonRole .
+  iao:0000136 :Decoy_NaturalPerson_Role_001 .
 
 #################################################################
 # DOCUMENTARY INFRASTRUCTURE (traceability, obligation)

@@ -38,6 +38,9 @@
 :Ghost_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess ;
   rdfs:label "Ghost RBIP Process Token" .
 
+:Ghost_NaturalPerson_Role_001 rdf:type :NaturalPersonRole ;
+  rdfs:label "Ghost Natural Person Role Token" .
+
 :Ghost_IntendedUse_001 rdf:type :IntendedUseSpecification ;
   rdfs:label "Ghost Intended Use" ;
   cco:prescribes :Ghost_RBIP_Process ;
@@ -46,7 +49,7 @@
 :Ghost_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Ghost Use Scenario" ;
   iao:0000136 :GhostSystem_001 ;
-  iao:0000136 :NaturalPersonRole .
+  iao:0000136 :Ghost_NaturalPerson_Role_001 .
 
 #################################################################
 # DOCUMENTARY INFRASTRUCTURE

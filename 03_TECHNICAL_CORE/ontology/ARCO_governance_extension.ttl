@@ -328,7 +328,7 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment """System that meets Annex III 1(a) conditions via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :RemoteBiometricIdentificationProcess. Uses owl:someValuesFrom for genuine type-checking; any correctly typed process token satisfies the gate.
-    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about :NaturalPersonRole. Uses owl:hasValue intentionally: the scenario spec is about the role CATEGORY (the universal), not a specific role-bearer token. ARCO operates at specification level; bearer-token modeling is intentionally out of scope because bearer tokens are deployment-time particulars. Referencing the class IRI in this position is ARCO's current encoding convention within that scope, not a verdict on BFO doctrine.
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about some instance typed as :NaturalPersonRole. Uses owl:someValuesFrom for genuine type-checking; any correctly typed role token satisfies the gate. Mirrors the Gate 2 pattern.
   Classification is OWL-entailed under owlrl; gate independence verified by regression test (test_gate_removal.py).
   SPARQL ASK queries (check_intended_use, check_regulatory_alignment) are downstream audit-layer checks that inspect declared documentary content on the reasoned graph; they do not contribute to this entailment and cannot affect it.""" ;
   rdfs:subClassOf :System ;
@@ -372,12 +372,10 @@ cco:Organization rdf:type owl:Class ;
         ]
       ]
 
-      # Gate 3 (representation-side): scenario spec is_about this system AND is_about the relevant
-      # affected role for Annex III 1(a). owl:hasValue is intentional given ARCO's spec-level scope:
-      # the scenario spec is about the NaturalPersonRole CATEGORY (the universal), not a specific
-      # role-bearer instance (which would require a specific individual at deployment time, outside
-      # ARCO's scope). Referencing the class IRI as a concept-individual is ARCO's encoding
-      # convention for "this scenario addresses the regulated role type" within that scope.
+      # Gate 3 (representation-side): scenario spec is_about this system AND is_about an instance
+      # typed as :NaturalPersonRole. owl:someValuesFrom performs a genuine type-check against the
+      # role universal: the iao:is_about filler must be a NaturalPersonRole role token (a typed
+      # individual), not the bare class IRI. Mirrors the corrected Gate 2 pattern.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -386,7 +384,7 @@ cco:Organization rdf:type owl:Class ;
             :UseScenarioSpecification
             [ rdf:type owl:Restriction ;
               owl:onProperty iao:0000136 ;
-              owl:hasValue :NaturalPersonRole
+              owl:someValuesFrom :NaturalPersonRole
             ]
           )
         ]
@@ -407,7 +405,8 @@ cco:Organization rdf:type owl:Class ;
 #         this system AND cco:prescribes a CreditworthinessEvaluationProcess
 #         token — genuine type-check, mirrors the corrected 1(a) Gate 2.
 # Gate 3 (representation-side): UseScenarioSpecification is_about
-#         this system AND is_about :NaturalPersonRole (the universal).
+#         this system AND is_about some instance typed as :NaturalPersonRole
+#         — genuine type-check, mirrors the corrected 1(a) Gate 3.
 #
 # Conservative claim: demonstrates category extension for
 # creditworthiness evaluation. Micro-enterprise exclusions and
@@ -419,7 +418,7 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment """System meeting Annex III 5(b) conditions via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition CreditworthinessEvaluationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :CreditworthinessEvaluationProcess. Mirrors the corrected 1(a) pattern; any correctly typed process token satisfies the gate.
-    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about :NaturalPersonRole (the role category, not a bearer instance).
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about some instance typed as :NaturalPersonRole (a role token, not the bare class IRI). Mirrors the Gate 2 pattern; any correctly typed role token satisfies the gate.
   Classification is OWL-entailed under owlrl.
   Conservative scope: demonstrates category extension; micro-enterprise exclusions and other 5(b) nuances remain deferred.
   Cross-category non-entailment: a system bearing only CreditworthinessEvaluationCapability is NOT entailed as AnnexIII1aApplicableSystem; a system bearing only BiometricIdentificationCapability is NOT entailed as AnnexIII5bApplicableSystem. (OWA — both claims hold under current assertions.)""" ;
@@ -461,9 +460,10 @@ cco:Organization rdf:type owl:Class ;
         ]
       ]
 
-      # Gate 3 (representation-side): scenario spec is_about this system AND is_about the
-      # NaturalPersonRole universal. owl:hasValue intentional: same reasoning as 1(a) Gate 3 —
-      # creditworthiness evaluation targets the role CATEGORY, not a specific role-bearer.
+      # Gate 3 (representation-side): scenario spec is_about this system AND is_about an instance
+      # typed as :NaturalPersonRole. owl:someValuesFrom performs a genuine type-check: the
+      # iao:is_about filler must be a NaturalPersonRole role token, not the bare class IRI.
+      # Mirrors the corrected 1(a) Gate 3.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -472,7 +472,7 @@ cco:Organization rdf:type owl:Class ;
             :UseScenarioSpecification
             [ rdf:type owl:Restriction ;
               owl:onProperty iao:0000136 ;
-              owl:hasValue :NaturalPersonRole
+              owl:someValuesFrom :NaturalPersonRole
             ]
           )
         ]

@@ -56,11 +56,12 @@ GATE_REMOVALS = {
         CCO["prescribes"],                   # cco:prescribes
         ARCO["Sentinel_RBIP_Process"],       # the typed process token (not the class IRI)
     ),
-    # Gate 3 must require iao:is_about NaturalPersonRole, not just existence of USS.
+    # Gate 3 must require iao:is_about a NaturalPersonRole token, not just existence of USS.
+    # Triple references the role token individual, not the class IRI (mirrors Gate 2 pattern).
     "gate3_missing_role": (
         ARCO["Sentinel_UseScenario_001"],
         IAO["0000136"],                      # is_about
-        ARCO["NaturalPersonRole"],
+        ARCO["Sentinel_NaturalPerson_Role_001"],   # the typed role token
     ),
 }
 
@@ -111,12 +112,12 @@ GATE_MUTATIONS = {
         "remove": (
             ARCO["Sentinel_UseScenario_001"],
             IAO["0000136"],
-            ARCO["NaturalPersonRole"],
+            ARCO["Sentinel_NaturalPerson_Role_001"],  # the typed role token
         ),
         "add": (
             ARCO["Sentinel_UseScenario_001"],
             IAO["0000136"],
-            ARCO["SomeOtherRole"],              # wrong role
+            ARCO["SomeOtherRole"],              # wrong role (not typed as NaturalPersonRole)
         ),
         "expected": {
             "AnnexIII1aApplicableSystem": False,  # Gate 3 fails: wrong role
