@@ -138,17 +138,23 @@ cco:Organization rdf:type owl:Class ;
 #
 # AnnexIIITriggeringCapability is a REGULATORY GROUPING CLASS,
 # not a BFO natural kind. There is no mind-independent property
-# shared by all triggering capabilities in reality — what makes
+# shared by all triggering capabilities in reality. What makes
 # a capability "triggering" is the legal text of Annex III.
-# It is a defined class grouping capability universals by their
-# legal relevance. It lives here (regulatory domain layer), not
-# in core.
 #
-# Direct subclassing replaces the prior one-member union:
-#   BiometricIdentificationCapability rdfs:subClassOf AnnexIIITriggeringCapability
-# This is semantically equivalent for current cases and scales
-# cleanly: each new Annex III capability category adds a subclass
-# assertion here, with no edits to core.
+# Modeled as a DEFINED class: its extension is fixed by an
+# owl:equivalentClass owl:unionOf over the listed member capability
+# classes. Each member IS a real BFO disposition (subclass of
+# :CapabilityDisposition), but the GROUPING is definitionally
+# extensional rather than primitive. This is the BFO-defensible
+# move: membership is fixed by extrinsic regulatory criterion
+# (Article 6 / Annex III of Regulation (EU) 2024/1689), not by
+# any mind-independent causal structure shared across members.
+#
+# Adding a new Annex III capability category requires:
+#   (a) adding the new class to the owl:unionOf list, and
+#   (b) asserting rdfs:subClassOf :AnnexIIITriggeringCapability
+#       for in-file readability and OBO Foundry convention.
+# (b) is entailed by (a) but stated explicitly.
 #
 # HighRiskSystem is also a regulatory determination concept.
 # Its bridge axiom depends on AnnexIIITriggeringCapability and
@@ -157,14 +163,21 @@ cco:Organization rdf:type owl:Class ;
 
 :AnnexIIITriggeringCapability rdf:type owl:Class ;
   rdfs:label "Annex III Triggering Capability" ;
-  rdfs:comment "Regulatory grouping class (not a BFO natural kind). Groups capability dispositions whose presence in a system component triggers Annex III applicability under the EU AI Act. New Annex III capability categories extend this by direct subclassing, not by editing a union axiom." ;
-  rdfs:subClassOf :CapabilityDisposition .
+  rdfs:comment "Defined class. The owl:equivalentClass axiom (union of member capability classes) is the necessary-and-sufficient definition; extension is fixed by the listed members, not by primitive subsumption. Each member is a real BFO capability disposition; the GROUPING is by extrinsic regulatory criterion (Article 6 of Regulation (EU) 2024/1689) rather than mind-independent natural kind. The rdfs:subClassOf :CapabilityDisposition assertion is entailed by the union (each member is a CapabilityDisposition) and stated for in-file readability and tooling that ignores equivalentClass. Adding a new Annex III capability category requires (a) adding the new class to the union and (b) asserting rdfs:subClassOf :AnnexIIITriggeringCapability for the same readability reason." ;
+  rdfs:subClassOf :CapabilityDisposition ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:unionOf (
+      :BiometricIdentificationCapability
+      :CreditworthinessEvaluationCapability
+    )
+  ] .
 
-# Direct subclassing: biometric identification IS one kind of Annex III triggering capability.
+# Explicit subclass assertions: entailed by the union above, but stated
+# for in-file readability and OBO Foundry convention.
+# BiometricVerificationCapability is NOT a member of the union; 1:1
+# verification does not trigger Annex III 1(a).
 :BiometricIdentificationCapability rdfs:subClassOf :AnnexIIITriggeringCapability .
-
-# Direct subclassing: creditworthiness evaluation IS a second kind of Annex III triggering capability.
-# BiometricVerificationCapability is NOT subclassed here — 1:1 verification does not trigger Annex III.
 :CreditworthinessEvaluationCapability rdfs:subClassOf :AnnexIIITriggeringCapability .
 
 :HighRiskSystem rdf:type owl:Class ;
