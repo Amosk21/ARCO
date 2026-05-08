@@ -6,17 +6,17 @@ name: ROBOT Validation
 # Phase 0: confirm ROBOT installs and runs in CI.
 # Phase 1: merge ARCO ontology files and run robot validate-profile --profile DL.
 #           Confirms the ontology is OWL 2 DL conformant.
-#           Result is informational only -- Phase 1 does not gate CI.
+#           Gates CI: profile violations fail the build.
 # Phase 2: run robot reason --reasoner HermiT with full ABox materialization.
 #           Flags: --axiom-generators "ClassAssertion SubClass" --include-indirect true
 #           Required so HermiT propagates individual classifications through the
 #           inferred SubClass chain. Without --include-indirect true, ClassAssertion
 #           only materializes direct equivalentClass hits and misses transitive steps.
-#           Result is informational only -- Phase 2 does not gate CI.
+#           Gates CI: HermiT crashes or DL inconsistency fail the build.
 # Phase 3: run ARCO's SPARQL classification queries against the HermiT-reasoned graph
 #           and compare to the owlrl baseline. Confirms both reasoners agree.
 #           Disagreement would indicate RL incompleteness or unexpected DL entailments.
-#           Result is informational only -- Phase 3 does not gate CI.
+#           Gates CI: any classification mismatch fails the build.
 
 on:
   workflow_dispatch:
@@ -68,7 +68,7 @@ jobs:
 
       # Phase 1: OWL 2 DL profile validation
       # Merges the same files the Python pipeline loads, then runs validate-profile.
-      # Non-gating: step always exits 0 so CI passes regardless of outcome.
+      # Gates CI: the step exits non-zero on profile violations.
       # The profile report is printed to logs and uploaded as an artifact for review.
       - name: Merge ARCO ontology files
         shell: bash
@@ -86,27 +86,31 @@ jobs:
             --output /tmp/arco_merged.owl
           echo "Merge complete: /tmp/arco_merged.owl"
 
-      - name: Validate OWL 2 DL profile (informational)
+      - name: Validate OWL 2 DL profile
         shell: bash
         run: |
           ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
           mkdir -p /tmp/robot-reports
 
-          # Capture exit code without failing the step
+          # Capture exit code so we can print the report whether or not it succeeds
+          set +e
           $ROBOT validate-profile \
             --profile DL \
             --input /tmp/arco_merged.owl \
             --output /tmp/robot-reports/dl_profile_report.txt \
-            2>&1 || PROFILE_EXIT=$?
+            2>&1
+          PROFILE_EXIT=$?
+          set -e
 
           echo "=== OWL 2 DL Profile Report ==="
           cat /tmp/robot-reports/dl_profile_report.txt || echo "(no report file generated)"
-          echo "=== Profile validation exit code: ${PROFILE_EXIT:-0} ==="
+          echo "=== Profile validation exit code: ${PROFILE_EXIT} ==="
 
-          if [ "${PROFILE_EXIT:-0}" -eq 0 ]; then
+          if [ "${PROFILE_EXIT}" -eq 0 ]; then
             echo "RESULT: ARCO is OWL 2 DL conformant."
           else
-            echo "RESULT: ARCO has OWL 2 DL profile violations. See report above."
+            echo "FAIL: ARCO has OWL 2 DL profile violations. See report above."
+            exit 1
           fi
 
       - name: Upload profile report
@@ -120,9 +124,9 @@ jobs:
       # Phase 2: HermiT DL reasoning
       # Runs HermiT on the same merged ontology used in Phase 1.
       # Confirms ontology is DL-consistent and reasoner terminates without error.
-      # Non-gating: step always exits 0 so CI passes regardless of outcome.
+      # Gates CI: HermiT crash or DL inconsistency fails the build.
       # Reasoned graph uploaded as artifact for later comparison vs owlrl output.
-      - name: Reason with HermiT (informational)
+      - name: Reason with HermiT
         shell: bash
         run: |
           ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
@@ -135,21 +139,26 @@ jobs:
           # SubClass chain. Without this, Sentinel_ID_System : HighRiskSystem is
           # not emitted even though AnnexIII1aApplicableSystem subClassOf HighRiskSystem
           # is inferred and Sentinel : AnnexIII1aApplicableSystem is direct.
+          # Capture the exit code via PIPESTATUS so we keep the tee'd log AND can fail.
+          set +e
           $ROBOT reason \
             --reasoner hermit \
             --axiom-generators "ClassAssertion SubClass" \
             --include-indirect true \
             --input /tmp/arco_merged.owl \
             --output /tmp/robot-reports/arco_reasoned.owl \
-            2>&1 | tee /tmp/robot-reports/hermit_log.txt || REASON_EXIT=$?
+            2>&1 | tee /tmp/robot-reports/hermit_log.txt
+          REASON_EXIT=${PIPESTATUS[0]}
+          set -e
 
-          echo "=== HermiT reasoning exit code: ${REASON_EXIT:-0} ==="
+          echo "=== HermiT reasoning exit code: ${REASON_EXIT} ==="
 
-          if [ "${REASON_EXIT:-0}" -eq 0 ]; then
+          if [ "${REASON_EXIT}" -eq 0 ]; then
             echo "RESULT: ARCO is consistent under HermiT. Reasoned graph produced."
             ls -la /tmp/robot-reports/arco_reasoned.owl
           else
-            echo "RESULT: HermiT reported a problem. See log above."
+            echo "FAIL: HermiT reported a problem. See log above."
+            exit 1
           fi
 
       - name: Upload HermiT reasoned graph
@@ -167,7 +176,8 @@ jobs:
       # queries against it, then compares results to the expected owlrl baseline.
       # Both reasoners should produce identical classifications for the Sentinel-ID
       # system (which is the system under evaluation in the default pipeline run).
-      # Non-gating: prints DISAGREEMENT message but exits 0.
+      # Gates CI: any classification mismatch between HermiT and the owlrl baseline
+      # fails the build.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -178,7 +188,7 @@ jobs:
         run: |
           python -m pip install --quiet rdflib
 
-      - name: Compare HermiT classifications vs owlrl (informational)
+      - name: Compare HermiT classifications vs owlrl
         shell: bash
         run: |
           python - << 'PYEOF'
@@ -234,6 +244,7 @@ jobs:
               for name, hermit_r, owlrl_r in mismatches:
                   print(f'  - {name}: HermiT={hermit_r}, owlrl={owlrl_r}')
               print('Investigate: RL incompleteness vs unexpected DL entailment.')
+              sys.exit(1)
           else:
               print(f'FULL AGREEMENT: HermiT and owlrl agree on all {len(queries)}/{len(queries)} classifications.')
           PYEOF
