@@ -54,6 +54,7 @@ OBLIGATION_QUERY = REASONING_DIR / "check_obligation_link.sparql"
 REGULATORY_ALIGNMENT_QUERY = REASONING_DIR / "check_regulatory_alignment.sparql"
 DEROGATION_FLAG_QUERY = REASONING_DIR / "flag_derogation_candidate.sparql"
 FRAUD_FLAG_QUERY = REASONING_DIR / "flag_fraud_exclusion_candidate.sparql"
+UNION_SYNC_QUERY = REASONING_DIR / "check_union_subclass_sync.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -569,12 +570,28 @@ def write_html_view(
             f"and the category class was entailed by OWL-RL formal reasoning over "
             f"{inferred_added:,} entailed triples."
         )
+        cap_phrase = cap_list.lower().replace(" capability", "")
+        plain_english_summary = (
+            f"In plain language: this system contains a hardware component capable of "
+            f"{cap_phrase}. The provider's intended-use specification names a regulated "
+            f"process, and the use scenario designates natural persons as the affected "
+            f"population. Together these three conditions match {cat_list} of "
+            f"Regulation (EU) 2024/1689 (the EU AI Act). ARCO does not evaluate the "
+            f"Article 6(3) derogation; that requires human legal review."
+        )
     elif is_high_risk:
         summary_text = (
             f"{sys_display} has a <strong>latent-risk flag</strong>: "
             f"HighRiskSystem was {classification_mode.lower()} from the Gate 1 "
             f"capability precondition, but no category-specific Annex III "
             f"applicability class was entailed."
+        )
+        plain_english_summary = (
+            f"In plain language: this system contains a component capable of an "
+            f"Annex III triggering capability, but the provider's documentation does "
+            f"not yet name a regulated process or affected role. The system is flagged "
+            f"for follow-up review; it is not yet classified into a specific Annex III "
+            f"item."
         )
     else:
         summary_text = (
@@ -583,6 +600,13 @@ def write_html_view(
             f"flag was inferred under ARCO's ontology encoding of EU AI Act Annex III "
             f"based on current assertions. ARCO does not currently model other Annex III "
             f"categories; absence here is not a determination about those other categories."
+        )
+        plain_english_summary = (
+            f"In plain language: this system has been assessed against ARCO's encoding "
+            f"of Annex III items 1(a) (biometric identification) and 5(b) "
+            f"(creditworthiness). No triggering capability or matching intended use was "
+            f"found in the provided structured description. Other Annex III items are "
+            f"not currently modeled, so absence here is not a determination about them."
         )
 
     if all_pass:
@@ -1266,6 +1290,7 @@ section {{ scroll-margin-top: 1rem }}
       {derogation_scope_badge}
     </div>
     <p class="exec-text">{summary_text}</p>
+    <p class="exec-text" style="background:#f5f9ff;border-left:3px solid #2563eb;padding:0.75rem 1rem;margin-top:0.75rem;color:#1e3a5f">{plain_english_summary}</p>
     {"<div class='exec-cats'>" + "".join(
       '<div class="exec-cat"><div class="cat-id">' + c["article_ref"].upper() + '</div>'
       '<div class="cat-title">' + c["title"] + '</div></div>'
@@ -1544,6 +1569,12 @@ def main() -> None:
         reg_alignment_ok = run_sparql_ask_for_system(g, REGULATORY_ALIGNMENT_QUERY, SYSTEM_LOCAL)
         print(f"Regulatory aligned: {reg_alignment_ok}")
 
+    union_sync_ok = None
+    if UNION_SYNC_QUERY.exists():
+        print("\nUnion-subclass sync (AnnexIIITriggeringCapability membership consistency)...")
+        union_sync_ok = run_sparql_ask_from_file(g, UNION_SYNC_QUERY)
+        print(f"Union sync: {union_sync_ok}")
+
     # ── Audit-layer exception flags (informational only — do not affect classification or audit_pass) ──
     # These detect provider-submitted claim artifacts that may affect legal interpretation.
     # A flag does not override OWL classification. It directs human review.
@@ -1594,6 +1625,8 @@ def main() -> None:
         print(f"Obligation:    {_pf(obligation_ok)}")
     if reg_alignment_ok is not None:
         print(f"Reg. aligned:  {_pf(reg_alignment_ok)}")
+    if union_sync_ok is not None:
+        print(f"Union sync:    {_pf(union_sync_ok)}")
     print(f"Entailed triples added: +{inferred_added}")
 
     print()
@@ -1630,6 +1663,8 @@ def main() -> None:
             audit_pass = audit_pass and obligation_ok
         if reg_alignment_ok is not None:
             audit_pass = audit_pass and reg_alignment_ok
+        if union_sync_ok is not None:
+            audit_pass = audit_pass and union_sync_ok
 
     all_pass = classification_pass and audit_pass
     print(f"\n  Classification layer: {'PASS' if classification_pass else 'FAIL'}")
