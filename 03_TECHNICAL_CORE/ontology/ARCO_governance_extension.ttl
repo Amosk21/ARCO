@@ -17,7 +17,7 @@ owl:imports <https://arco.ai/ontology/core> .
 # owl:imports automatically; all TTL files are loaded explicitly by the pipeline.
 # Tools that do follow owl:imports will need a local catalog or network access.
 
-# Design Decisions (frozen — do not change without explicit justification):
+# Design Decisions (rationale for the choices below):
 #
 #   Inverse aboutness: AnnexIII1aApplicableSystem uses anonymous inverse
 #   property expressions [owl:inverseOf iao:0000136] in its equivalentClass
@@ -101,7 +101,7 @@ owl:imports <https://arco.ai/ontology/core> .
 # cco:Organization) are redundant with cco_bot.owl. They are retained for
 # in-file readability so a reader can see the full set of CCO terms used
 # without cross-referencing the BOT module. A future cleanup may remove
-# them; see audit D2 in the 2026-05-01 technical-files audit.
+# the redundant locals.
 #################################################################
 
 cco:DirectiveInformationContentEntity rdf:type owl:Class ;
@@ -181,8 +181,8 @@ cco:Organization rdf:type owl:Class ;
 :CreditworthinessEvaluationCapability rdfs:subClassOf :AnnexIIITriggeringCapability .
 
 :HighRiskSystem rdf:type owl:Class ;
-  rdfs:label "High-Risk AI System" ;
-  rdfs:comment "A system classified as high-risk by virtue of having a SystemComponent that bears a disposition triggering Annex III. This class membership is INFERRED by the reasoner. Gate structure mirrors the category-specific classes (requires SystemComponent in the has_part chain)." ;
+  rdfs:label "Annex III Capability-Precondition Flag" ;
+  rdfs:comment "Latent-risk flag. Membership is satisfied by Gate 1 alone: the system has a SystemComponent that bears a disposition belonging to AnnexIIITriggeringCapability. This class is INFERRED by the reasoner and presented in the certificate as LATENT-RISK FLAG. It is NOT the full legal high-risk category — that requires all three gates (capability + intended use + use scenario) and is captured by the category-specific classes (AnnexIII1aApplicableSystem, AnnexIII5bApplicableSystem). The IRI is retained as :HighRiskSystem for backward compatibility with downstream consumers; the rdfs:label and this comment reflect what the axiom actually entails." ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:intersectionOf (
@@ -341,7 +341,7 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment """System that meets Annex III 1(a) conditions via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :RemoteBiometricIdentificationProcess. Uses owl:someValuesFrom for genuine type-checking; any correctly typed process token satisfies the gate.
-    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about some instance typed as :NaturalPersonRole. Uses owl:someValuesFrom for genuine type-checking; any correctly typed role token satisfies the gate. Mirrors the Gate 2 pattern.
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about some instance typed as :NaturalPersonRole. Uses owl:someValuesFrom for genuine type-checking; any correctly typed role token satisfies the gate. Same pattern as Gate 2.
   Classification is OWL-entailed under owlrl; gate independence verified by regression test (test_gate_removal.py).
   SPARQL ASK queries (check_intended_use, check_regulatory_alignment) are downstream audit-layer checks that inspect declared documentary content on the reasoned graph; they do not contribute to this entailment and cannot affect it.""" ;
   rdfs:subClassOf :System ;
@@ -367,10 +367,9 @@ cco:Organization rdf:type owl:Class ;
 
       # Gate 2 (representation-side): intended use spec is_about this system AND prescribes an
       # instance of the regulated process class for Annex III 1(a). cco:prescribes carries the
-      # statutory prescriptive force. owl:someValuesFrom :RemoteBiometricIdentificationProcess
-      # performs genuine type-checking: any named individual typed as that class satisfies the gate.
-      # This eliminates the false-negative risk of the prior owl:hasValue pattern (which only matched
-      # the class IRI as a punned individual, not correctly-typed process tokens).
+      # statutory prescriptive force. owl:someValuesFrom requires that the prescribed process is
+      # itself a correctly-typed token of the regulated class, not a bare class IRI. Any named
+      # individual typed as :RemoteBiometricIdentificationProcess satisfies the gate.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -388,7 +387,7 @@ cco:Organization rdf:type owl:Class ;
       # Gate 3 (representation-side): scenario spec is_about this system AND is_about an instance
       # typed as :NaturalPersonRole. owl:someValuesFrom performs a genuine type-check against the
       # role universal: the iao:is_about filler must be a NaturalPersonRole role token (a typed
-      # individual), not the bare class IRI. Mirrors the corrected Gate 2 pattern.
+      # individual), not the bare class IRI. Same pattern as Gate 2.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -416,10 +415,10 @@ cco:Organization rdf:type owl:Class ;
 #         has_disposition some CreditworthinessEvaluationCapability
 # Gate 2 (representation-side): IntendedUseSpecification is_about
 #         this system AND cco:prescribes a CreditworthinessEvaluationProcess
-#         token — genuine type-check, mirrors the corrected 1(a) Gate 2.
+#         token — genuine type-check, same pattern as 1(a) Gate 2.
 # Gate 3 (representation-side): UseScenarioSpecification is_about
 #         this system AND is_about some instance typed as :NaturalPersonRole
-#         — genuine type-check, mirrors the corrected 1(a) Gate 3.
+#         — genuine type-check, same pattern as 1(a) Gate 3.
 #
 # Conservative claim: demonstrates category extension for
 # creditworthiness evaluation. Micro-enterprise exclusions and
@@ -430,8 +429,8 @@ cco:Organization rdf:type owl:Class ;
   rdfs:label "Annex III 5(b) Applicable System" ;
   rdfs:comment """System meeting Annex III 5(b) conditions via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition CreditworthinessEvaluationCapability.
-    Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :CreditworthinessEvaluationProcess. Mirrors the corrected 1(a) pattern; any correctly typed process token satisfies the gate.
-    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about some instance typed as :NaturalPersonRole (a role token, not the bare class IRI). Mirrors the Gate 2 pattern; any correctly typed role token satisfies the gate.
+    Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :CreditworthinessEvaluationProcess. Same pattern as 1(a); any correctly typed process token satisfies the gate.
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification is_about the system AND iao:is_about some instance typed as :NaturalPersonRole (a role token, not the bare class IRI). Same pattern as Gate 2; any correctly typed role token satisfies the gate.
   Classification is OWL-entailed under owlrl.
   Conservative scope: demonstrates category extension; micro-enterprise exclusions and other 5(b) nuances remain deferred.
   Cross-category non-entailment: a system bearing only CreditworthinessEvaluationCapability is NOT entailed as AnnexIII1aApplicableSystem; a system bearing only BiometricIdentificationCapability is NOT entailed as AnnexIII5bApplicableSystem. (OWA — both claims hold under current assertions.)""" ;
@@ -458,7 +457,7 @@ cco:Organization rdf:type owl:Class ;
 
       # Gate 2 (representation-side): intended use spec is_about this system AND prescribes a
       # CreditworthinessEvaluationProcess token. owl:someValuesFrom performs genuine type-checking;
-      # any correctly typed process token satisfies the gate. Mirrors the corrected 1(a) Gate 2.
+      # any correctly typed process token satisfies the gate. Same pattern as 1(a) Gate 2.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -476,7 +475,7 @@ cco:Organization rdf:type owl:Class ;
       # Gate 3 (representation-side): scenario spec is_about this system AND is_about an instance
       # typed as :NaturalPersonRole. owl:someValuesFrom performs a genuine type-check: the
       # iao:is_about filler must be a NaturalPersonRole role token, not the bare class IRI.
-      # Mirrors the corrected 1(a) Gate 3.
+      # Same pattern as 1(a) Gate 3.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [

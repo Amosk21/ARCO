@@ -72,10 +72,10 @@
 :GhostAssessmentDoc_001 rdf:type :AssessmentDocumentation ;
   rdfs:label "Ghost Assessment Documentation" ;
   iao:0000136 :GhostSystem_001 ;
-  iao:0000136 :AnnexIII_Condition_Q1 .
+  iao:0000136 :AnnexIII_Condition_1a .
 
 :GhostObligation_001 rdf:type :ComplianceObligationSpecification ;
   rdfs:label "Ghost Compliance Obligation" ;
   iao:0000136 :GhostSystem_001 ;
   iao:0000136 :GhostProviderRole_001 ;
-  iao:0000136 :AnnexIII_Condition_Q1 .
+  iao:0000136 :AnnexIII_Condition_1a .

@@ -26,7 +26,7 @@
 
 :AnnexIII_Condition_5b rdf:type :RegulatoryContent ;
   rdfs:label "Annex III 5(b) (Creditworthiness Rule)" ;
-  rdfs:comment "Annex III item 5(b): AI systems intended to be used to evaluate the creditworthiness of natural persons or establish their credit score, with the exception of AI systems used for the purpose of detecting financial fraud. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning) — the regulation prescribes process types, not deployment-specific tokens. This matches the Sentinel pattern (Pattern A in check_regulatory_alignment.sparql) and generalizes across multiple 5(b) assessments sharing this single regulatory ICE." ;
+  rdfs:comment "Annex III item 5(b): AI systems intended to be used to evaluate the creditworthiness of natural persons or establish their credit score, with the exception of AI systems used for the purpose of detecting financial fraud. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning) — the regulation prescribes process types, not deployment-specific tokens. This matches the Sentinel pattern and generalizes across multiple 5(b) assessments sharing this single regulatory ICE." ;
   cco:prescribes :CreditworthinessEvaluationProcess ;
   iao:0000136 :CreditworthinessEvaluationCapability ;
   iao:0000136 :CreditworthinessEvaluationProcess ;

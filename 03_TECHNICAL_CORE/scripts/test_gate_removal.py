@@ -48,7 +48,7 @@ GATE_REMOVALS = {
         IAO["0000136"],                      # is_about
         ARCO["Sentinel_ID_System"],
     ),
-    # Content-based gate failures (Gap A regression tests):
+    # Content-based gate failures:
     # Gate 2 must require cco:prescribes an instance of the regulated process class, not just
     # existence of IUS. Triple references the token individual, not the class IRI.
     "gate2_prescribes_removed": (
@@ -235,7 +235,7 @@ def main() -> None:
             print(f"  {cls_name}: {actual} (expected {expected_val}) [{status}]")
 
     # Mutation tests: wrong content (not just absence) also breaks the gate
-    print("\n--- CONTENT-MUTATION TESTS (Gap A regression) ---")
+    print("\n--- CONTENT-MUTATION TESTS ---")
     for gate_name, mutation in GATE_MUTATIONS.items():
         print(f"\n--- {gate_name.upper()} ---")
         result = run_mutation_test(gate_name, mutation)

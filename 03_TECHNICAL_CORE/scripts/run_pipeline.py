@@ -155,7 +155,7 @@ def run_reasoning(data_graph: Graph) -> tuple[Graph, int, int]:
     # Direct OWLRL_Semantics invocation instead of DeductiveClosure.expand()
     # because expand() creates an anonymous instance internally, making
     # closure.error_messages inaccessible. Both produce identical entailment
-    # results (empirically verified: same triple counts, same classifications).
+    # results (verified against the regression suite).
     closure = owlrl.OWLRL_Semantics(data_graph, False, False, False)
     closure.closure()
     closure.post_process()
@@ -416,7 +416,7 @@ def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bo
     print(f"HighRiskSystem in source data (pre-reasoning):   {asserted_pre}")
     print(f"HighRiskSystem in reasoned graph (post-reason):  {entailed_post}")
 
-    # Evidence check (primary path only — legacy bearer_of removed)
+    # Evidence check (RO has_disposition path)
     primary_path = run_sparql_ask_inline(reasoned, _ask_primary_path(SYSTEM_LOCAL))
 
     sub("EVIDENCE PATH CHECK")

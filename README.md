@@ -40,7 +40,7 @@ A small set of modeling choices in the current axioms are under active review. T
 
 3. **Cloud-hosted and pure-software AI systems are out of current scope.** The mereology requires every `:System` to have at least one material `:SystemComponent` part. This accommodates on-device and on-prem AI; cloud-hosted systems whose physical infrastructure is shared do not satisfy the restriction without fictional component instances. Whether to revise the mereology, or to scope cloud-native AI to a sibling class with its own modeling, is being considered.
 
-4. **`bfo:0000051 has_part` between Information Content Entities.** The regulatory scaffold uses the generic mereological relation between ICEs (e.g., `:AnnexIII_List bfo:0000051 :AnnexIII_Condition_Q1`). CCO and IAO offer more specific properties for parts of information. Whether the generic property is the right choice for ICE-to-ICE parthood, or whether to migrate to a more specific information-parthood relation, is being considered.
+4. **`bfo:0000051 has_part` between Information Content Entities.** The regulatory scaffold uses the generic mereological relation between ICEs (e.g., `:AnnexIII_List bfo:0000051 :AnnexIII_Condition_1a`). CCO and IAO offer more specific properties for parts of information. Whether the generic property is the right choice for ICE-to-ICE parthood, or whether to migrate to a more specific information-parthood relation, is being considered.
 
 ---
 
@@ -82,7 +82,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
   OBLIGATION:              PASS
   REG. ALIGNED:            PASS
 
-  ENTAILED TRIPLES ADDED:  +19710
+  ENTAILED TRIPLES ADDED:  +19771
 
   Classification layer: PASS
   Audit layer:          PASS
@@ -91,7 +91,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
 
 This determination is **derived**, not asserted. If any category-specific gate were not present, the Annex III applicability class would not be inferred. The reference pipeline writes the supporting certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
 
-**Why so many entailed triples?** The `+19710` figure reflects the depth of the upper-ontology hierarchy ARCO grounds in. Most of those derived triples are housekeeping under OWL 2 RL semantics: subclass closure across BFO, RO, IAO, and CCO; inverse-property materialization (every `is_about` assertion produces its inverse triple); property-characteristic propagation; and domain/range inferences. The actually load-bearing classification triples are a small subset, including:
+**Why so many entailed triples?** The `+19771` figure reflects the depth of the upper-ontology hierarchy ARCO grounds in. Most of those derived triples are housekeeping under OWL 2 RL semantics: subclass closure across BFO, RO, IAO, and CCO; inverse-property materialization (every `is_about` assertion produces its inverse triple); property-characteristic propagation; and domain/range inferences. The actually load-bearing classification triples are a small subset, including:
 
 - `:Sentinel_ID_System rdf:type :HighRiskSystem` (entailed via the Gate-1 bridge axiom)
 - `:Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem` (entailed via the three-gate `equivalentClass` axiom)
@@ -114,7 +114,7 @@ A regulatory determination is fundamentally a small number of bits of informatio
 
 **Output:** A formal condition assessment certificate with full evidence path: which component bears which capability, which Annex III condition it satisfies, and why.
 
-**Independent verification:** A separate CI workflow runs a second validation pass using [ROBOT](https://robot.obolibrary.org/) (v1.9.10) and HermiT, a full OWL 2 DL reasoner, on every push to `main` and every pull request. This workflow is independent of the production pipeline and confirms three things. First, the ontology is OWL 2 DL conformant: the gate axioms — including the OWL inverse-property restrictions used in Gates 2 and 3, which let an axiom say "the system has, about it, an `IntendedUseSpecification` that prescribes a regulated process" rather than introducing a named inverse for `iao:0000136` — are valid under the OWL 2 Description Logic profile. Second, the ontology is consistent under a DL reasoner with no contradictions found. Third, the production OWL-RL reasoner and HermiT agree on all seven classification queries for the Sentinel-ID system: same input, same output, both reasoners. OWL 2 RL is a restricted fragment of OWL 2 DL, so the agreement check confirms RL is not producing classifications the full DL specification would reject or missing ones it would require.
+**Independent verification:** A separate CI workflow runs a second validation pass using [ROBOT](https://robot.obolibrary.org/) (v1.9.10) and HermiT, a full OWL 2 DL reasoner, on every push to `main` and every pull request. This workflow is independent of the production pipeline and confirms three things. First, the ontology is OWL 2 DL conformant: the gate axioms — including the OWL inverse-property restrictions used in Gates 2 and 3, which let an axiom say "the system has, about it, an `IntendedUseSpecification` that prescribes a regulated process" rather than introducing a named inverse for `iao:0000136` — are valid under the OWL 2 Description Logic profile. Second, the ontology is consistent under a DL reasoner with no contradictions found. Third, the production OWL-RL reasoner and HermiT agree on all seven sentinel queries spanning the classification and audit layers for the Sentinel-ID system: same input, same output, both reasoners. OWL 2 RL is a restricted fragment of OWL 2 DL, so the agreement check confirms RL is not producing classifications the full DL specification would reject or missing ones it would require.
 
 The system is **agnostic by design**. New AI systems are evaluated by authoring new instance data against the same framework. The core ontology, validation rules, and classification logic do not change.
 

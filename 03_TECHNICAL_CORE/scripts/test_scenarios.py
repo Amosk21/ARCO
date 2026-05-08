@@ -24,8 +24,10 @@ SCOPE NOTE — Adversarial scenarios (4-5):
   required by the audit layer (SPARQL ASK queries in run_pipeline.py).
 
   Running the full pipeline on these scenarios will show classification PASS
-  but audit FAIL — this is expected and correct.  Do not bloat these TTLs with
-  paperwork triples; the purpose is to isolate and test reasoning behavior.
+  but audit FAIL.  This is expected and correct: these TTLs are intentionally
+  minimal, isolating reasoning behaviour without the full documentary
+  infrastructure (provider roles, assessment documentation) that the audit
+  layer requires.
 """
 
 from __future__ import annotations

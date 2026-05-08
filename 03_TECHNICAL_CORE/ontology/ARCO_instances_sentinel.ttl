@@ -8,7 +8,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 <https://arco.ai/ontology/instances> rdf:type owl:Ontology ;
-  rdfs:label "ARCO Sentinel-ID Instances – Extended (Mermaid-Aligned)" ;
+  rdfs:label "ARCO Sentinel-ID Instances – Extended" ;
   rdfs:comment "Instances demonstrating: ICE grounded to reality-side universals; system has hardware component that bears capability-disposition; operational realization; documentation workflow with ProviderRole tied to ProviderOrganization." ;
   owl:imports <https://arco.ai/ontology/governance> .
 
@@ -18,10 +18,10 @@
 
 :AnnexIII_List rdf:type :RegulatoryContent ;
   rdfs:label "Annex III List" ;
-  bfo:0000051 :AnnexIII_Condition_Q1 .  # has part
+  bfo:0000051 :AnnexIII_Condition_1a .  # has part
 
-:AnnexIII_Condition_Q1 rdf:type :RegulatoryContent ;
-  rdfs:label "Annex III Q1 (Biometric Rule)" ;
+:AnnexIII_Condition_1a rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III 1(a) (Biometric Rule)" ;
   cco:prescribes :RemoteBiometricIdentificationProcess ;      # directive: prescribes the regulated process type (Three D's — DirectiveICE → Process)
   iao:0000136 :BiometricIdentificationCapability ;            # is_about the capability universal
   iao:0000136 :RemoteBiometricIdentificationProcess ;         # is_about the regulated process type
@@ -107,11 +107,11 @@
 :HighRisk_Determination_001 rdf:type :HighRiskDetermination ;
   rdfs:label "High-Risk Determination 001" ;
   iao:0000136 :Sentinel_ID_System ;
-  iao:0000136 :AnnexIII_Condition_Q1 ;
+  iao:0000136 :AnnexIII_Condition_1a ;
   rdfs:comment "This determination artifact documents the compliance assessment. The system's classification as HighRiskSystem is INFERRED by the reasoner from the bridge axioms." .
 
 #################################################################
-# 5) PROVIDER + DOCUMENTATION WORKFLOW (Mermaid commitments)
+# 5) PROVIDER + DOCUMENTATION WORKFLOW (provider role, documentation, obligation)
 #################################################################
 
 :ProviderOrg_001 rdf:type :ProviderOrganization ;
@@ -131,7 +131,7 @@
 :AssessmentDoc_001 rdf:type :AssessmentDocumentation ;
   rdfs:label "Assessment Documentation 001" ;
   iao:0000136 :Sentinel_ID_System ;
-  iao:0000136 :AnnexIII_Condition_Q1 .
+  iao:0000136 :AnnexIII_Condition_1a .
 
 #################################################################
 # 6) COMPLIANCE OBLIGATION (who bears responsibility)
@@ -142,4 +142,4 @@
   rdfs:comment "Specifies that the provider role-bearer has compliance obligations for the Sentinel-ID system under Annex III 1(a)." ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :ProviderRole_001 ;
-  iao:0000136 :AnnexIII_Condition_Q1 .
+  iao:0000136 :AnnexIII_Condition_1a .
