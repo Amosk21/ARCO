@@ -604,6 +604,9 @@ def write_html_view(
         if val is None:
             return '<span class="badge bn">N/A</span>'
         if val:
+            if not derogation_flagged:
+                return ('<span class="badge bp">VERIFIED (ENTAILED, '
+                        'Article 6(3) derogation not evaluated)</span>')
             return '<span class="badge bp">VERIFIED (ENTAILED)</span>'
         return '<span class="badge bn">NOT APPLICABLE</span>'
 
@@ -616,6 +619,21 @@ def write_html_view(
         mode_badge = '<span class="badge ba">LATENT ASSERTED</span>'
     else:
         mode_badge = '<span class="badge bn">NOT PRESENT</span>'
+
+    # ── derogation scope qualifier badge (HTML conclusion banner) ──
+    # ARCO does not evaluate the Article 6(3) carve-out. When an Annex III
+    # category is entailed and no provider :DerogationClaim is asserted,
+    # disclose the unevaluated scope in the same banner as the conclusion.
+    # When a DerogationClaim IS asserted, the existing FLAGGED banner / row
+    # already signals the unevaluated derogation; do not double-disclose.
+    if has_applicable_category and not derogation_flagged:
+        derogation_scope_badge = (
+            '<span class="badge bn" title="ARCO does not evaluate the Article '
+            '6(3) carve-out conditions; provider must self-supply a '
+            'DerogationClaim artifact.">ARTICLE 6(3) DEROGATION: NOT EVALUATED</span>'
+        )
+    else:
+        derogation_scope_badge = ""
 
     headline_label = (
         "CATEGORY APPLICABLE" if has_applicable_category
@@ -1236,6 +1254,7 @@ section {{ scroll-margin-top: 1rem }}
       <span class="classification">{headline_label}</span>
       {mode_badge}
       {overall_badge}
+      {derogation_scope_badge}
     </div>
     <p class="exec-text">{summary_text}</p>
     {"<div class='exec-cats'>" + "".join(
@@ -1544,10 +1563,11 @@ def main() -> None:
     print("  [classification layer — OWL-RL entailment]")
     print(f"SHACL:         {_pf(shacl_ok)}")
     print(f"Entailment:    {_pf(inference_ok)}")
+    _summary_qualifier = ", Article 6(3) derogation not evaluated" if not derogation_flagged else ""
     if annex_iii_1a_ok is not None:
-        print(f"Annex III 1a:  {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 1a:  {'VERIFIED (ENTAILED' + _summary_qualifier + ')' if annex_iii_1a_ok else 'NOT APPLICABLE'} (OWL-entailed)")
     if annex_iii_5b_ok is not None:
-        print(f"Annex III 5b:  {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 5b:  {'VERIFIED (ENTAILED' + _summary_qualifier + ')' if annex_iii_5b_ok else 'NOT APPLICABLE'} (OWL-entailed)")
     print()
     print("  [audit documentation layer — SPARQL ASK on reasoned graph]")
     print(f"Traceability:  {_pf(traceability_ok)}")
@@ -1634,10 +1654,26 @@ def main() -> None:
         print(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
     if intended_use_ok is not None:
         print(f"  INTENDED USE:            {_pf(intended_use_ok)}")
+    # Article 6(3) derogation scope qualifier: ARCO does not evaluate the
+    # Article 6(3) carve-out conditions; it only detects whether a provider-
+    # supplied :DerogationClaim artifact is asserted. When such a claim is
+    # asserted, the FLAG line below signals the unevaluated derogation. When
+    # no claim is asserted, an Annex III ENTAILED conclusion otherwise reads
+    # as "high-risk classification confirmed" — append a same-line scope
+    # qualifier so the disclosure rides with the conclusion.
+    _annex_iii_entailed_qualifier = "VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)"
     if annex_iii_1a_ok is not None:
-        print(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'}")
+        if annex_iii_1a_ok:
+            _line_1a = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+        else:
+            _line_1a = "NOT APPLICABLE"
+        print(f"  ANNEX III 1(a):          {_line_1a}")
     if annex_iii_5b_ok is not None:
-        print(f"  ANNEX III 5(b):          {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'}")
+        if annex_iii_5b_ok:
+            _line_5b = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+        else:
+            _line_5b = "NOT APPLICABLE"
+        print(f"  ANNEX III 5(b):          {_line_5b}")
     if obligation_ok is not None:
         print(f"  OBLIGATION:              {_pf(obligation_ok)}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
@@ -1682,9 +1718,17 @@ def main() -> None:
     if intended_use_ok is not None:
         cert_lines.append(f"  INTENDED USE:            {_pf(intended_use_ok)}")
     if annex_iii_1a_ok is not None:
-        cert_lines.append(f"  ANNEX III 1(a):          {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'}")
+        if annex_iii_1a_ok:
+            _cert_line_1a = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+        else:
+            _cert_line_1a = "NOT APPLICABLE"
+        cert_lines.append(f"  ANNEX III 1(a):          {_cert_line_1a}")
     if annex_iii_5b_ok is not None:
-        cert_lines.append(f"  ANNEX III 5(b):          {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'}")
+        if annex_iii_5b_ok:
+            _cert_line_5b = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+        else:
+            _cert_line_5b = "NOT APPLICABLE"
+        cert_lines.append(f"  ANNEX III 5(b):          {_cert_line_5b}")
     if obligation_ok is not None:
         cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
@@ -1724,8 +1768,8 @@ def main() -> None:
         "traceability": _pf(traceability_ok),
         "latent_risk": (_pf(latent_ok) if latent_ok is not None else "N/A"),
         "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "N/A"),
-        "annex_iii_1a": ("VERIFIED (ENTAILED)" if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
-        "annex_iii_5b": ("VERIFIED (ENTAILED)" if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
+        "annex_iii_1a": (("VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" if not derogation_flagged else "VERIFIED (ENTAILED)") if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
+        "annex_iii_5b": (("VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" if not derogation_flagged else "VERIFIED (ENTAILED)") if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
         "obligation": (_pf(obligation_ok) if obligation_ok is not None else "N/A"),
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,
