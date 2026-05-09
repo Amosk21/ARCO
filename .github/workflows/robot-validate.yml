@@ -183,75 +183,29 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install rdflib
+      - name: Install Python deps
         shell: bash
         run: |
-          python -m pip install --quiet rdflib
+          python -m pip install --quiet rdflib owlrl==7.1.4
 
-      - name: Compare HermiT classifications vs owlrl
+      # Phase 3: HermiT vs OWL-RL agreement on certificate-grade fixtures.
+      # Extends the Sentinel-only diff to all certificate-grade scenarios:
+      # Sentinel, CreditScorer, VerificationKiosk, DecoySystem, and both flag
+      # tests. GhostSystem (ARCO_instances_adversarial_blanknode.ttl) is
+      # intentionally excluded — its disposition is an anonymous individual
+      # (blank node), and HermiT does not emit ClassAssertion axioms for
+      # anonymous individuals (DL profile behavior, not a defect). The audit-
+      # side detect_latent_risk traversal therefore returns False under HermiT
+      # and True under OWL-RL on GhostSystem. GhostSystem is a reasoner-property
+      # probe, not production modeling guidance. The decision to require named
+      # evidence-bearing particulars in production data is queued for a human
+      # modeling session — see:
+      #   runs/loop/2026-05-09_beverley-research/design_memo_named-evidence-bearing-particulars.md
+      #   runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md (Q1)
+      # Script logic and exclusion rules: 03_TECHNICAL_CORE/scripts/hermit_cross_check.py
+      - name: HermiT vs OWL-RL agreement (certificate-grade fixtures)
         shell: bash
         run: |
-          python - << 'PYEOF'
-          import sys
-          import rdflib
-          from pathlib import Path
-
-          REASONING_DIR = Path('03_TECHNICAL_CORE/reasoning')
-          HERMIT_GRAPH = '/tmp/robot-reports/arco_reasoned.owl'
-
-          queries = {
-              'high_risk':    REASONING_DIR / 'check_high_risk_inference.sparql',
-              'annex_1a':     REASONING_DIR / 'check_annex_iii_1a_entailment.sparql',
-              'annex_5b':     REASONING_DIR / 'check_annex_iii_5b_entailment.sparql',
-              'intended_use': REASONING_DIR / 'check_intended_use.sparql',
-              'traceability': REASONING_DIR / 'check_assessment_traceability.sparql',
-              'obligation':   REASONING_DIR / 'check_obligation_link.sparql',
-              'reg_align':    REASONING_DIR / 'check_regulatory_alignment.sparql',
-          }
-
-          # owlrl baseline for Sentinel-ID system (default pipeline target)
-          expected = {
-              'high_risk':    True,
-              'annex_1a':     True,
-              'annex_5b':     False,
-              'intended_use': True,
-              'traceability': True,
-              'obligation':   True,
-              'reg_align':    True,
-          }
-
-          g = rdflib.Graph()
-          g.parse(HERMIT_GRAPH, format='xml')
-          print(f'HermiT-reasoned graph loaded: {len(g)} triples')
-          print()
-          print(f'{"Query":<15} {"HermiT":>8}  {"owlrl":>8}   Status')
-          print('-' * 50)
-
-          # Bind ?system to the Sentinel IRI for queries that use the
-          # parameterized template. Without initBindings, ?system is unbound,
-          # which would silently match any system in the graph and corrupt
-          # the OWL-RL vs HermiT cross-check the moment additional instance
-          # files are merged.
-          SENTINEL_IRI = rdflib.URIRef('https://arco.ai/ontology/core#Sentinel_ID_System')
-
-          mismatches = []
-          for name, qpath in queries.items():
-              sparql = qpath.read_text()
-              result = bool(g.query(sparql, initBindings={'system': SENTINEL_IRI}))
-              exp = expected[name]
-              match = result == exp
-              if not match:
-                  mismatches.append((name, result, exp))
-              status = 'OK' if match else 'MISMATCH'
-              print(f'{name:<15} {str(result):>8}  {str(exp):>8}   {status}')
-
-          print()
-          if mismatches:
-              print(f'DISAGREEMENT: {len(mismatches)}/{len(queries)} queries mismatch')
-              for name, hermit_r, owlrl_r in mismatches:
-                  print(f'  - {name}: HermiT={hermit_r}, owlrl={owlrl_r}')
-              print('Investigate: RL incompleteness vs unexpected DL entailment.')
-              sys.exit(1)
-          else:
-              print(f'FULL AGREEMENT: HermiT and owlrl agree on all {len(queries)}/{len(queries)} classifications.')
-          PYEOF
+          set -euo pipefail
+          export ROBOT_JAR="$HOME/.local/share/robot/robot.jar"
+          python 03_TECHNICAL_CORE/scripts/hermit_cross_check.py
