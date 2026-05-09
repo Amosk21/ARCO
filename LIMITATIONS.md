@@ -117,6 +117,33 @@ A second, narrower simplification sits inside this gate: for a model-driven biom
 
 Capabilities are BFO dispositions inhering in independent continuants. Intended uses and use scenarios are IAO/CCO information content entities (directive ICEs). This split is load-bearing for ARCO's entire architecture — if it blurs, the distinction between "what the system can do" and "what documents say" collapses. This is a **strength** of the design, listed here because any future extension that violates the split (e.g., putting a disposition on an information artifact, or a specification on a material component) would quietly break the classification guarantees.
 
+### 3.7 Gate 2 named IUS subkind family and process-token treatment
+
+ARCO's Gate 2 is factored via named subkinds of `:IntendedUseSpecification` (currently `:RemoteBiometricIdentificationIntendedUseSpec` for Annex III 1(a) and `:CreditworthinessEvaluationIntendedUseSpec` for Annex III 5(b)). Each subkind is a defined class via `owl:equivalentClass owl:intersectionOf (IntendedUseSpec, [prescribes someValuesFrom :RegulatedProcessClass])`, factored by what the IUS prescribes. This factoring mirrors the CCO Specification family pattern (Artifact Function Specification, Quality Specification, Plan, Algorithm). New Annex III categories add via the same template.
+
+#### 3.7.a Process token existence-witness pattern
+
+`owl:someValuesFrom` requires existence of an instance of the regulated process class. ARCO's fixtures mint typed process individuals (e.g., `:Sentinel_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess`) for this purpose. These tokens are *bare*: they carry only the type assertion, with no participants, no temporal region, no realizer, no output. This is a deliberate choice: the process has not unfolded at design time, so participants and temporal extent would be assertions of facts that are not true. ARCO declines to adorn tokens with placeholder context that would be known-not-true.
+
+Two failure modes are disclosed honestly:
+
+- The bare token denotes (under owlrl materialization) a process particular asserted to be of the regulated kind without evidence of participants/time/realization. A strict realist reading treats this as residual debt against BFO's occurrent semantics (a Process is an entity that unfolds in time).
+- Under a strict open-world reasoner, the existential restriction can be satisfied without an asserted token at all (the existence claim is permitted, not asserted). The "existence-witness" framing weakens to "permitted-but-not-asserted-witness" in that case.
+
+ARCO accepts this debt rather than adorning with placeholders. Future deployment-time fixtures with real participants, real temporal regions, and real realizer chains would close the debt for the deployed cases without changing the design-time scope of this loop.
+
+#### 3.7.b IUS subkind classes are defined classes by extrinsic regulatory criterion
+
+The IUS subkind family is membership-fixed by Annex III categorial criterion, not by a shared natural-kind property of intended-use specifications in general. A `:RemoteBiometricIdentificationIntendedUseSpec` is one whose prescribed process is `:RemoteBiometricIdentificationProcess`, the kind named by Annex III 1(a). The `skos:definition` and `rdfs:comment` of each subkind disclose this explicitly. Membership at the particular level is non-exclusive: a single IUS instance may fall in multiple regulated subkinds if it prescribes multiple regulated process kinds (a hybrid system that does both biometric ID and credit evaluation). Disjointness is NOT asserted between IUS subkinds; cross-category isolation is provided by Gate 1 capability disjointness, not by IUS disjointness.
+
+#### 3.7.c Real-time vs. post RBI subclass declaration; Article 5 routing scoped future
+
+ARCO declares `:PostRemoteBiometricIdentificationProcess` (Article 3(43): a remote biometric identification process other than real-time) and `:RealTimeRemoteBiometricIdentificationProcess` (Article 3(42): capturing, comparison and identification all occurring without a significant delay, comprising not only instant identification but also limited short delays in order to avoid circumvention) as disjoint subclasses of `:RemoteBiometricIdentificationProcess`. The disjointness is correct: the regulation defines the two as exhaustive subtypes within the parent term.
+
+The Annex III 1(a) Gate 2 axiom continues to reference the parent class via `someValuesFrom`, so subclass propagation means an IUS prescribing either a real-time or a post RBI process particular satisfies Gate 2 and entails `:AnnexIII1aApplicableSystem`. No fixture is currently typed into either subclass; both are forward-declared.
+
+This is a deliberate scope-narrowing: Article 5(1)(h) prohibits real-time RBI in publicly accessible spaces for law enforcement (with conditional permissible-use carve-outs in Article 5(1)(h)(i)-(iii) and deployment conditions and prior judicial authorisation in Article 5(2)-(3)). For systems deployed by law enforcement in publicly accessible spaces, the regulation routes real-time RBI to the Article 5 prohibition rather than to Annex III 1(a) high-risk. ARCO does not yet model the Article 5 prohibited-practice class, deployer-actor entailment, or spatial/site context. Under the current parent-class Gate 2 routing, a real-time RBI process particular will entail `:AnnexIII1aApplicableSystem` regardless of deployer or context. This is correct for cases where Article 5(1)(h) does not apply (real-time RBI by non-law-enforcement deployers, or in non-publicly-accessible spaces, or post-RBI in any context). For Article 5-prohibited cases, ARCO currently fires Annex III 1(a) without an Article 5 prohibition flag; downstream consumers must handle this as a coverage gap pending Article 5 modeling. A future loop will introduce the prohibited-practice class, deployer-context modeling, and the routing.
+
 ---
 
 ## 4. Property-layer grounding

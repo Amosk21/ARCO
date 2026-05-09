@@ -246,6 +246,36 @@ cco:Organization rdf:type owl:Class ;
     owl:someValuesFrom :System
   ] .
 
+:RemoteBiometricIdentificationIntendedUseSpec rdf:type owl:Class ;
+  rdfs:label "Remote Biometric Identification Intended Use Specification"@en ;
+  skos:definition "Defined class. Membership is the class of intended-use specifications (Directive ICEs) that prescribe the :RemoteBiometricIdentificationProcess universal, the regulated process kind named by Annex III 1(a) of Regulation (EU) 2024/1689. The class boundary is fixed by the regulation rather than by any natural-kind property of intended-use specifications in general."@en ;
+  rdfs:comment "Membership at the particular level is non-exclusive: a single IntendedUseSpecification instance may also fall in another regulated subkind if it prescribes multiple regulated process kinds." ;
+  rdfs:subClassOf :IntendedUseSpecification ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :IntendedUseSpecification
+      [ rdf:type owl:Restriction ;
+        owl:onProperty cco:prescribes ;
+        owl:someValuesFrom :RemoteBiometricIdentificationProcess ]
+    )
+  ] .
+
+:CreditworthinessEvaluationIntendedUseSpec rdf:type owl:Class ;
+  rdfs:label "Creditworthiness Evaluation Intended Use Specification"@en ;
+  skos:definition "Defined class. Membership is the class of intended-use specifications (Directive ICEs) that prescribe the :CreditworthinessEvaluationProcess universal, the regulated process kind named by Annex III 5(b) of Regulation (EU) 2024/1689. The class boundary is fixed by the regulation rather than by any natural-kind property of intended-use specifications in general."@en ;
+  rdfs:comment "Membership at the particular level is non-exclusive: a single IntendedUseSpecification instance may also fall in another regulated subkind if it prescribes multiple regulated process kinds." ;
+  rdfs:subClassOf :IntendedUseSpecification ;
+  owl:equivalentClass [
+    rdf:type owl:Class ;
+    owl:intersectionOf (
+      :IntendedUseSpecification
+      [ rdf:type owl:Restriction ;
+        owl:onProperty cco:prescribes ;
+        owl:someValuesFrom :CreditworthinessEvaluationProcess ]
+    )
+  ] .
+
 :UseScenarioSpecification rdf:type owl:Class ;
   rdfs:label "Use Scenario Specification"@en ;
   skos:definition "A specification document stating the use scenario for an AI system, including which role category is affected (for example, natural persons). Designates the affected role universal by name."@en ;
@@ -262,6 +292,21 @@ cco:Organization rdf:type owl:Class ;
   skos:definition "A biometric identification process operating remotely against a stored reference set. The regulated process type for Annex III 1(a)."@en ;
   rdfs:comment "1:N biometric identification process regulated under Annex III 1(a). Has a real causal core (biometric feature extraction + matching at distance) but its type-boundary is partly constituted by regulatory fiat. Modeled as a BFO Process subclass; used as the Gate 2 type-check target for AnnexIII1aApplicableSystem. DISCLOSURE: Regulation (EU) 2024/1689 distinguishes real-time remote biometric identification in publicly accessible spaces for law enforcement (Article 5 prohibition with conditional derogations) from post remote biometric identification subject to Annex III high-risk duties. ARCO does NOT currently model the real-time/post distinction or law-enforcement deployer context; this rdfs:comment is disclosure only and does not change Gate 2 evaluation." ;
   rdfs:subClassOf bfo:0000015 . # Process
+
+:PostRemoteBiometricIdentificationProcess rdf:type owl:Class ;
+  rdfs:label "Post Remote Biometric Identification Process"@en ;
+  skos:definition "Defined class. A remote biometric identification process other than a real-time remote biometric identification process, per Article 3(43) of Regulation (EU) 2024/1689. Identification typically uses biometric data captured before its application."@en ;
+  rdfs:comment "Subclass declared for forward extensibility. ARCO does not currently type any fixture into this subclass; the parent :RemoteBiometricIdentificationProcess is what Annex III 1(a) Gate 2 references via someValuesFrom, and subclass propagation handles future post-typed instances. Article 5(1)(h) routing for the disjoint real-time subclass is scoped future work." ;
+  rdfs:subClassOf :RemoteBiometricIdentificationProcess .
+
+:RealTimeRemoteBiometricIdentificationProcess rdf:type owl:Class ;
+  rdfs:label "Real-Time Remote Biometric Identification Process"@en ;
+  skos:definition "Defined class. A remote biometric identification system whereby the capturing of biometric data, the comparison and the identification all occur without a significant delay, comprising not only instant identification, but also limited short delays in order to avoid circumvention, per Article 3(42) of Regulation (EU) 2024/1689."@en ;
+  rdfs:comment "Subclass declared for forward extensibility. ARCO does not currently type any fixture into this subclass and does not yet route to the Article 5(1)(h) prohibited-practice class. Under the current parent-class Gate 2, an IUS prescribing a real-time RBI particular would entail Annex III 1(a) applicability without an Article 5 prohibition flag; this is a deliberate scope-narrowing pending future deployer-context modeling." ;
+  rdfs:subClassOf :RemoteBiometricIdentificationProcess .
+
+:PostRemoteBiometricIdentificationProcess
+  owl:disjointWith :RealTimeRemoteBiometricIdentificationProcess .
 
 :BiometricVerificationProcess rdf:type owl:Class ;
   rdfs:label "Biometric Verification Process"@en ;
@@ -387,32 +432,25 @@ cco:Organization rdf:type owl:Class ;
         ]
       ]
 
-      # Gate 2 (representation-side): intended use spec is_about this system AND prescribes an
-      # instance of the regulated process class for Annex III 1(a). cco:prescribes carries the
-      # statutory prescriptive force. owl:someValuesFrom requires that the prescribed process is
-      # itself a correctly-typed token of the regulated class, not a bare class IRI. Any named
-      # individual typed as :RemoteBiometricIdentificationProcess satisfies the gate.
+      # Gate 2 (representation-side): an :IntendedUseSpecification of the regulated subkind
+      # is_about this system. The IUS subkind :RemoteBiometricIdentificationIntendedUseSpec
+      # is itself defined by equivalentClass intersectionOf (IntendedUseSpec ⊓ prescribes
+      # someValuesFrom :RemoteBiometricIdentificationProcess), so the type-check on the
+      # prescribed process happens at the IUS subkind class level. This factoring mirrors
+      # the CCO Specification family pattern (cco:ArtifactFunctionSpecification etc.).
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
-        owl:someValuesFrom [
-          rdf:type owl:Class ;
-          owl:intersectionOf (
-            :IntendedUseSpecification
-            [ rdf:type owl:Restriction ;
-              owl:onProperty cco:prescribes ;
-              owl:someValuesFrom :RemoteBiometricIdentificationProcess
-            ]
-          )
-        ]
+        owl:someValuesFrom :RemoteBiometricIdentificationIntendedUseSpec
       ]
 
       # Gate 3 (representation-side): scenario spec is_about this system AND cco:designates the
       # :NaturalPersonRole universal. cco:designates is a typed designation property whose range
-      # admits universals, so owl:hasValue references the role universal directly. This is NOT
-      # OWL 2 punning in Smith's sense: designation by inscription naming a category is the
-      # canonical CCO use case (URL designates a Web Page, name designates a person), and avoids
-      # minting bearer-less role tokens (BFO Roles are bearer-dependent specifically dependent
-      # continuants requiring ro:0000052 to an independent continuant).
+      # admits universals (cco:designates has range bfo:0000001 Entity, which subsumes universals),
+      # so owl:hasValue references the role universal directly. This is the canonical CCO usage
+      # for designation by inscription (a URL designates a Web Page, a name designates a person),
+      # not informal class-as-individual punning, and it avoids minting bearer-less role tokens
+      # (BFO Roles are bearer-dependent specifically dependent continuants requiring ro:0000052
+      # to an independent continuant).
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -481,21 +519,14 @@ cco:Organization rdf:type owl:Class ;
         ]
       ]
 
-      # Gate 2 (representation-side): intended use spec is_about this system AND prescribes a
-      # CreditworthinessEvaluationProcess token. owl:someValuesFrom performs genuine type-checking;
-      # any correctly typed process token satisfies the gate. Same pattern as 1(a) Gate 2.
+      # Gate 2 (representation-side): an :IntendedUseSpecification of the regulated subkind
+      # is_about this system. Same factoring as 1(a) Gate 2: the IUS subkind
+      # :CreditworthinessEvaluationIntendedUseSpec is defined by equivalentClass intersectionOf
+      # (IntendedUseSpec ⊓ prescribes someValuesFrom :CreditworthinessEvaluationProcess), so the
+      # type-check on the prescribed process happens at the IUS subkind class level.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
-        owl:someValuesFrom [
-          rdf:type owl:Class ;
-          owl:intersectionOf (
-            :IntendedUseSpecification
-            [ rdf:type owl:Restriction ;
-              owl:onProperty cco:prescribes ;
-              owl:someValuesFrom :CreditworthinessEvaluationProcess
-            ]
-          )
-        ]
+        owl:someValuesFrom :CreditworthinessEvaluationIntendedUseSpec
       ]
 
       # Gate 3 (representation-side): scenario spec is_about this system AND cco:designates the
