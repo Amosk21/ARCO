@@ -234,6 +234,16 @@ Three layers. Not interchangeable. Each has a single authority.
 
 A SHACL fail and an OWL-RL classification result are independent. Diagnose each in its own layer. Do not patch one to satisfy the other.
 
+### 7.4 Cross-reasoner agreement and known profile divergence
+
+**Does:** Run a HermiT (full OWL 2 DL) cross-check via ROBOT in CI on every push and PR. The check merges ontology + imports + core + governance + each certificate-grade fixture, runs HermiT, and compares classification SPARQL results against the production OWL-RL pipeline for every modeled system across the certificate-grade fixture set (Sentinel, CreditScorer, verification kiosk, DecoySystem, both flag tests). Disagreement on any (fixture, system, query) triple fails the build. Logic and exclusion rules: [03_TECHNICAL_CORE/scripts/hermit_cross_check.py](03_TECHNICAL_CORE/scripts/hermit_cross_check.py).
+
+**Does not:** Cover the `ARCO_instances_adversarial_blanknode.ttl` fixture (`GhostSystem_001`). GhostSystem's disposition is an anonymous individual (blank node), and HermiT does not emit `ClassAssertion` axioms for anonymous individuals in its serialized output — this is correct DL profile behavior, since anonymous individuals are existential witnesses for satisfiability, not first-class ABox individuals. The `detect_latent_risk` audit traversal therefore returns `False` under HermiT and `True` under OWL-RL on GhostSystem. The classification entailment itself (`HighRiskSystem`, `AnnexIII1aApplicableSystem`) fires correctly under both reasoners; the divergence is confined to the audit-side traversal that walks `?system → ?component → ?disposition a :AnnexIIITriggeringCapability`.
+
+GhostSystem is a reasoner-property probe (it tests OWL-RL's `owl:someValuesFrom` entailment on anonymous existentials), not production modeling guidance. The question of whether ARCO should require named IRIs for evidence-bearing dependent continuants in certificate-grade data is queued for a human modeling session, not resolved by this CI gate. See [runs/loop/2026-05-09_beverley-research/design_memo_named-evidence-bearing-particulars.md](runs/loop/2026-05-09_beverley-research/design_memo_named-evidence-bearing-particulars.md) and [runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md](runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md) (Q1).
+
+**Operational implication.** Real ARCO classification scenarios use named dispositions, named ICEs, and named role categories — see Sentinel, CreditScorer, the verification kiosk, the flag fixtures. The HermiT cross-check holds on all of them. The blank-node case is a fixture-only edge that does not appear in production modeling.
+
 ---
 
 ## 8. Legal authority and validation
