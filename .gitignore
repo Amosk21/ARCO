@@ -27,6 +27,7 @@ target/
 *.log
 graphify-out/
 graph-scopes/
+.tmp-hermit/
 .graphify_chunks/
 .graphify_semantic_parts/
 .graphify_*.json

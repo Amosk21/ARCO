@@ -1,0 +1,386 @@
+# ARCO Output Provenance Manifest v2
+#
+# Declarative contract for every commitment-shaped value ARCO emits.
+# Every field belongs to exactly one of three blocks:
+#   - graph_backed:  value comes from a SPARQL query against the post-OWL-RL
+#                    reasoned graph; query is named; emitter renders the result.
+#   - run_metadata:  fact about THIS pipeline execution (timestamp, file path,
+#                    schema version, declared scope). Allowed sources are
+#                    enumerated; Python literals are NOT allowed for reasoner
+#                    outcomes here.
+#   - documentary:   labeled scope text or evidence-ledger annotation; allowed
+#                    sources are scope notes on graph entities, evidence ledger
+#                    rows, declared scope metadata, regime constants. Never a
+#                    Python literal composing a claim about reasoner output.
+#
+# Operating rule (the only rule that matters for Boundary 4):
+#   Python source code must hold ZERO claim values. Schema labels, block names,
+#   provenance tags, UI headings, and enum labels (e.g. "graph_backed",
+#   "not_entailed") are allowed. Classification claims, explanatory qualifiers,
+#   evidence labels, system-specific defaults, determination IRIs, and pass/fail
+#   aggregates that hide constituent checks are FORBIDDEN.
+#
+# More graph-looking claims, not fewer. Every graph-looking claim has a receipt.
+#
+# This manifest is read by test_output_provenance.py. Every field declared
+# graph_backed must have a named source_query that test_output_provenance.py
+# runs against a fresh fixture run; the emitted value must match the query
+# result.
+#
+# Status: v2 DRAFT. Current pipeline (`run_pipeline.py`) emits v1.2 output that
+# violates this manifest in named ways (see test_output_provenance.py expected
+# failures). v2 emitter (`pipeline_output_v2.py`) is the target; not yet built.
+# This file + the test land first, fail today, define the punch list.
+
+manifest_version: 2.0
+target_outputs:
+  - summary.json (v2.0)
+  - determination_packet.json (v2.0)
+  - certificate.txt (rendered from determination_packet)
+
+# =====================================================================
+# RUN METADATA — facts about this execution
+# =====================================================================
+# Allowed sources: pipeline_start_timestamp, loaded_fixture_path,
+# schema_version_constant, declared_scope_block.
+# Forbidden: any reasoner-outcome inference; any Sentinel-shaped default.
+
+run_metadata:
+  - field: schema_version
+    source: declared_constant
+    value: "2.0"
+    rendering: literal_string
+
+  - field: run_id
+    source: pipeline_start_timestamp_utc
+    rendering: iso_8601_string
+    cardinality: exactly_one
+
+  - field: fixture_file_name
+    source: loaded_fixture_path.name
+    rendering: literal_string
+    cardinality: exactly_one
+
+  - field: fixture_file_path
+    source: loaded_fixture_path.relative_to_repo_root
+    rendering: literal_string
+    cardinality: exactly_one
+
+  - field: ontology_version_iri
+    source: graph_query
+    source_query: reasoning/select_ontology_version.sparql  # NEW — to be created
+    binding_shape: "SELECT ?versionIRI WHERE { ?o a owl:Ontology ; owl:versionIRI ?versionIRI }"
+    rendering: iri_string
+    cardinality: zero_or_one
+    absent_behavior: emit "ontology_version_not_declared"
+
+  - field: reasoner_versions
+    source: declared_constant_block
+    value:
+      owlrl: "7.1.4"
+      hermit_via_robot: "1.9.10"
+      pyshacl: "from_requirements"
+    rendering: object
+
+  - field: derogation_evaluation_scope
+    source: declared_run_scope
+    value:
+      evaluated: false
+      reason: "Article 6(3) derogation evaluation not modeled in current ARCO release; see LIMITATIONS.md §3.7"
+    rendering: object
+    forbidden_pattern: "Python string concatenation that embeds 'derogation not evaluated' qualifier into a graph_backed value"
+
+  - field: scope_excluded_categories
+    source: declared_constant_list
+    value: ["AnnexIII_1b", "AnnexIII_1c", "AnnexIII_2", "AnnexIII_3", "AnnexIII_4", "AnnexIII_5a", "AnnexIII_5c", "AnnexIII_6", "AnnexIII_7", "AnnexIII_8", "Article_5_prohibitions", "Article_51_GPAI"]
+    rendering: literal_list
+
+# =====================================================================
+# GRAPH-BACKED — every value comes from a named query
+# =====================================================================
+# Each entry must declare:
+#   source_query  — relative path to .sparql file in 03_TECHNICAL_CORE/reasoning/
+#   binding_shape — one-line description of the SPARQL form (ASK | SELECT shape)
+#   subject_binding — IRI bound by the caller (typically SYSTEM_IRI), if any
+#   value_path    — how the query result becomes the emitted value
+#   cardinality   — exactly_one | zero_or_one | zero_or_many | one_or_many
+#   absent_behavior — what gets emitted if the query returns empty
+#
+# ASK queries return a boolean. Display fields require SELECT queries with
+# ORDER BY for determinism (no LIMIT 1 without ORDER BY anywhere).
+
+graph_backed:
+
+  # ---- Primary classification (the headline) -------------------------
+  - field: primary_classification
+    source_query: reasoning/select_primary_classification.sparql  # NEW
+    binding_shape: "SELECT ?cls WHERE { ?system rdf:type ?cls . FILTER(?cls IN (:AnnexIII1aApplicableSystem, :AnnexIII5bApplicableSystem)) } ORDER BY ?cls"
+    subject_binding: SYSTEM_IRI
+    value_path: list_of_class_iris
+    cardinality: zero_or_many
+    absent_behavior: emit_field_with_status="not_entailed"
+    forbidden_pattern: "Python f-string that interpolates class name + literal qualifier (e.g. 'AnnexIII1aApplicableSystem (ENTAILED, all three ARCO gates)')"
+
+  - field: latent_risk_flag
+    source_query: reasoning/check_high_risk_inference.sparql
+    binding_shape: "ASK { ?system rdf:type :HighRiskSystem }"
+    subject_binding: SYSTEM_IRI
+    value_path: boolean_to_status_enum
+    value_enum: [present, not_present]
+    cardinality: exactly_one
+    absent_behavior: emit "not_run" if query absent
+
+  # ---- Per-gate evidence (each requires a category-specific SELECT) --
+  - field: gate_1_capability
+    source_query: reasoning/select_gate_1_capability.sparql  # NEW — replaces hardcoded labels
+    binding_shape: "SELECT ?component ?disposition ?cap_class ?cap_label WHERE { ?system bfo:0000051 ?component . ?component ro:0000091 ?disposition . ?disposition rdf:type ?cap_class . ?cap_class rdfs:subClassOf* :AnnexIIITriggeringCapability . OPTIONAL { ?cap_class rdfs:label ?cap_label } } ORDER BY ?cap_class"
+    subject_binding: SYSTEM_IRI
+    value_path: row -> {component_iri, disposition_iri, capability_class_iri, capability_label}
+    cardinality: zero_or_many
+    absent_behavior: emit gate_1 with status="not_satisfied" and evidence=[]
+    forbidden_pattern: "Python literal default 'BiometricIdentificationCapability' as cap_label fallback"
+
+  - field: gate_2_prescribed_process
+    source_query: reasoning/select_gate_2_prescribed_process.sparql  # NEW — must include ORDER BY + category filter
+    binding_shape: "SELECT ?ius ?process ?process_class ?process_label WHERE { ?ius rdf:type :IntendedUseSpecification ; iao:0000136 ?system ; cco:prescribes ?process . ?process rdf:type ?process_class . FILTER(?process_class IN (:RemoteBiometricIdentificationProcess, :CreditworthinessEvaluationProcess)) . OPTIONAL { ?process_class rdfs:label ?process_label } } ORDER BY ?ius ?process"
+    subject_binding: SYSTEM_IRI
+    value_path: row -> {ius_iri, process_iri, process_class_iri, process_label}
+    cardinality: zero_or_many
+    absent_behavior: emit gate_2 with status="not_satisfied" and evidence=[]
+    forbidden_pattern: "LIMIT 1 without ORDER BY (current bug — Gate 2 underdetermined); Python literal 'Remote biometric identification' as label fallback"
+
+  - field: gate_3_designated_role
+    source_query: reasoning/select_gate_3_designated_role.sparql  # NEW
+    binding_shape: "SELECT ?uss ?role_iri ?role_label WHERE { ?uss rdf:type :UseScenarioSpecification ; iao:0000136 ?system ; cco:designates ?role_iri . OPTIONAL { ?role_iri rdfs:label ?role_label } } ORDER BY ?uss"
+    subject_binding: SYSTEM_IRI
+    value_path: row -> {uss_iri, role_iri, role_label}
+    cardinality: zero_or_many
+    absent_behavior: emit gate_3 with status="not_satisfied" and evidence=[]
+    forbidden_pattern: "Python initializer default role_uri=:NaturalPersonRole; bool(uss_uri) check that doesn't verify which role is designated"
+
+  # ---- Determination ICE (only if asserted in this run's graph) ------
+  - field: determination_node
+    source_query: reasoning/select_determination_node.sparql  # NEW
+    binding_shape: "SELECT ?det WHERE { ?det rdf:type :HighRiskDetermination ; iao:0000136 ?system } ORDER BY ?det"
+    subject_binding: SYSTEM_IRI
+    value_path: list_of_iris
+    cardinality: zero_or_many
+    absent_behavior: emit field with status="absent_in_loaded_graph"
+    forbidden_pattern: "Hardcoded f-string '{ARCO_NS}HighRisk_Determination_001' regardless of fixture"
+
+  # ---- Audit-side checks (each is a known SPARQL ASK) -----------------
+  - field: shacl_conforms
+    source: pyshacl_validate_result
+    binding_shape: "pyshacl.validate(g, shacl_graph) -> conforms boolean"
+    cardinality: exactly_one
+    rendering: status_enum
+    value_enum: [pass, fail, not_run]
+
+  - field: traceability_check
+    source_query: reasoning/check_assessment_traceability.sparql
+    binding_shape: "ASK { ?doc a :AssessmentDocumentation ; iao:0000136 ?system ; iao:0000136 ?condition . ?condition a :RegulatoryContent }"
+    subject_binding: SYSTEM_IRI
+    cardinality: exactly_one
+    value_enum: [pass, fail, not_run]
+
+  - field: latent_risk_check
+    source_query: reasoning/detect_latent_risk.sparql
+    binding_shape: "ASK { ?system bfo:0000051 ?c . ?c ro:0000091 ?d . ?d a :AnnexIIITriggeringCapability }"
+    subject_binding: SYSTEM_IRI
+    cardinality: exactly_one
+    value_enum: [detected, not_detected, not_run]
+
+  - field: intended_use_check
+    source_query: reasoning/check_intended_use.sparql
+    binding_shape: "ASK"
+    subject_binding: SYSTEM_IRI
+    cardinality: exactly_one
+    value_enum: [pass, fail, not_run]
+    known_issue: "current query bundles Gate 2 + Gate 3 with hardcoded :NaturalPersonRole; v2 should split into per-gate audits"
+
+  - field: obligation_check
+    source_query: reasoning/check_obligation_link.sparql
+    binding_shape: "ASK"
+    subject_binding: SYSTEM_IRI
+    cardinality: exactly_one
+    value_enum: [pass, fail, not_run]
+
+  - field: regulatory_alignment_check
+    source_query: reasoning/check_regulatory_alignment.sparql
+    binding_shape: "ASK"
+    subject_binding: SYSTEM_IRI
+    cardinality: exactly_one
+    value_enum: [pass, fail, not_run]
+
+  - field: union_subclass_sync_check
+    source_query: reasoning/check_union_subclass_sync.sparql
+    binding_shape: "ASK (graph-level, no system binding)"
+    subject_binding: none
+    cardinality: exactly_one
+    value_enum: [pass, fail, not_run]
+
+  - field: derogation_flag
+    source_query: reasoning/flag_derogation_candidate.sparql
+    binding_shape: "ASK { ?claim rdf:type :DerogationClaim ; iao:0000136 ?system }"
+    subject_binding: SYSTEM_IRI
+    cardinality: exactly_one
+    value_enum: [flagged, not_flagged, not_run]
+    forbidden_pattern: "Concatenating the boolean with prescription text 'human legal review required' on one line; the prescription is documentary, not graph-backed"
+
+  - field: fraud_exclusion_flag
+    source_query: reasoning/flag_fraud_exclusion_candidate.sparql
+    binding_shape: "ASK"
+    subject_binding: SYSTEM_IRI
+    cardinality: exactly_one
+    value_enum: [flagged, not_flagged, not_run]
+
+  - field: entailed_triples_added
+    source: post_minus_pre_triple_count
+    binding_shape: "len(reasoned_graph) - len(pre_reasoning_graph)"
+    cardinality: exactly_one
+    rendering: integer
+
+# =====================================================================
+# DOCUMENTARY — labeled scope text and prescriptions
+# =====================================================================
+# Allowed sources:
+#   - declared_constant: literal string fixed at schema-version time
+#   - rdfs_comment_on: rdfs:comment of a named graph entity
+#   - skos_scope_note_on: skos:scopeNote of a named graph entity
+#   - evidence_ledger_row: row id from the evidence ledger
+#   - declared_run_scope: a field in run_metadata.derogation_evaluation_scope etc.
+# Forbidden: Python literals composing reasoner outcomes; system-specific
+# defaults; concatenation of graph-backed value + Python qualifier on one line.
+
+documentary:
+  - field: regime
+    source: declared_constant
+    value: "ARCO ontology encoding of EU AI Act (Article 6 / Annex III)"
+
+  - field: latent_risk_class_label
+    source: rdfs_label_on
+    target_iri: ":HighRiskSystem"
+    rendering: literal_string
+    forbidden_pattern: "Python literal 'Annex III Capability-Precondition Flag' independent of graph; must read from rdfs:label on the class"
+
+  - field: derogation_review_prescription
+    source: declared_constant
+    value: "If flagged: human legal review required before treating this as a final determination."
+    emit_condition: derogation_flag.value == 'flagged'
+    forbidden_pattern: "Inlined into the same string as the flag boolean"
+
+  - field: scope_disclaimer
+    source: declared_constant
+    value: "ARCO assesses structured RDF instance data supplied to the pipeline. It does not verify raw vendor documentation, the physical deployed system, or legal sufficiency. ARCO currently models Annex III 1(a) (biometric identification) and 5(b) (creditworthiness) only."
+
+  - field: scope_excluded_disclosure
+    source: from_field
+    field_ref: run_metadata.scope_excluded_categories
+    rendering: rendered_list_of_excluded_category_codes
+
+# =====================================================================
+# AGGREGATES — only with visible constituents
+# =====================================================================
+# Allowed only if every constituent is also exposed as its own field.
+# Forbidden: hidden Python AND/OR that does not expose its inputs.
+
+aggregates:
+  - field: summary_status
+    type: aggregator
+    constituents:
+      - field_ref: classification_layer_status
+      - field_ref: audit_layer_status
+      - field_ref: shacl_conforms
+    rule: "summary_status is documentary-rendered from the constituent values; constituents MUST be present in the same emitted document"
+    forbidden_pattern: "Single boolean 'all_checks_passed' computed by Python AND of constituents without exposing them; current v1.2 violates this"
+
+  - field: classification_layer_status
+    type: aggregator
+    constituents:
+      - field_ref: latent_risk_flag
+      - field_ref: primary_classification
+    rule: "rendered status is the documentary aggregator over its constituents; constituents must remain visible"
+
+  - field: audit_layer_status
+    type: aggregator
+    constituents:
+      - field_ref: traceability_check
+      - field_ref: intended_use_check
+      - field_ref: obligation_check
+      - field_ref: regulatory_alignment_check
+      - field_ref: union_subclass_sync_check
+    rule: "audit_layer_status is documentary; if any constituent is 'not_run' on a non-applicable run, the aggregator reports 'audit_not_applicable' and constituents stay visible — NOT a forced-True short-circuit"
+    forbidden_pattern: "Python `if non_applicable_run: audit_pass = True` short-circuit that hides per-check results"
+
+# =====================================================================
+# NEGATIVE STATUSES — must distinguish four cases
+# =====================================================================
+# Every field that can be absent must declare which of these applies:
+
+negative_statuses:
+  - status: not_entailed
+    meaning: "Query ran on this run's reasoned graph and returned false / empty."
+    legitimate_for: [graph_backed]
+
+  - status: not_run
+    meaning: "Query was not invoked on this run (e.g., file absent, fixture excluded)."
+    legitimate_for: [graph_backed]
+
+  - status: out_of_scope
+    meaning: "Field is declared in the manifest but excluded for this fixture by phase-1 scope cut."
+    legitimate_for: [graph_backed, documentary]
+
+  - status: not_modeled
+    meaning: "No axiom or query exists in ARCO that would let this field be answered. Field is permanently unsupported until modeling work lands."
+    legitimate_for: [graph_backed]
+
+  - status: absent_in_loaded_graph
+    meaning: "Field references an IRI that the manifest expects to exist but is not asserted in this run's graph."
+    legitimate_for: [graph_backed]
+
+  - status: pass | fail | flagged | not_flagged | detected | not_detected | present | not_present
+    meaning: "Domain-specific status for ASK-shaped boolean fields."
+    legitimate_for: [graph_backed]
+
+# =====================================================================
+# FORBIDDEN PATTERNS (what test_output_provenance.py greps for)
+# =====================================================================
+# These are the source-code shapes that produced the v1.2 lies.
+# test_output_provenance.py asserts they do not appear in the v2 emitter.
+
+forbidden_source_patterns:
+  - pattern: 'gate_evidence\["gate3"\]\["role_uri"\]\s*=\s*f"\{ARCO_NS\}NaturalPersonRole"'
+    where: pipeline_output_v2.py initializer
+    why: "Python initializer default leaks Sentinel-shaped role IRI when SPARQL returns empty"
+
+  - pattern: '\bor "BiometricIdentificationCapability"\b'
+    where: pipeline_output_v2.py display fallbacks
+    why: "Sentinel-default leakage; absent evidence must render as absent, not as biometric identification"
+
+  - pattern: '\bor "RemoteBiometricIdentificationProcess"\b'
+    where: pipeline_output_v2.py display fallbacks
+    why: "same"
+
+  - pattern: '"VERIFIED \(ENTAILED, Article 6\(3\) derogation not evaluated\)"'
+    where: pipeline_output_v2.py
+    why: "Python literal that mixes graph-backed verification with documentary scope qualifier"
+
+  - pattern: '\ball_checks_passed\b\s*=\s*\w+\s+and\s+\w+'
+    where: pipeline_output_v2.py
+    why: "Hidden Python AND aggregator without visible constituents"
+
+  - pattern: '\bif\s+non_applicable_run:\s*\n\s+audit_pass\s*=\s*True'
+    where: pipeline_output_v2.py
+    why: "Force-True short-circuit hides which audit checks did not run"
+
+  - pattern: 'f"\{ARCO_NS\}HighRisk_Determination_001"'
+    where: pipeline_output_v2.py
+    why: "Hardcoded determination IRI emitted regardless of whether it exists in the loaded graph"
+
+  - pattern: 'LIMIT 1\b(?!.*ORDER BY)'
+    where: pipeline_output_v2.py SPARQL strings or reasoning/*.sparql files referenced as gate evidence
+    why: "Underdetermined gate evidence; same fixture can produce different evidence row across runs"
+
+  - pattern: '"\(ENTAILED, all three ARCO gates\)"'
+    where: pipeline_output_v2.py
+    why: "Python literal that asserts what the reasoner did; the entailment claim must come from the query result, not f-string"

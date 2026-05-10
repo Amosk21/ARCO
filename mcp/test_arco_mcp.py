@@ -150,6 +150,14 @@ class TestHermitCrosscheckMocked(unittest.TestCase):
         self.assertTrue(result.get("error"))
         self.assertEqual(result.get("hermit_status"), "UNAVAILABLE")
         self.assertIn("ROBOT", result["message"])
+        self.assertEqual(result.get("fixture"), "sentinel")
+        self.assertEqual(result.get("system"), "Sentinel_ID_System")
+
+    def test_unknown_fixture_returns_structured_error(self):
+        result = arco_mcp.arco_run_hermit_crosscheck(fixture="not_a_fixture")
+        self.assertTrue(result.get("error"))
+        self.assertIn("valid_fixtures", result)
+        self.assertIn("verification_kiosk", result["valid_fixtures"])
 
 
 def main() -> int:

@@ -282,8 +282,8 @@ def format_primary_arco_classification(primary_classes: list[str]) -> str:
 
 def format_latent_risk_flag(classification_mode: str) -> str:
     if classification_mode in ("INFERRED", "ASSERTED"):
-        return f"HighRiskSystem ({classification_mode}, Gate 1 capability precondition only)"
-    return "HighRiskSystem (NOT PRESENT, Gate 1 capability precondition not detected)"
+        return f"HighRiskSystem (Annex III Capability-Precondition Flag; {classification_mode} via Gate 1 only; not the EU AI Act legal high-risk classification)"
+    return "HighRiskSystem (Annex III Capability-Precondition Flag; NOT PRESENT, Gate 1 capability precondition not detected)"
 
 def get_primary_bindings(g: Graph, system_local: str = "Sentinel_ID_System") -> list[tuple[str, str]]:
     rows = []

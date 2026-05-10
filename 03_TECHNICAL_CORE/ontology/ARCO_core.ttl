@@ -129,14 +129,14 @@
 
 :ComplianceDetermination rdf:type owl:Class ;
   rdfs:label "Compliance Determination Result"@en ;
-  skos:definition "A record of the outcome of a compliance assessment for a specific AI system, such as a classification of high-risk or non-applicable."@en ;
-  rdfs:comment "Structured result of a compliance assessment (e.g., High-Risk, Limited-Risk, Prohibited)." ;
+  skos:definition "A Descriptive Information Content Entity (ICE) that records the outcome of an ARCO entailment about a specific AI system — for example, an applicability entailment under a particular Annex III category, a latent-risk capability-precondition flag, or a non-applicability finding. This class is the parent ICE class for ARCO-side records of entailment outcomes; it is distinguished from a legal determination by a regulator or conformity assessment body under EU AI Act Articles 16-29, which the ontology does not produce."@en ;
+  rdfs:comment "ICE-vs-reality cut: a ComplianceDetermination is a representation-side record of what ARCO entailed about a system, not the entailment itself and not a change in the system's ontological kind. It is also NOT a legal determination by a regulator or conformity assessment body under EU AI Act Articles 16-29 — those are produced by competent authorities under the Act's procedural framework, not by ARCO. Subclasses (e.g., :HighRiskDetermination) refine the kind of entailment recorded." ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :HighRiskDetermination rdf:type owl:Class ;
   rdfs:label "High-Risk Determination"@en ;
-  skos:definition "A compliance determination that records a system as high-risk under Annex III."@en ;
-  rdfs:comment "A compliance determination that classifies a system as high-risk. Can be asserted when documenting an inferred HighRiskSystem classification." ;
+  skos:definition "A Compliance Determination ICE that records either (a) the latent-risk capability-precondition flag entailment (membership in :HighRiskSystem, fired by Gate 1 alone — an Annex III triggering capability is borne by a system component), or (b) a category-specific Annex III applicability entailment (e.g., membership in :AnnexIII1aApplicableSystem or :AnnexIII5bApplicableSystem, fired by all three gates: capability, prescribed process, and affected role). The IRI is retained for backward compatibility. This class is NOT equivalent to a legal high-risk determination by a regulator or conformity assessment body under EU AI Act Articles 16-29."@en ;
+  rdfs:comment "The IRI is retained for backward compatibility. This class is a Descriptive ICE recording an ARCO entailment (latent-risk flag from Gate 1, or three-gate Annex III applicability) and is NOT equivalent to a legal high-risk determination by a regulator or conformity assessment body under EU AI Act Articles 16-29. The bifurcation between (a) the Gate-1-only latent-risk flag (HighRiskSystem) and (b) the three-gate category-specific applicability entailments (AnnexIII1aApplicableSystem, AnnexIII5bApplicableSystem) is recorded by the certificate's PRIMARY vs. LATENT-RISK FLAG split; this class is the ICE container for either kind of record." ;
   rdfs:subClassOf :ComplianceDetermination .
 
 #################################################################

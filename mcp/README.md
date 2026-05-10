@@ -14,7 +14,7 @@ The MCP layer is purely a transport.
 | Tool | What it does |
 |---|---|
 | `arco_run_pipeline` | Runs `run_pipeline.py` against an instances file and returns parsed structured output (classification, certificate, two-layer pass/fail, exception flags). |
-| `arco_run_hermit_crosscheck` | Materializes the HermiT-reasoned graph via ROBOT, runs the seven Sentinel SPARQL queries against it, and diffs against the OWL-RL baseline. Mirrors the CI cross-check in `.github/workflows/robot-validate.yml`. |
+| `arco_run_hermit_crosscheck` | Materializes a single fixture's HermiT-reasoned graph via ROBOT, computes the OWL-RL baseline for the same fixture, and diffs the classification query set. The full multi-fixture sweep remains `03_TECHNICAL_CORE/scripts/hermit_cross_check.py` in CI. |
 | `arco_competency_check` | Runs a single competency question (CQ1..CQ12 from `docs/COMPETENCY_QUESTIONS.md`) against a system. Returns the question text, regulatory anchor, layer (OWL-RL / SHACL / SPARQL_ASK), implementing file, raw result, and a one-sentence interpretation. |
 
 ## Prerequisites
@@ -100,13 +100,15 @@ Returns (abridged):
   "annex_iii_5b": "NOT APPLICABLE",
   "derogation_flagged": false,
   "fraud_flagged": false,
-  "entailed_triples_added": 19886,
+  "entailed_triples_added": 19965,
   "classification_layer": "PASS",
   "audit_layer": "PASS",
   "all_checks_passed": true,
   "certificate_text": "===... ARCO CONDITION ASSESSMENT CERTIFICATE ...==="
 }
 ```
+
+The `all_checks_passed` field is a legacy v1 output summary. It is retained here because the MCP tool exposes the current pipeline output, but it is known-imprecise on non-applicable runs; see `LIMITATIONS.md §7.5` and the queued output-provenance v2 emitter work.
 
 Custom system + instances file:
 
@@ -123,21 +125,27 @@ Custom system + instances file:
 ### `arco_run_hermit_crosscheck`
 
 ```json
-{ "tool": "arco_run_hermit_crosscheck", "arguments": {} }
+{ "tool": "arco_run_hermit_crosscheck", "arguments": { "fixture": "verification_kiosk" } }
 ```
+
+Valid fixture values: `sentinel`, `credit_scorer`, `verification_kiosk`, `decoy`, `flag_biometric`, `flag_credit`. Omitting `fixture` defaults to `sentinel`.
 
 Returns:
 
 ```json
 {
   "hermit_status": "PASS",
+  "fixture": "verification_kiosk",
+  "fixture_file": "ARCO_instances_verification.ttl",
+  "system": "VerificationKiosk_001",
   "agreement": true,
-  "queries_total": 7,
-  "queries_matching": 7,
+  "queries_total": 4,
+  "queries_matching": 4,
   "query_results": [
-    {"name": "high_risk", "hermit_result": true,  "owlrl_result": true,  "expected": true,  "match": true},
-    {"name": "annex_1a",  "hermit_result": true,  "owlrl_result": true,  "expected": true,  "match": true},
-    {"name": "annex_5b",  "hermit_result": false, "owlrl_result": false, "expected": false, "match": true}
+    {"name": "high_risk", "hermit_result": false, "owlrl_result": false, "match": true},
+    {"name": "annex_1a",  "hermit_result": false, "owlrl_result": false, "match": true},
+    {"name": "annex_5b",  "hermit_result": false, "owlrl_result": false, "match": true},
+    {"name": "latent",    "hermit_result": false, "owlrl_result": false, "match": true}
   ],
   "mismatches": []
 }
@@ -193,6 +201,7 @@ hit Ctrl+C to exit.)
 ## Limitations
 
 - `arco_run_hermit_crosscheck` requires ROBOT v1.9.10 + Java 17+. Without ROBOT, the tool returns a structured `hermit_status: "UNAVAILABLE"` error rather than crashing.
+- `arco_run_hermit_crosscheck` runs one named fixture per tool call. The standalone `03_TECHNICAL_CORE/scripts/hermit_cross_check.py` is the fixture-wide cross-check and is what CI uses for the full sweep.
 - `arco_competency_check` re-reasons the graph in-process on each call (10-30s). For batch competency-check runs, consider calling `arco_run_pipeline` once and then mapping its output rather than calling each CQ separately.
 - ARCO currently models Annex III item 1(a) (biometric identification) and 5(b) (creditworthiness) only. CQs covering those categories are answerable; categories not yet modeled return NotApplicable.
 - Tools resolve paths relative to the ARCO repo root (computed from this script's location). Moving `arco_mcp.py` outside the `mcp/` subdirectory will break path resolution.

@@ -2,282 +2,57 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-> **Note.** ARCO is a research-grade applied ontology and reference pipeline. It currently encodes EU Regulation 2024/1689 (AI Act) Annex III categories 1(a) (remote biometric identification) and 5(b) (creditworthiness evaluation). The architecture is designed to generalize to other regulatory regimes; the implementation is intentionally bounded. The encoded interpretation of the regulatory text has not been externally reviewed by qualified counsel or by the EU AI Office.
+ARCO classifies AI systems against EU AI Act Annex III at design time, before deployment. Given a structured RDF description of a system (components, dispositions, intended use, use scenario), the pipeline tells you whether the system satisfies ARCO's formal encoding of Annex III conditions, and exactly why. Same input, same answer, every run. The output is a deterministic OWL entailment over hand-reviewed commitments, not a confidence score and not a legal opinion.
 
-Companies are building AI systems without knowing whether those systems will satisfy the high-risk conditions of the EU AI Act. When that exposure surfaces after deployment, the costs are real: redesign, retraining, administrative fines under Regulation (EU) 2024/1689 Article 99 (up to 3% of worldwide annual turnover or €15M for high-risk operator obligations, up to 7% or €35M for Article 5 prohibited practices), forced withdrawal, and reputational damage.
-
-ARCO moves the classification decision upstream. Before deployment, the pipeline tells organizations whether a structured description of a system satisfies ARCO's formal encoding of Annex III conditions, and exactly why.
-
-The output is not a score, a confidence level, or an advisory opinion. Most AI governance asks what a system does. ARCO asks what a system formally is — its dispositions, the processes it is prescribed to participate in, and the role categories it affects — and entails the classification by formal logic from that structure. The result is a deterministic gate evaluation over hand-reviewed structured inputs, audit-traceable and grounded in BFO/RO/IAO/CCO-aligned structure: same structured inputs, same classification, every run.
-
-**TL;DR**
-- ARCO tells you, before deployment, whether a structured description of your system triggers EU AI Act high-risk conditions per ARCO's formal encoding of Article 6 and Annex III, and exactly why. The architecture is designed to generalize to regulatory domains where obligations attach to capability, prescribed process, and affected role; the current encoding is EU AI Act-specific.
-- Classifications are deterministic and audit-traceable: formal OWL-RL reasoning + SHACL validation + SPARQL queries over a BFO 2020-grounded ontology, with RO, IAO, and CCO loaded as ROBOT BOT-extracted slim modules per the OBO Foundry / ODK standard pattern (version-pinned, reproducible from seed files in the repo). No probabilistic scoring; the classification runs on hand-reviewed structured RDF, not directly on LLM output. (See LIMITATIONS.md on upstream extraction.)
-- From a fresh clone, install the Python dependencies and run `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from the repository root to produce a formal condition assessment certificate with a full evidence path from system components through capabilities to Annex III criteria.
-
-**What's modeled (current scope)**
-
-| Annex III category | Capability (Gate 1) | Prescribed process (Gate 2) | Affected role (Gate 3) |
-|--------------------|---------------------|-----------------------------|------------------------|
-| 1(a): Remote biometric identification | `BiometricIdentificationCapability` | `RemoteBiometricIdentificationProcess` | `NaturalPersonRole` |
-| 5(b): Creditworthiness evaluation | `CreditworthinessEvaluationCapability` | `CreditworthinessEvaluationProcess` | `NaturalPersonRole` |
-
-All three gates must be satisfied for category-specific Annex III applicability entailment. A system bearing only a biometric capability is **not** entailed as a creditworthiness system, and vice versa. Cross-category isolation is formally enforced by the ontology, not asserted by hand. `HighRiskSystem` remains a Gate 1 latent-risk flag, not the full category-specific output.
-
-### Class hierarchy at a glance
-
-```mermaid
-flowchart TB
-    subgraph BFO_TIER[BFO 2020 and IAO upper categories]
-        BFO_OA[bfo:ObjectAggregate]
-        BFO_OBJ[bfo:Object]
-        BFO_DISP[bfo:Disposition]
-        IAO_ICE[iao:InformationContentEntity]
-    end
-
-    subgraph CCO_TIER[CCO ICE specializations]
-        CCO_DIR[cco:DirectiveICE]
-        CCO_DESIG[cco:DesignativeICE]
-    end
-
-    subgraph REALITY[Reality side - dispositions in independent continuants]
-        SYS[:System]
-        SC[:SystemComponent]
-        HW[:HardwareComponent]
-        CAP[:CapabilityDisposition]
-        BIC[:BiometricIdentificationCapability]
-        BVC[:BiometricVerificationCapability]
-        CEC[:CreditworthinessEvaluationCapability]
-        ATC[":AnnexIIITriggeringCapability<br/><i>defined class</i>"]
-    end
-
-    subgraph REPR[Representation side - ICEs about systems]
-        IUS[:IntendedUseSpecification]
-        USS[:UseScenarioSpecification]
-    end
-
-    subgraph REG[Entailed regulatory determinations]
-        HRS[":HighRiskSystem<br/><i>Gate 1 latent flag</i>"]
-        AIII1A[:AnnexIII1aApplicableSystem]
-        AIII5B[:AnnexIII5bApplicableSystem]
-    end
-
-    SYS --> BFO_OA
-    SC --> BFO_OBJ
-    HW --> SC
-    CAP --> BFO_DISP
-    BIC --> CAP
-    BVC --> CAP
-    CEC --> CAP
-    CCO_DIR --> IAO_ICE
-    CCO_DESIG --> IAO_ICE
-    IUS --> CCO_DIR
-    USS --> CCO_DESIG
-
-    HRS -.entailed.-> SYS
-    AIII1A --> SYS
-    AIII5B --> SYS
-
-    BIC -.unionOf.-> ATC
-    CEC -.unionOf.-> ATC
-
-    BIC === BVC
-    BIC === CEC
-    BVC === CEC
-
-    style REALITY fill:#eaf3ea
-    style REPR fill:#eef2fb
-    style REG fill:#fbf2e8
-    style BFO_TIER fill:#f5f5f5
-    style CCO_TIER fill:#f5f5f5
-    style ATC stroke:#444,stroke-width:2px,stroke-dasharray:3 3
-```
-
-**Legend.** Solid arrow → `rdfs:subClassOf` (child points to parent, OBO Foundry convention). Dotted arrow labeled `unionOf` → member of the `owl:equivalentClass owl:unionOf` defining `:AnnexIIITriggeringCapability`. Dotted arrow labeled `entailed` → membership entailed via `owl:equivalentClass` intersection rather than asserted as a subclass (`:HighRiskSystem` is the example: not asserted as a subclass of `:System`; entailed when the bridge axiom fires). Thick line `===` → `owl:disjointWith`. `:BiometricVerificationCapability` is intentionally NOT a member of `:AnnexIIITriggeringCapability` per Article 3(36) (one-to-one verification is out of scope of Annex III 1(a)); the disjointness edges visualize the formal exclusion.
-
-### The three-gate axiom (Annex III 1(a))
-
-```mermaid
-flowchart LR
-    SYSTEM[":System x<br/>(also a conjunct)"]
-
-    subgraph G1["Gate 1 - Reality side: capability"]
-        G1D["x bfo:has_part some<br/>(:SystemComponent and<br/>ro:has_disposition some<br/>:BiometricIdentificationCapability)<br/><br/><i>the system actually contains a component<br/>capable of biometric identification</i>"]
-    end
-
-    subgraph G2["Gate 2 - Representation side: prescribed process"]
-        G2D["x [inverseOf iao:is_about] some<br/>(:IntendedUseSpecification and<br/>cco:prescribes <b>someValuesFrom</b><br/>:RemoteBiometricIdentificationProcess)<br/><br/><i>the documented intended use<br/>prescribes the regulated process type</i>"]
-    end
-
-    subgraph G3["Gate 3 - Representation side: designated role"]
-        G3D["x [inverseOf iao:is_about] some<br/>(:UseScenarioSpecification and<br/>cco:designates <b>hasValue</b><br/>:NaturalPersonRole)<br/><br/><i>the use scenario designates natural<br/>persons as the affected role universal</i>"]
-    end
-
-    SYSTEM --> G1
-    SYSTEM --> G2
-    SYSTEM --> G3
-    G1 --> CONJ{"ALL THREE REQUIRED<br/>owl:equivalentClass<br/>owl:intersectionOf"}
-    G2 --> CONJ
-    G3 --> CONJ
-    CONJ --> RESULT[":AnnexIII1aApplicableSystem<br/><i>high-risk under Annex III 1(a)</i><br/>entailed by OWL-RL"]
-
-    style G1 fill:#eaf3ea
-    style G2 fill:#eef2fb
-    style G3 fill:#eef2fb
-    style RESULT fill:#fbf2e8
-```
-
-**Legend.** Green box → reality side (BFO disposition borne by an independent continuant). Blue box → representation side (IAO information content entity describing the system). Gates 2 and 3 use the anonymous inverse-aboutness wrapper `[owl:inverseOf iao:0000136]` so the restriction is on the system itself, not on the spec. Gate 2 uses `owl:someValuesFrom`: the prescribed process must be a typed instance of the regulated class. Gate 3 uses `owl:hasValue` against the role universal class IRI (designation by inscription per Smith and Ceusters 2015 "Aboutness," CEUR Vol-1515; the universal is named, not a role-bearer instance). The same shape applies to `:AnnexIII5bApplicableSystem` with `:CreditworthinessEvaluationCapability` / `:CreditworthinessEvaluationProcess` substituted in Gates 1 and 2. **Gate independence is verified by `03_TECHNICAL_CORE/scripts/test_gate_removal.py`**: removing any one of the three triples causes the classification entailment to fail.
-
-### The Reality / Representation cut
-
-ARCO commits to a clean separation: dispositions, roles, and processes are real (BFO continuants, occurrents, and universals). Specifications and determinations are information content entities ABOUT the system, not parts of it. The cut is what makes compliance claims falsifiable: you can disagree about whether a disposition is present, but you cannot conflate "the documentation says the system has the disposition" with "the system has the disposition."
-
-```mermaid
-flowchart TB
-    subgraph REPR["Representation side - IAO information content entities (real GDCs whose role is representational)"]
-        REG[":RegulatoryContent<br/>(Directive ICE) regulatory text passage"]
-        IUS[":IntendedUseSpecification<br/>(Directive ICE)"]
-        USS[":UseScenarioSpecification<br/>(Designative ICE)"]
-        CD[":ComplianceDetermination<br/>(Descriptive ICE)"]
-        HRD[":HighRiskDetermination<br/>(Descriptive ICE)"]
-    end
-
-    subgraph REALITY["Reality side - BFO continuants, processes, universals"]
-        SYS[":System<br/>(object aggregate, bfo:0000027)"]
-        HW[":HardwareComponent"]
-        DISP[":CapabilityDisposition<br/>inhering in the component"]
-        PROC[":RemoteBiometricIdentificationProcess<br/>(regulated process class)"]
-        ROLE[":NaturalPersonRole<br/>(role universal; tokens inhere in<br/>persons at deployment)"]
-        PROV[":ProviderOrganization"]
-        PROVR[":ProviderRole"]
-    end
-
-    SYS -->|bfo:has_part| HW
-    HW -->|ro:has_disposition| DISP
-    PROV -->|ro:has_role| PROVR
-
-    REG -.iao:is_about.-> SYS
-    IUS -.iao:is_about.-> SYS
-    IUS ==>|cco:prescribes someValuesFrom| PROC
-    USS -.iao:is_about.-> SYS
-    USS ==>|cco:designates hasValue| ROLE
-    CD -.iao:is_about.-> SYS
-    HRD -.iao:is_about.-> SYS
-
-    style REALITY fill:#eaf3ea
-    style REPR fill:#eef2fb
-```
-
-**Legend.** Solid arrow → reality-side relation (`bfo:has_part`, `ro:has_disposition`, `ro:has_role`). Dotted arrow → reference-style aboutness (`iao:is_about`, used to anchor any ICE to its referent). Thick arrow `==>` → cross-cut constraint with a typed CCO property (`cco:prescribes` typing the prescribed process; `cco:designates` naming the role universal as designation target). Information Content Entities are themselves real entities (generically dependent continuants per BFO 2020); the "Representation side" label denotes their *role in the model* (representing reality) rather than lower ontological status — see Smith and Ceusters 2010 "Ontological Realism" §3.2. The choice to model `:System` as `bfo:ObjectAggregate` rather than as a unitary Object is documented as arguable in [LIMITATIONS.md §3.4](LIMITATIONS.md).
-
-### End-to-end walkthrough: Sentinel test fixture
-
-```mermaid
-flowchart TB
-    subgraph ASSERTED["1. Asserted (three-gate inputs from ARCO_instances_sentinel.ttl)"]
-        direction LR
-        SYS[":Sentinel_ID_System<br/><i>a :System</i>"]
-        MOD[":Sentinel_FaceID_Module<br/><i>a :HardwareComponent</i>"]
-        DISP[":Sentinel_FaceID_Disposition<br/><i>a :BiometricIdentificationCapability</i>"]
-        IUS[":Sentinel_IntendedUse_001<br/><i>a :IntendedUseSpecification</i>"]
-        PROC[":Sentinel_RBIP_Process<br/><i>prescribed process token,<br/>a :RemoteBiometricIdentificationProcess</i>"]
-        USS[":Sentinel_UseScenario_001<br/><i>a :UseScenarioSpecification</i>"]
-        NPR(((":NaturalPersonRole<br/><i>class IRI<br/>designated by USS</i>")))
-        SYS -->|bfo:has_part| MOD
-        MOD -->|ro:has_disposition| DISP
-        IUS -->|iao:is_about| SYS
-        IUS -->|cco:prescribes| PROC
-        USS -->|iao:is_about| SYS
-        USS -->|cco:designates| NPR
-    end
-    subgraph ENTAILED["2. Entailed by OWL-RL (no LLM, no rules engine; mechanical entailment)"]
-        E1[":Sentinel_FaceID_Disposition a :AnnexIIITriggeringCapability<br/>(via owl:unionOf membership; reality side)"]
-        E2[":Sentinel_ID_System a :HighRiskSystem<br/>(via Gate 1 bridge axiom; reality side: capability precondition)"]
-        E3[":Sentinel_ID_System a :AnnexIII1aApplicableSystem<br/>(via three-gate equivalentClass intersection;<br/>Gate 1 reality + Gates 2/3 representation)"]
-    end
-    subgraph CERT["3. Pipeline emits two artifacts"]
-        TXT["certificate.txt:<br/>PRIMARY: AnnexIII1aApplicableSystem<br/>LATENT-RISK FLAG: HighRiskSystem<br/>ANNEX III 1(a): VERIFIED<br/>(ENTAILED, Article 6(3) derogation not evaluated)"]
-        AUDIT["Audit-layer SPARQL ASKs independently confirm:<br/>traceability PASS, intended-use PASS,<br/>regulatory-alignment PASS, union-sync PASS<br/><i>two-layer cross-check, not just reasoner output</i>"]
-    end
-    ASSERTED ==>|OWL-RL three-gate axiom| ENTAILED
-    ENTAILED ==> TXT
-    ENTAILED ==> AUDIT
-
-    style ASSERTED fill:#f5f9ff
-    style ENTAILED fill:#fbf2e8
-    style CERT fill:#fff7e6
-```
-
-**Caption.** `Sentinel_ID_System` is the in-repo test fixture, not a real product. The same pipeline runs on any typed instance: `CreditScorer_001` (correctly entailed as `:AnnexIII5bApplicableSystem`), `VerificationKiosk_001` (correctly NOT entailed as Annex III 1(a) because verification is one-to-one, out of scope of Annex III 1(a) per Article 3(36)), and the gate-removal regression suite (one triple removed at a time, classification confirmed to fail). The Sentinel fixture intentionally omits provider-side modeling (`ProviderOrganization`, `AssessmentDocumentation`, `DerogationClaim`, etc.) from this view to keep the three-gate trace clear; those instances exist in the same fixture and feed the audit-layer SPARQL ASKs separately. Bearer simplification: `:HardwareComponent` stands in for the hardware-plus-concretized-software amalgam (per Beverley et al. "Capabilities" arXiv:2405.00183 §4.1: software qua pattern is not a continuant capable of bearing dispositions). This is a known modeling boundary, documented in LIMITATIONS.md §3.5.
-
----
-
-## What ARCO is, and what it is not
-
-ARCO is a **reference implementation** of a BFO 2020-aligned regulatory classification ontology. It demonstrates an architectural pattern (capability dispositions in independent continuants; intended-use as Directive ICE; use scenario as Designative ICE; three-gate `owl:equivalentClass` classification; two-layer separation between OWL-RL entailment and SPARQL ASK audit; HermiT OWL 2 DL cross-check on every commit) and exercises that pattern against a bounded scope of EU AI Act Annex III. The pattern is intended to be forked and adapted, not deployed as-is.
-
-**What ARCO does today:**
-
-- Deterministic OWL-RL classification of two Annex III items (1(a) biometric identification, 5(b) creditworthiness) given typed RDF instance data.
-- HermiT OWL 2 DL agreement on seven sentinel queries in CI, on every commit (independent reasoner, not the same engine that produces the classification).
-- Documented competency questions (CQ1-CQ12 in `docs/COMPETENCY_QUESTIONS.md`), each mapped to its layer (OWL-RL OWA, SHACL CWA, or SPARQL ASK post-reasoning audit), its regulatory anchor, and the file that answers it.
-- Reusable SPARQL queries with `?system` parameterization, callable across any system instance.
-- MCP plugin (`mcp/`) exposing the pipeline as typed tools for any LLM client.
-
-**What ARCO does NOT do, and why a real EU AI Act deployment needs more:**
-
-- **Documentary source anchoring per Article 3(12).** ARCO models `:IntendedUseSpecification` as a Directive ICE but does not yet require provenance back to instructions for use, technical documentation, or promotional material (the source classes Article 3(12) names). For a real determination, intended use must trace to specific clauses in specific documents.
-- **Article 6(3) derogation evaluation.** ARCO flags the existence of a `:DerogationClaim` artifact for human review; it does not evaluate the four conditions (a)-(d) or the no-profiling proviso. A defensible determination must.
-- **Real-time vs post remote biometric identification distinction.** Article 5 prohibition (real-time RBI in publicly accessible spaces by law enforcement, with narrow derogations) and Annex III 1(a) high-risk (post RBI) are different regulatory regimes. ARCO currently collapses both into one capability class.
-- **Provider vs deployer obligation chain.** ARCO has `:ProviderRole` and `:DeployerRole` but does not entail the Article 16 (provider) and Article 26 (deployer) obligation sets from a positive classification. A client deploying a third-party system needs to know which obligations attach to which actor.
-- **Coverage of Annex III items beyond 1(a) and 5(b).** Annex III has eight high-risk areas. ARCO models two.
-- **Per-deployment instance authoring from real provider documentation.** The current pattern requires a human (LLM-assisted) to type RDF describing a system. ARCO does not ingest unstructured vendor docs and produce the classification from them.
-
-**Producing a defensible client-facing determination for a real AI deployment requires:**
-
-1. A specific worked use case grounded in real provider documentation.
-2. Documentary anchoring of intended use to source-document IRIs that resolve to actual published documents.
-3. Article 6(3) derogation evaluation against the four named conditions.
-4. Provider/deployer obligation entailment from the positive classification.
-5. External legal counsel review. The encoded interpretation of regulatory text in this repository has not been externally reviewed by qualified counsel or by the EU AI Office.
-
-A worked walkthrough of one such use case (Bank Y deploys Vendor X's credit-scoring API for EU consumer loans) is in [docs/REFERENCE_USE_CASE.md](docs/REFERENCE_USE_CASE.md). It compares ARCO's current certificate to what a defensible determination would actually say, and enumerates the concrete gaps closing the difference.
-
-The architectural pattern ARCO demonstrates is reusable. The current scope is bounded. Closing the gap from "reference implementation" to "deployable compliance tool" is a distinct phase of work, not a finishing pass on the current artifact.
-
----
+ARCO is an open-source solo learning and research project. It is a research-grade applied ontology and reference pipeline, not a deployable compliance product. Current scope is bounded to EU Regulation 2024/1689 Annex III categories 1(a) (remote biometric identification) and 5(b) (creditworthiness evaluation). The encoded interpretation has not been externally reviewed by qualified counsel or by the EU AI Office. Issues, corrections, and modeling critiques are welcome.
 
 [![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml) [![ROBOT Validation](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml)
 
 ---
 
-## Active modeling considerations
+## TL;DR
 
-A small set of modeling choices in the current axioms are under active review. These are not announced changes; they are open questions documented as part of the artifact at the time of writing.
-
-1. **`HardwareComponent` requires a `CapabilityDisposition` filler.** The current restriction (`HardwareComponent ⊑ has_disposition some CapabilityDisposition`) is correct for capability-bearing hardware but over-specified for non-capability hardware such as power supplies, mounting, or cabling. A possible refinement would split the class so the disposition restriction lives on a more specific subclass (for example, `CapabilityBearingComponent ⊑ HardwareComponent`); whether that refinement is worth the modeling cost is being considered.
-
-2. **`OperationalProcess` requires realizing a `CapabilityDisposition`.** Same shape as (1). Maintenance, calibration, and startup processes involve the system but do not realize an AI capability. Whether to weaken the restriction or introduce a more specific subclass for capability-realizing processes is being considered.
-
-3. **Cloud-hosted and pure-software AI systems are out of current scope.** The mereology requires every `:System` to have at least one material `:SystemComponent` part. This accommodates on-device and on-prem AI; cloud-hosted systems whose physical infrastructure is shared do not satisfy the restriction without fictional component instances. Whether to revise the mereology, or to scope cloud-native AI to a sibling class with its own modeling, is being considered.
-
-4. **`bfo:0000051 has_part` between Information Content Entities.** The regulatory scaffold uses the generic mereological relation between ICEs (e.g., `:AnnexIII_List bfo:0000051 :AnnexIII_Condition_1a`). CCO and IAO offer more specific properties for parts of information. Whether the generic property is the right choice for ICE-to-ICE parthood, or whether to migrate to a more specific information-parthood relation, is being considered.
+- **What.** ARCO tells you whether a structured description of your AI system satisfies ARCO's formal encoding of EU AI Act Annex III conditions, and exactly why, with the entailment chain re-derivable from public axioms.
+- **How.** OWL-RL classification over a BFO 2020-grounded ontology (RO, IAO, CCO loaded as ROBOT BOT slim modules), SHACL for documentary completeness, SPARQL ASK on the reasoned graph for audit. HermiT OWL 2 DL cross-check in CI on every push to `main` and every pull request.
+- **Run it.** `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from a fresh clone produces a condition-assessment certificate at `runs/demo/certificate.txt`.
 
 ---
 
-## What organizations get
+## What's modeled
 
-- **Regulatory clarity at design time:** know whether your system satisfies Annex III conditions before you build it, not after you deploy it
-- **Inspectable evidence chain:** every classification traces from system components through capabilities and prescribed processes to the regulatory criteria encoded in the axioms. The structural correctness of the chain is verified end-to-end; the legal interpretation embedded in the axioms is the author's, and has not been externally reviewed by counsel.
-- **Earlier visibility into classification triggers:** structural prerequisites for high-risk classification are identifiable while architectural changes are still cheap.
-- **Repeatable, reproducible determinations:** same structured input, same classification, every run, with the entailment chain exposed and re-derivable from public axioms.
-- **No probabilistic model in the determination path:** classification is OWL-RL entailment over hand-authored structured instances, not a confidence score. Regulators audit reasoning chains, not probability distributions.
-- **Bounded scope: description-to-classification.** ARCO classifies systems described as structured RDF instances against the formal encoding. Authoring those descriptions (whether by hand, by form, or via upstream LLM-assisted extraction) is a separate problem and is not part of this pipeline.
+| Annex III category | Capability (Gate 1) | Prescribed process (Gate 2) | Affected role (Gate 3) |
+|---|---|---|---|
+| 1(a) Remote biometric identification | `BiometricIdentificationCapability` | `RemoteBiometricIdentificationProcess` | `NaturalPersonRole` |
+| 5(b) Creditworthiness evaluation | `CreditworthinessEvaluationCapability` | `CreditworthinessEvaluationProcess` | `NaturalPersonRole` |
+
+All three gates must be satisfied for category-specific Annex III applicability entailment. Cross-category isolation is formally enforced by the ontology (`owl:disjointWith` between capability classes), not asserted by hand. `HighRiskSystem` is a Gate-1-only latent-risk flag, not the legal high-risk category.
 
 ---
 
-## Proof: a real determination
+## How it works (the chain)
+
+```mermaid
+flowchart LR
+    SRC["Source documentation<br/>(vendor docs, intended use)"]
+    --> COMMIT["Reviewed RDF commitments<br/>(adjudicated triples)"]
+    --> REASON["BFO/CCO-grounded graph<br/>+ OWL-RL reasoning<br/>+ HermiT cross-check"]
+    --> ANSWER["Certificate<br/>(Annex III applicability + evidence path)"]
+    --> CDO["CDO-readable answer<br/>+ disclosed gaps"]
+
+    style SRC fill:#f5f5f5
+    style COMMIT fill:#eef2fb
+    style REASON fill:#eaf3ea
+    style ANSWER fill:#fbf2e8
+    style CDO fill:#fff7e6
+```
+
+Each arrow is auditable. Source documentation licenses reviewed RDF commitments via an evidence ledger (see `docs/EVIDENCE_TO_COMMITMENT_POLICY.md`). The reasoned graph is verified by `test_gate_removal.py` (each gate is independently necessary) and by HermiT cross-check on certificate-grade fixtures. The certificate's classification line and evidence path are graph-derived; the surrounding pass/fail summary fields are currently Python-composed and are being moved to a graph-bound emitter (see [`LIMITATIONS.md §7.5`](LIMITATIONS.md) and `OPEN_PROBLEMS.md`).
+
+For the ontology structure itself (class hierarchy, three-gate axiom, reality/representation cut, Sentinel walkthrough diagrams), see [`docs/ARCO_technical_overview.md`](docs/ARCO_technical_overview.md).
+
+---
+
+## Sample certificate output
 
 ```text
 ========================================================================
@@ -286,197 +61,93 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
   SYSTEM:                  Sentinel_ID_System
   REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)
   PRIMARY ARCO CLASSIFICATION:  AnnexIII1aApplicableSystem (ENTAILED, all three ARCO gates)
-  LATENT-RISK FLAG:             HighRiskSystem (INFERRED, Gate 1 capability precondition only)
+  LATENT-RISK FLAG:             HighRiskSystem (Annex III Capability-Precondition Flag;
+                                INFERRED via Gate 1 only;
+                                not the EU AI Act legal high-risk classification)
   TRIGGERING CAPABILITY:   Sentinel_FaceID_Disposition
   EVIDENCE PATH:
   Sentinel_ID_System -> Sentinel_FaceID_Module -> Sentinel_FaceID_Disposition
-
-  [classification layer — OWL-RL entailment]
   SHACL:                   PASS
-  ENTAILMENT:              PASS
-  ANNEX III 1(a):          VERIFIED (ENTAILED)
+  ANNEX III 1(a):          VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)
   ANNEX III 5(b):          NOT APPLICABLE
+  ENTAILED TRIPLES ADDED:  +19965
 
-  [audit documentation layer — SPARQL ASK on reasoned graph]
-  TRACEABILITY:            PASS
-  LATENT RISK:             DETECTED
-  INTENDED USE:            PASS
-  OBLIGATION:              PASS
-  REG. ALIGNED:            PASS
+  [exception flags - provider-submitted claims, human review required]
+  ART. 6(3) DEROGATION:    NOT FLAGGED
+  5(b) FRAUD EXCLUSION:    NOT FLAGGED
 
-  ENTAILED TRIPLES ADDED:  +19862
-
-  Classification layer: PASS
-  Audit layer:          PASS
+  SCOPE: ARCO assesses structured RDF instance data supplied to the pipeline.
+         It does not verify raw vendor documentation, the physical deployed
+         system, or legal sufficiency. ARCO currently models Annex III 1(a)
+         (biometric identification) and 5(b) (creditworthiness) only.
 ========================================================================
 ```
 
-This determination is **derived**, not asserted. If any category-specific gate were not present, the Annex III applicability class would not be inferred. The reference pipeline writes the supporting certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
+The classification result is **derived**, not asserted: removing any gate triple causes the entailment to fail (verified by `test_gate_removal.py`). The reference pipeline writes the certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
 
-**Why so many entailed triples?** The `+19862` figure reflects the depth of the upper-ontology hierarchy ARCO grounds in. Most of those derived triples are housekeeping under OWL 2 RL semantics: subclass closure across BFO, RO, IAO, and CCO; inverse-property materialization (every `is_about` assertion produces its inverse triple); property-characteristic propagation; and domain/range inferences. The actually load-bearing classification triples are a small subset, including:
-
-- `:Sentinel_ID_System rdf:type :HighRiskSystem` (entailed via the Gate-1 bridge axiom)
-- `:Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem` (entailed via the three-gate `equivalentClass` axiom)
-- `:Sentinel_FaceID_Disposition rdf:type :AnnexIIITriggeringCapability` (entailed via `rdfs:subClassOf`)
-- A handful of inverse-aboutness triples supporting Gates 2 and 3
-
-A regulatory determination is fundamentally a small number of bits of information ("does this system meet the conditions, yes or no, and which class does it instantiate"). The volume of derived triples is what allows downstream BFO-aligned consumers to reason over the same materialized graph without re-deriving the substrate.
+**Output-layer caveat (open work).** The certificate accurately reports the OWL-RL entailment for this fixture. However, several certificate fields are currently composed by Python rather than bound from named SPARQL queries against the reasoned graph. An output-provenance contract has been drafted (`03_TECHNICAL_CORE/scripts/output_manifest_v2.yaml`) with a draft enforcement test (`test_output_provenance.py`) that names the synthesis patterns to remove. Until the v2 emitter lands, treat the certificate as: classification line entailed, evidence path graph-derived, surrounding pass/fail summary fields known-imprecise. See [`LIMITATIONS.md §7.5`](LIMITATIONS.md) and `OPEN_PROBLEMS.md` PRs B-E.
 
 ---
 
-## How it works
+## What ARCO does NOT do
 
-**Input:** A system description modeled as instances: components, roles, capabilities, intended use context.
+A real EU AI Act deployment needs more than ARCO currently provides:
 
-**Process:**
-1. The system's structure is encoded in a formal ontology grounded in [BFO](https://basic-formal-ontology.org/) (the same foundational ontology used across biomedical, defense, and industrial standards)
-2. OWL-RL reasoning derives what the system is capable of and whether it meets the category-specific three-gate classification condition: capability (reality-side), prescribed process type (representation-side), and affected role category (representation-side). All three gates check specific content, not the existence of documentation alone.
-3. SHACL validation enforces documentary completeness
-4. SPARQL audit queries run on the reasoned graph to confirm that the right content is explicitly declared and that the law's process prescription aligns with the provider's documentation. These queries inspect what the reasoning produced; they do not produce the classification themselves.
+- **No documentary source anchoring per Article 3(12).** ARCO models `:IntendedUseSpecification` as a Directive ICE but does not yet require provenance back to instructions for use, technical documentation, or promotional material. A real determination must trace intended use to specific clauses in specific documents.
+- **No Article 6(3) derogation evaluation.** ARCO flags the existence of a `:DerogationClaim` artifact for human review; it does not evaluate the four conditions (a)-(d) or the no-profiling proviso.
+- **No real-time vs post RBI distinction or Article 5 routing.** Annex III 1(a) covers RBI generally; Article 5(1)(h) prohibits a real-time, publicly-accessible-spaces, law-enforcement subset. ARCO does not model the distinction; downstream users must treat that as a coverage gap.
+- **No provider/deployer obligation entailment.** ARCO has `:ProviderRole` and `:DeployerRole` but does not entail Article 16 (provider) or Article 26 (deployer) obligation sets from a positive classification.
+- **No coverage of Annex III items beyond 1(a) and 5(b).** Annex III has eight high-risk areas; ARCO models two.
+- **No raw-document ingestion.** ARCO classifies hand-reviewed structured RDF, not unstructured vendor PDFs.
 
-**Output:** A formal condition assessment certificate with full evidence path: which component bears which capability, which Annex III condition it satisfies, and why.
+Producing a defensible client-facing determination for a real deployment requires a worked use case grounded in real provider documentation, Article 6(3) derogation evaluation, provider/deployer obligation entailment, and external counsel review. A worked walkthrough comparing ARCO's current certificate to what a defensible determination would say lives in [`docs/REFERENCE_USE_CASE.md`](docs/REFERENCE_USE_CASE.md).
 
-**Independent verification:** A separate CI workflow runs a second validation pass using [ROBOT](https://robot.obolibrary.org/) (v1.9.10) and HermiT, a full OWL 2 DL reasoner, on every push to `main` and every pull request. This workflow is independent of the production pipeline and confirms three things. First, the ontology is OWL 2 DL conformant: the gate axioms — including the OWL inverse-property restrictions used in Gates 2 and 3, which let an axiom say "the system has, about it, an `IntendedUseSpecification` that prescribes a regulated process" rather than introducing a named inverse for `iao:0000136` — are valid under the OWL 2 Description Logic profile. Second, the ontology is consistent under a DL reasoner with no contradictions found. Third, the production OWL-RL reasoner and HermiT agree on all seven sentinel queries spanning the classification and audit layers for the Sentinel-ID system: same input, same output, both reasoners. OWL 2 RL is a restricted fragment of OWL 2 DL, so the agreement check confirms RL is not producing classifications the full DL specification would reject or missing ones it would require.
-
-The system is **agnostic by design**. New AI systems are evaluated by authoring new instance data against the same framework. The core ontology, validation rules, and classification logic do not change.
-
----
-
-## Why three layers, not one
-
-OWL, SHACL, and SPARQL look like alternative tools for the same job. They aren't. They answer different questions, and the regulatory determination case requires all three.
-
-**OWL operates under the Open World Assumption.** What isn't asserted is unknown, not false. Reasoning over OWL adds new entailments because the world might contain facts that haven't been recorded. This makes OWL the right tool for **classification**: "is this system high-risk?" becomes a logical question with a derivable answer that the reasoner produces from axioms and asserted facts.
-
-**SHACL operates under the Closed World Assumption.** A dataset either matches the shape or it doesn't. Reasoning is irrelevant; what matters is whether the record is structurally complete against the constraint. This makes SHACL the right tool for **documentary completeness**: given a determination must rest on specific evidence (an IntendedUseSpecification, a UseScenarioSpecification), SHACL checks the record for that evidence's structural presence.
-
-**SPARQL queries the reasoned graph after both layers have run.** It doesn't entail; it inspects. This is the right tool for **audit**: pattern-match the post-reasoning graph for conditions worth human attention (derogation claims, fraud-exclusion candidates, regulatory alignment).
-
-For regulatory determination, all three are required because three different audiences need three different artifacts:
-
-- *"Is this system high-risk?"* — needs an entailed answer re-derivable from public axioms. **OWL's job.**
-- *"Is the supporting evidence structurally complete?"* — needs a closed-world check that the record contains the required content. **SHACL's job.**
-- *"Are there conditions warranting additional human review?"* — needs a pattern-match on the reasoned graph. **SPARQL's job.**
-
-Remove any layer and a different audience loses the artifact they need: a complete record with no determinative power, a determination with no defensible supporting record, or answers without inspectable transparency.
-
-The OWL-vs-SHACL choice some practitioners frame as a tooling decision is really an artifact-of-different-audiences distinction. Recent formal work — particularly Sirin et al., *"SHACL: A Description Logic in Disguise"* — shows the two formalisms are bridgeable, supporting the case for treating them as different layers of a single architecture rather than competing solutions.
+The architectural pattern ARCO demonstrates is reusable. The current scope is bounded. Closing the gap from "reference implementation" to "deployable compliance tool" is a distinct phase of work, not a finishing pass on the current artifact. See [`LIMITATIONS.md`](LIMITATIONS.md) for the full disclosure surface.
 
 ---
 
-## Why the approach is structural, not behavioral
+## Getting started
 
-Liability attaches to what a system **is able to do**, not only to what it happens to be doing. Modern regulation classifies by capability, not configuration.
+Requirements: Python 3.10 or newer.
 
-ARCO treats capability as something that **resolves from structure**, traced from system components through dispositions to regulatory conditions. If the structural prerequisites for a regulated capability are not present, the capability does not exist for regulatory purposes. If they are present, the classification follows as a logical consequence.
+```bash
+git clone https://github.com/Amosk21/ARCO.git
+cd ARCO
+python -m venv .venv
+source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python 03_TECHNICAL_CORE/scripts/run_pipeline.py
+```
 
-This makes ARCO different from two adjacent categories of tool. **Post-hoc behavioral monitors** — red-teaming, content moderation, runtime policy enforcement — observe what a deployed system does. They cannot tell you whether a system *is* high-risk before it ships; they assume that classification has already happened. **Probabilistic scorers** — risk-rating LLMs, fine-tuned classifiers — produce confidence levels, not entailments. Regulators audit chains of reasoning, not probability distributions. ARCO produces the chain.
-
-Given the hand-reviewed structured input, the classification is deterministic, traceable, and stable. It changes only when the structured description of the system changes.
+The pipeline loads BFO + BOT-extracted RO/IAO/CCO + ARCO core/governance + Sentinel instance data; runs OWL-RL closure (about 7,800 asserted -> 27,765 post-reasoning); validates SHACL; runs SPARQL ASK audit queries on the reasoned graph; and writes outputs to `runs/demo/`. The same pipeline runs in CI (Actions > ARCO Demo Run) and the workflow uploads `runs/demo/` as a downloadable artifact.
 
 ---
 
 ## Foundational ontology versions
 
-| Ontology | Version / release | IRI namespace used | How it's loaded |
-|----------|------------------|--------------------|------------------|
-| **BFO** | BFO 2020 (ISO/IEC 21838-2:2021) | `http://purl.obolibrary.org/obo/BFO_` | Full ontology loaded from `03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl` |
-| **RO** | OBO Relations Ontology release `2025-12-17` | `http://purl.obolibrary.org/obo/RO_` | ROBOT BOT-extracted slim module loaded from `03_TECHNICAL_CORE/ontology/imports/ro_bot.owl` |
-| **IAO** | Information Artifact Ontology release `2026-03-30` | `http://purl.obolibrary.org/obo/IAO_` | ROBOT BOT-extracted slim module loaded from `03_TECHNICAL_CORE/ontology/imports/iao_bot.owl` |
-| **CCO** | Common Core Ontologies release `v1.7-2024-11-03` (last release before the v2.0 IRI-namespace migration) | `http://www.ontologyrepository.com/CommonCoreOntologies/` | ROBOT BOT-extracted slim module loaded from `03_TECHNICAL_CORE/ontology/imports/cco_bot.owl`, plus a small set of local subsumption assertions in `ARCO_governance_extension.ttl` |
+| Ontology | Version | Loaded as |
+|---|---|---|
+| **BFO** | BFO 2020 (ISO/IEC 21838-2:2021) | Full ontology, `imports/bfo-2020.owl` |
+| **RO** | OBO Relations Ontology release `2025-12-17` | ROBOT BOT slim module |
+| **IAO** | Information Artifact Ontology release `2026-03-30` | ROBOT BOT slim module |
+| **CCO** | Common Core Ontologies v1.7 (pinned semantic-IRI release) | ROBOT BOT slim module + local bridge declarations |
 
-**BFO 2020** is the second edition of Basic Formal Ontology, standardized as ISO/IEC 21838-2:2021. ARCO uses the OBO Foundry numeric-ID namespace (`BFO_0000015`, `BFO_0000016`, etc.) that is definitive of this release. BFO is loaded as a full local file because it is small (~100 KB), ISO-standardized, and the authoritative grounding for everything else; this matches IAO's own pattern of full-importing BFO while extracting slim modules of any other dependency.
-
-**RO**, **IAO**, and **CCO** are loaded as ROBOT-extracted slim modules using `--method BOT`, a syntactic locality variant. The seed term lists ARCO depends on are version-controlled in `03_TECHNICAL_CORE/ontology/imports/seeds/{ro,iao,cco}_seed.txt`, and the slim modules can be regenerated reproducibly from the pinned upstream releases. This is the OBO Foundry / Ontology Development Kit (ODK) standard pattern, used by Gene Ontology, the OBO Relations Ontology itself, and the hundreds of ODK-managed projects.
-
-**ARCO subsumption assertions for CCO information-content classes.** CCO maintains its own information-content hierarchy in parallel to IAO's: in current CCO, both `cco:InformationContentEntity` and IAO's `iao:0000030` sit as siblings under `bfo:0000031` (Generically Dependent Continuant) rather than one being subordinate to the other. ARCO's `ARCO_governance_extension.ttl` contains two `rdfs:subClassOf` axioms (`cco:DirectiveICE rdfs:subClassOf iao:0000030`, `cco:DescriptiveICE rdfs:subClassOf iao:0000030`) that assert subsumption from CCO's directive and descriptive ICE classes into IAO's hierarchy. This is a deliberate parallel-subsumption choice ARCO makes to integrate the two information-content models for the directive/descriptive distinction the gate axioms depend on; it is not a fix for an upstream omission. The pinned CCO release (v1.7-2024-11-03) uses semantic IRIs and the class name `DirectiveICE`; current CCO v2.0 has migrated to opaque numeric IRIs and renamed the class to `PrescriptiveICE`. ARCO's encoding is correct against its pinned version; migration to v2.0 is tracked as a documented gap. The remaining CCO declarations in the file are redundant with the BOT-extracted module and are kept for in-file readability rather than logical effect.
-
-### Why ROBOT BOT slim modules
-
-Using `robot extract --method BOT` to pull slim, version-pinned modules is the OBO Foundry's standard pattern for depending on external ontologies. The choice rests on five practical points:
-
-1. **Formal entailment-preservation guarantee.** BOT is a syntactic locality module variant (Cuenca Grau, Horrocks, Kazakov, Sattler 2007/2008): for any axiom α whose signature is contained in the seed signature Σ, the extracted module entails α iff the full upstream ontology does. This includes property characteristics (`FunctionalProperty`, `Transitive`, `Symmetric`), property chain axioms, inverse-of axioms, and `rdfs:domain` / `rdfs:range`. ARCO's gate axioms depend on these — particularly OWL inverse-property restrictions on `iao:0000136` — so this is the strict property the project needs.
-2. **OBO Foundry / ODK convention.** The Ontology Development Kit, which scaffolds ~hundreds of OBO Foundry projects, hardcodes `module_type_slme: "BOT"` as default. Gene Ontology, OBI, ChEBI, and the OBO Relations Ontology itself all ship BOT-extracted slim modules for their dependencies. ARCO matching this convention shortens the trust chain for any reviewer fluent in OBO practice.
-3. **MIREOT is legacy and unsafe for reasoning-critical projects.** ROBOT's own documentation states MIREOT "preserves the hierarchy of the input ontology (subclass and subproperty relationships), but does not try to preserve the full set of logical entailments." The documented MIREOT failure mode is silently dropping property typing and characteristic axioms. For a project whose headline product is OWL-DL reasoning correctness over inverse-property gate axioms, MIREOT is the wrong choice on principle and BOT is the right one.
-4. **Reproducibility.** Each slim module is regenerable from a pinned upstream release using a single ROBOT command with a version-controlled seed file. The seed lists are in `03_TECHNICAL_CORE/ontology/imports/seeds/`. A reviewer auditing ARCO can re-run the extraction and verify byte-equivalent output.
-5. **Operational scaling.** A pipeline run on Sentinel-ID with the BOT modules loads roughly 7,744 asserted triples and produces 27,454 post-reasoning (about 19,710 derived). The HermiT reasoning step in the ROBOT validation workflow runs in approximately seven minutes on the merged ontology. An earlier intermediate state of ARCO loaded the full upstream releases of RO and IAO, which took the HermiT step to thirty to forty minutes and was projected to grow to one to three hours when CCO was added; this is operationally noisy without adding any reasoning-correctness signal that BOT does not already provide. The full-import experiments are preserved in git history at PRs #24 and #25 and confirmed that the slim modules produce byte-identical classification outputs.
-
-The conventional argument for full imports — single-hash audit traceability against published upstream releases — is recovered here by the seed-file plus version-pin pattern: the seed lists are version-controlled, the upstream releases are pinned, and the extraction tool (ROBOT v1.9.10) is pinned in CI. The audit story becomes "ARCO uses BOT-extracted modules of these specific upstream releases, regenerable from these seed files using this specific ROBOT command," which is a tighter and more reproducible claim than "ARCO uses these full upstream releases" because every step is mechanically verifiable.
+For the rationale behind ROBOT BOT slim modules over MIREOT or full imports, and the bridge declarations ARCO carries on top, see [`docs/ARCO_imports_rationale.md`](docs/ARCO_imports_rationale.md).
 
 ---
 
-## Orientation (5-minute entry point)
+## Documentation
 
-**1. Run the reference pipeline**
-The quickest way to evaluate the project is to run the deterministic reference assessment.
-→ [`run_pipeline.py`](03_TECHNICAL_CORE/scripts/run_pipeline.py)
-
-**2. Inspect the core artifacts**
-The implementation is intentionally small: ontology files, SHACL validation, SPARQL audit queries, and Python orchestration.
-→ [`03_TECHNICAL_CORE/`](03_TECHNICAL_CORE/)
-
----
-
-## Public repository scope
-
-This repository is kept intentionally narrow: the public surface is the working ontology, validation/audit artifacts, executable pipeline, and CI configuration. Internal strategy notes, agent guardrails, sales drafts, generated run outputs, local virtual environments, and unreviewed concept diagrams are not part of the versioned source.
-
----
-
-## Current scope and planned hardening
-
-The current public implementation demonstrates ARCO on two EU AI Act Annex III categories: `1(a)` remote biometric identification and `5(b)` creditworthiness evaluation. The pipeline classifies structured RDF instance data; it does not ingest raw vendor documentation, inspect deployed systems, or issue legal approval to deploy.
-
-Near-term hardening work is intentionally scoped:
-
-- replace legacy concept diagrams with pipeline-accurate explanatory visuals
-- add gate-removal regression tests for the `5(b)` creditworthiness path
-- replace SPARQL placeholder substitution with bound system variables
-- document the Gate 3 regulatory-aboutness encoding convention
-- expand modeled Annex III categories only with corresponding ontology, SHACL, SPARQL, and regression coverage
-
----
-
-## Getting started (run the reference pipeline)
-
-### Requirements
-
-- Python 3.10 or newer
-
-### Fresh clone
-
-```bash
-git clone https://github.com/Amosk21/ARCO.git
-cd ARCO
-```
-
-### Create a local environment and install dependencies
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
-
-The virtual environment is local-only and intentionally not committed to the repository.
-
-### Run the pipeline from the repository root
-
-```bash
-python 03_TECHNICAL_CORE/scripts/run_pipeline.py
-```
-
-The pipeline will:
-
-1. Load ontology (core + governance extension) and instance data
-2. Run OWL-RL reasoning to materialize entailments (7,744 asserted -> 27,454 post-reasoning, on the BFO + BOT-extracted RO/IAO/CCO + ARCO union)
-3. Validate documentary completeness with SHACL
-4. Run two layers of checks:
-   - **Classification layer (OWL-RL):** SHACL conformance, `HighRiskSystem` latent-risk entailment, Annex III 1(a) three-gate entailment (the formal classification outputs)
-   - **Audit documentation layer (SPARQL ASK on reasoned graph):** traceability, latent risk, intended use, obligation linkage, regulatory alignment (inspects declared documentary content and confirms it matches what the classification requires)
-5. Emit a formal condition assessment certificate with evidence path
-6. Write artifact files to `runs/demo/` (certificate, summary JSON, determination packet, evidence bindings, SHACL report, HTML view)
-
-### Run in GitHub Actions
-
-This pipeline also runs automatically in CI. Go to **Actions > ARCO Demo Run > Run workflow** to trigger it manually. The workflow uploads `runs/demo/` as a downloadable artifact.
+| Topic | Document |
+|---|---|
+| Class hierarchy, gate axioms, walkthrough diagrams | [`docs/ARCO_technical_overview.md`](docs/ARCO_technical_overview.md) |
+| OWL vs SHACL vs SPARQL: which layer does what, in ARCO | [`docs/ARCO_three_layers.md`](docs/ARCO_three_layers.md) |
+| Why structural-not-behavioral; entailed-triples explanation; active modeling considerations | [`docs/ARCO_design_choices.md`](docs/ARCO_design_choices.md) |
+| Why ROBOT BOT slim modules; bridge declarations | [`docs/ARCO_imports_rationale.md`](docs/ARCO_imports_rationale.md) |
+| Competency questions and modeling interview flow | [`docs/COMPETENCY_QUESTIONS.md`](docs/COMPETENCY_QUESTIONS.md) |
+| Per-commitment modeling workbench | [`docs/MODELING_QUESTION_MAP.md`](docs/MODELING_QUESTION_MAP.md) |
+| Current modeling adequacy verdict | [`docs/MODELING_ADEQUACY_BRIEF.md`](docs/MODELING_ADEQUACY_BRIEF.md) |
+| Source-to-commitment policy | [`docs/EVIDENCE_TO_COMMITMENT_POLICY.md`](docs/EVIDENCE_TO_COMMITMENT_POLICY.md) |
+| Scope cuts and disclosed non-claims | [`LIMITATIONS.md`](LIMITATIONS.md) |
+| Active fix register | [`OPEN_PROBLEMS.md`](OPEN_PROBLEMS.md) |
+| Worked reference use case (in progress) | [`docs/REFERENCE_USE_CASE.md`](docs/REFERENCE_USE_CASE.md) |
