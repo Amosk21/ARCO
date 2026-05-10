@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -241,17 +242,45 @@ def arco_run_pipeline(
 # Tool 2: arco_run_hermit_crosscheck
 # ---------------------------------------------------------------------------
 
-# Mirrors the seven-query expected baseline in .github/workflows/robot-validate.yml.
-# The Sentinel-ID system is the canonical fixture; expected values are the OWL-RL
-# baseline. Both reasoners must agree for the cross-check to PASS.
-HERMIT_QUERIES: dict[str, tuple[str, bool]] = {
-    "high_risk":    ("check_high_risk_inference.sparql",   True),
-    "annex_1a":     ("check_annex_iii_1a_entailment.sparql", True),
-    "annex_5b":     ("check_annex_iii_5b_entailment.sparql", False),
-    "intended_use": ("check_intended_use.sparql",           True),
-    "traceability": ("check_assessment_traceability.sparql", True),
-    "obligation":   ("check_obligation_link.sparql",        True),
-    "reg_align":    ("check_regulatory_alignment.sparql",   True),
+HERMIT_SCENARIOS: dict[str, tuple[str, str]] = {
+    "sentinel": ("ARCO_instances_sentinel.ttl", "Sentinel_ID_System"),
+    "credit_scorer": ("ARCO_instances_creditscoring.ttl", "CreditScorer_001"),
+    "verification_kiosk": ("ARCO_instances_verification.ttl", "VerificationKiosk_001"),
+    "decoy": ("ARCO_instances_adversarial_decoy.ttl", "DecoySystem_001"),
+    "flag_biometric": ("ARCO_instances_flag_tests.ttl", "FlagTest_BiometricSystem_WithDerogationClaim"),
+    "flag_credit": ("ARCO_instances_flag_tests.ttl", "FlagTest_CreditSystem_WithFraudProcess"),
+}
+
+HERMIT_SCENARIO_ALIASES: dict[str, str] = {
+    "sentinel": "sentinel",
+    "sentinel_id": "sentinel",
+    "sentinel_id_system": "sentinel",
+    "credit": "credit_scorer",
+    "creditscorer": "credit_scorer",
+    "credit_scorer": "credit_scorer",
+    "creditscoring": "credit_scorer",
+    "verification": "verification_kiosk",
+    "kiosk": "verification_kiosk",
+    "verification_kiosk": "verification_kiosk",
+    "verificationkiosk": "verification_kiosk",
+    "decoy": "decoy",
+    "decoysystem": "decoy",
+    "decoy_system": "decoy",
+    "flag_biometric": "flag_biometric",
+    "flagtest_biometric": "flag_biometric",
+    "flagtest_biometricsystem_withderogationclaim": "flag_biometric",
+    "flag_credit": "flag_credit",
+    "flagtest_credit": "flag_credit",
+    "flagtest_creditsystem_withfraudprocess": "flag_credit",
+}
+
+# Mirrors the query set in hermit_cross_check.py. The MCP tool runs one named
+# scenario at a time; CI runs the full fixture sweep through the standalone script.
+HERMIT_QUERIES: dict[str, str] = {
+    "high_risk": "check_high_risk_inference.sparql",
+    "annex_1a": "check_annex_iii_1a_entailment.sparql",
+    "annex_5b": "check_annex_iii_5b_entailment.sparql",
+    "latent": "detect_latent_risk.sparql",
 }
 
 
@@ -266,15 +295,44 @@ def _find_robot_jar() -> Path | None:
     return None
 
 
-@mcp_server.tool()
-def arco_run_hermit_crosscheck() -> dict[str, Any]:
-    """Run the OWL 2 DL HermiT cross-check on the Sentinel reasoned graph and verify all seven sentinel queries match between HermiT and OWL-RL.
+def _normalize_hermit_scenario(fixture: str | None) -> tuple[str, Path, str] | dict[str, Any]:
+    """Resolve a user-facing fixture name to the scenario checked by HermiT."""
+    requested = (fixture or "sentinel").strip().lower().replace("-", "_").replace(" ", "_")
+    scenario_key = HERMIT_SCENARIO_ALIASES.get(requested)
+    if scenario_key is None:
+        return _err(
+            f"Unknown HermiT fixture: {fixture!r}",
+            valid_fixtures=sorted(HERMIT_SCENARIOS.keys()),
+        )
+    fixture_name, system_local = HERMIT_SCENARIOS[scenario_key]
+    instance_file = ONTOLOGY_DIR / fixture_name
+    if not instance_file.exists():
+        return _err(
+            f"Fixture file not found: {instance_file}",
+            fixture=scenario_key,
+            system=system_local,
+        )
+    return scenario_key, instance_file, system_local
 
-    Materializes the HermiT-reasoned graph via ROBOT, then runs the seven SPARQL
-    classification queries with ?system bound to Sentinel_ID_System and compares
-    each result against the OWL-RL baseline. ROBOT must be installed (jar at
+
+@mcp_server.tool()
+def arco_run_hermit_crosscheck(fixture: str | None = "sentinel") -> dict[str, Any]:
+    """Run a single-fixture OWL 2 DL HermiT cross-check and compare it with OWL-RL.
+
+    Materializes the HermiT-reasoned graph via ROBOT, computes the OWL-RL
+    baseline for the same fixture, then compares the classification query set
+    used by hermit_cross_check.py. ROBOT must be installed (jar at
     ~/.local/share/robot/robot.jar or $ROBOT_JAR).
+
+    Args:
+        fixture: One named certificate-grade scenario: sentinel, credit_scorer,
+            verification_kiosk, decoy, flag_biometric, or flag_credit.
     """
+    scenario = _normalize_hermit_scenario(fixture)
+    if isinstance(scenario, dict):
+        return scenario
+    fixture_key, instance_file, system_local = scenario
+
     robot_jar = _find_robot_jar()
     if robot_jar is None:
         return _err(
@@ -282,13 +340,33 @@ def arco_run_hermit_crosscheck() -> dict[str, Any]:
             "~/.local/share/robot/robot.jar or set ROBOT_JAR. "
             "Download: https://github.com/ontodev/robot/releases",
             hermit_status="UNAVAILABLE",
+            fixture=fixture_key,
+            system=system_local,
         )
 
-    # Step 1: merge ARCO ontology files (matches the workflow's merge step).
-    import tempfile
-    with tempfile.TemporaryDirectory() as tmp:
-        merged = Path(tmp) / "arco_merged.owl"
-        reasoned = Path(tmp) / "arco_reasoned.owl"
+    # Step 1: compute the OWL-RL baseline for the same fixture.
+    try:
+        g_rl = _load_reasoned_graph(instance_file)
+    except Exception as e:
+        return _err(
+            f"OWL-RL baseline failed for {instance_file.name}: {e}",
+            hermit_status="FAIL",
+            fixture=fixture_key,
+            system=system_local,
+        )
+
+    # Step 2: merge ARCO ontology files (matches the standalone cross-check).
+    import shutil
+    # ROBOT/HermiT can leave Windows file handles open briefly after exit. Use
+    # manual temp cleanup so a locked temp dir cannot replace the tool result
+    # with a post-success cleanup exception.
+    scratch_root = REPO_ROOT / ".tmp-hermit"
+    scratch_root.mkdir(exist_ok=True)
+    tmp = scratch_root / f"arco-mcp-{uuid.uuid4().hex}"
+    tmp.mkdir()
+    try:
+        merged = tmp / "arco_merged.owl"
+        reasoned = tmp / "arco_reasoned.owl"
         merge_cmd = [
             "java", "-jar", str(robot_jar), "merge",
             "--input", str(ONTOLOGY_DIR / "imports" / "bfo-2020.owl"),
@@ -297,83 +375,130 @@ def arco_run_hermit_crosscheck() -> dict[str, Any]:
             "--input", str(ONTOLOGY_DIR / "imports" / "cco_bot.owl"),
             "--input", str(ONTOLOGY_DIR / "ARCO_core.ttl"),
             "--input", str(ONTOLOGY_DIR / "ARCO_governance_extension.ttl"),
-            "--input", str(ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"),
-            "--output", str(merged),
+            "--input", str(instance_file),
+            "--output", merged.name,
         ]
         try:
-            proc = subprocess.run(merge_cmd, capture_output=True, text=True, timeout=600)
+            proc = subprocess.run(
+                merge_cmd,
+                cwd=str(tmp),
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
         except subprocess.TimeoutExpired:
-            return _err("ROBOT merge timed out", hermit_status="FAIL")
+            return _err(
+                "ROBOT merge timed out",
+                hermit_status="FAIL",
+                fixture=fixture_key,
+                system=system_local,
+            )
         if proc.returncode != 0:
             return _err(
                 "ROBOT merge failed",
                 hermit_status="FAIL",
+                fixture=fixture_key,
+                system=system_local,
+                returncode=proc.returncode,
+                stdout_tail=proc.stdout[-2000:] if proc.stdout else "",
                 stderr_tail=proc.stderr[-2000:] if proc.stderr else "",
             )
 
-        # Step 2: HermiT reason with ClassAssertion + SubClass, indirect on.
-        # Same flags as the workflow so behavior matches CI.
+        # Step 3: HermiT reason with ClassAssertion + SubClass, indirect on.
+        # Same flags as the standalone cross-check so behavior matches CI.
         reason_cmd = [
             "java", "-jar", str(robot_jar), "reason",
             "--reasoner", "hermit",
             "--axiom-generators", "ClassAssertion SubClass",
             "--include-indirect", "true",
-            "--input", str(merged),
-            "--output", str(reasoned),
+            "--input", merged.name,
+            "--output", reasoned.name,
         ]
         try:
-            proc = subprocess.run(reason_cmd, capture_output=True, text=True, timeout=600)
+            proc = subprocess.run(
+                reason_cmd,
+                cwd=str(tmp),
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
         except subprocess.TimeoutExpired:
-            return _err("HermiT reasoning timed out", hermit_status="FAIL")
+            return _err(
+                "HermiT reasoning timed out",
+                hermit_status="FAIL",
+                fixture=fixture_key,
+                system=system_local,
+            )
         if proc.returncode != 0 or not reasoned.exists():
             return _err(
                 "HermiT reasoning failed",
                 hermit_status="FAIL",
+                fixture=fixture_key,
+                system=system_local,
+                returncode=proc.returncode,
+                stdout_tail=proc.stdout[-2000:] if proc.stdout else "",
                 stderr_tail=proc.stderr[-2000:] if proc.stderr else "",
             )
 
-        # Step 3: run the seven SPARQL ASK queries against the HermiT graph and
-        # diff against the OWL-RL baseline.
+        # Step 4: run the SPARQL ASK queries against both graphs and diff.
         try:
-            g = Graph()
-            g.parse(str(reasoned), format="xml")
+            g_dl = Graph()
+            g_dl.parse(str(reasoned), format="xml")
         except Exception as e:
-            return _err(f"Failed to parse HermiT-reasoned graph: {e}", hermit_status="FAIL")
+            return _err(
+                f"Failed to parse HermiT-reasoned graph: {e}",
+                hermit_status="FAIL",
+                fixture=fixture_key,
+                system=system_local,
+            )
 
-        sentinel_iri = _system_iri("Sentinel_ID_System")
+        system_iri = _system_iri(system_local)
         query_results = []
         mismatches = []
-        for name, (qfile, expected) in HERMIT_QUERIES.items():
+        for name, qfile in HERMIT_QUERIES.items():
             qpath = REASONING_DIR / qfile
             try:
                 q = qpath.read_text(encoding="utf-8")
-                hermit_result = bool(g.query(q, initBindings={"system": sentinel_iri}))
+                owlrl_result = bool(g_rl.query(q, initBindings={"system": system_iri}))
+                hermit_result = bool(g_dl.query(q, initBindings={"system": system_iri}))
             except Exception as e:
-                return _err(f"SPARQL query {name} failed: {e}", hermit_status="FAIL")
-            match = hermit_result == expected
+                return _err(
+                    f"SPARQL query {name} failed: {e}",
+                    hermit_status="FAIL",
+                    fixture=fixture_key,
+                    system=system_local,
+                )
+            match = hermit_result == owlrl_result
             query_results.append({
                 "name": name,
                 "hermit_result": hermit_result,
-                "owlrl_result": expected,
-                "expected": expected,
+                "owlrl_result": owlrl_result,
                 "match": match,
             })
             if not match:
                 mismatches.append({
                     "name": name,
                     "hermit": hermit_result,
-                    "owlrl": expected,
+                    "owlrl": owlrl_result,
                 })
 
         agreement = len(mismatches) == 0
         return {
             "hermit_status": "PASS" if agreement else "FAIL",
+            "fixture": fixture_key,
+            "fixture_file": instance_file.name,
+            "system": system_local,
             "query_results": query_results,
             "mismatches": mismatches,
             "agreement": agreement,
             "queries_total": len(query_results),
             "queries_matching": sum(1 for r in query_results if r["match"]),
         }
+    finally:
+        try:
+            shutil.rmtree(tmp, ignore_errors=True)
+        except Exception:
+            pass
 
 
 # ---------------------------------------------------------------------------

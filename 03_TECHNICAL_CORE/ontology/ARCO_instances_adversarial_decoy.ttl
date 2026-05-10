@@ -6,6 +6,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 
 <https://arco.ai/ontology/instances/adversarial_decoy> rdf:type owl:Ontology ;
   rdfs:label "ARCO Adversarial Test: Equivalency Decoy" ;
@@ -26,6 +27,8 @@
 
 :WeirdScanner rdf:type owl:Class ;
   rdfs:label "Weird Scanner (decoy name)" ;
+  skos:prefLabel "Weird Scanner (decoy name)"@en ;
+  skos:definition "An adversarial test class declared owl:equivalentClass to :BiometricIdentificationCapability. Used by the equivalence-decoy fixture to verify that the OWL reasoner performs real semantic inference via equivalentClass propagation, rather than IRI pattern matching or class-name string matching." ;
   rdfs:comment "Equivalent to BiometricIdentificationCapability but with an unrelated name. Tests that the reasoner uses equivalence, not string matching." ;
   owl:equivalentClass :BiometricIdentificationCapability .
 
