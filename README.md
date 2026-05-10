@@ -20,12 +20,14 @@ ARCO is an open-source solo learning and research project. It is a research-grad
 
 ## What's modeled
 
-| Annex III category | Capability (Gate 1) | Prescribed process (Gate 2) | Affected role (Gate 3) |
-|---|---|---|---|
-| 1(a) Remote biometric identification | `BiometricIdentificationCapability` | `RemoteBiometricIdentificationProcess` | `NaturalPersonRole` |
-| 5(b) Creditworthiness evaluation | `CreditworthinessEvaluationCapability` | `CreditworthinessEvaluationProcess` | `NaturalPersonRole` |
+ARCO formally encodes two Annex III categories. A system is classified into a category only when **all three** of these conditions hold for that row:
 
-All three gates must be satisfied for category-specific Annex III applicability entailment. Cross-category isolation is formally enforced by the ontology (`owl:disjointWith` between capability classes), not asserted by hand. `HighRiskSystem` is a Gate-1-only latent-risk flag, not the legal high-risk category.
+| Annex III category | The system has a component capable of... | ...and is documented as intended to... | ...affecting... |
+|---|---|---|---|
+| 1(a) Remote biometric identification | biometric identification | perform remote biometric identification | natural persons |
+| 5(b) Creditworthiness evaluation | creditworthiness evaluation | evaluate creditworthiness or assign credit scores | natural persons |
+
+The three conditions are checked formally against the system's RDF description by OWL reasoning. Cross-category isolation (a biometric-only system cannot be classified as creditworthiness, and vice versa) is enforced by the ontology itself, not by hand. A separate precondition flag (`HighRiskSystem`) fires when just the capability is present (column 1 only); that flag is not the full applicability category — the full category needs all three.
 
 ---
 
@@ -85,20 +87,20 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
 
 The classification result is **derived**, not asserted: removing any gate triple causes the entailment to fail (verified by `test_gate_removal.py`). The reference pipeline writes the certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
 
-**Output-layer caveat (open work).** The certificate accurately reports the OWL-RL entailment for this fixture. However, several certificate fields are currently composed by Python rather than bound from named SPARQL queries against the reasoned graph. An output-provenance contract has been drafted (`03_TECHNICAL_CORE/scripts/output_manifest_v2.yaml`) with a draft enforcement test (`test_output_provenance.py`) that names the synthesis patterns to remove. Until the v2 emitter lands, treat the certificate as: classification line entailed, evidence path graph-derived, surrounding pass/fail summary fields known-imprecise. See [`LIMITATIONS.md §7.5`](LIMITATIONS.md) and `OPEN_PROBLEMS.md` PRs B-E.
+**Output-layer caveat.** The classification line and the evidence path are computed directly from the reasoned graph. Some of the surrounding pass/fail fields are still composed by Python rather than queried from the graph; that is a known bug being worked on. Tracked in [`OPEN_PROBLEMS.md`](OPEN_PROBLEMS.md) and disclosed in [`LIMITATIONS.md §7.5`](LIMITATIONS.md).
 
 ---
 
 ## What ARCO does NOT do
 
-A real EU AI Act deployment needs more than ARCO currently provides:
+A real EU AI Act deployment needs more than ARCO currently provides. For each gap, the format is: *what is missing, why an auditor or buyer would want it, why ARCO does not have it yet*.
 
-- **No documentary source anchoring per Article 3(12).** ARCO models `:IntendedUseSpecification` as a Directive ICE but does not yet require provenance back to instructions for use, technical documentation, or promotional material. A real determination must trace intended use to specific clauses in specific documents.
-- **No Article 6(3) derogation evaluation.** ARCO flags the existence of a `:DerogationClaim` artifact for human review; it does not evaluate the four conditions (a)-(d) or the no-profiling proviso.
-- **No real-time vs post RBI distinction or Article 5 routing.** Annex III 1(a) covers RBI generally; Article 5(1)(h) prohibits a real-time, publicly-accessible-spaces, law-enforcement subset. ARCO does not model the distinction; downstream users must treat that as a coverage gap.
-- **No provider/deployer obligation entailment.** ARCO has `:ProviderRole` and `:DeployerRole` but does not entail Article 16 (provider) or Article 26 (deployer) obligation sets from a positive classification.
-- **No coverage of Annex III items beyond 1(a) and 5(b).** Annex III has eight high-risk areas; ARCO models two.
-- **No raw-document ingestion.** ARCO classifies hand-reviewed structured RDF, not unstructured vendor PDFs.
+- **No paper trail back to real source documents.** An auditor signing off on a real determination needs the system's documented intended use to point at specific paragraphs in specific vendor materials (instructions for use, technical documentation, promotional copy, per Article 3(12)). ARCO accepts hand-reviewed RDF describing intended use but does not yet require a citation chain to the source documents. Building that input mile is the next major modeling step; it is queued, not built.
+- **No Article 6(3) derogation evaluation.** Article 6(3) lets a provider exit the high-risk label by demonstrating the system does not pose significant risk of harm, subject to four named conditions and a profiling exclusion. A real evaluation needs to assess whether the provider's claim actually meets those conditions. ARCO can detect that a provider has filed a derogation claim and surfaces it for human legal review, but does not judge the claim. That decision requires legal judgment ARCO deliberately does not encode.
+- **No prohibition routing under Article 5.** Annex III 1(a) labels biometric identification as high-risk. Article 5(1)(h) goes further: it outright prohibits a specific subset (real-time identification of people in publicly accessible spaces by law enforcement, with narrow exceptions). Any real-world evaluation of a biometric system needs to check whether the deployment falls into that prohibited subset, because the obligations are different from high-risk obligations. ARCO currently treats biometric identification as one category and does not split out the prohibited slice. Adding that distinction is real ontology work, queued.
+- **No automatic obligation chain.** Once a system is classified high-risk, the EU AI Act assigns specific duties to providers (Article 16: documentation, post-market monitoring, conformity assessment, and so on) and to deployers (Article 26: instruction-for-use, human oversight, log retention, and so on). A buyer deploying a third-party AI system needs to know which duties attach to which actor. ARCO names the provider and deployer roles in its model but does not yet derive the duty list from a positive classification. This is content work, not architecture.
+- **Only two of the eight Annex III categories.** Annex III lists eight high-risk areas; ARCO models two of them. A real deployment evaluation would need its specific category modeled. Adding more categories follows the same three-condition pattern shown above; it is content, not architecture. New categories will be added as worked use cases justify them.
+- **No raw document ingestion.** A working compliance product would accept the vendor's PDFs, marketing copy, and technical sheets and produce the structured description ARCO consumes. ARCO does not do that. Turning unstructured documents into a reviewed RDF description is a separate upstream problem (typically LLM-assisted extraction with human review) that ARCO deliberately keeps outside the classification path.
 
 Producing a defensible client-facing determination for a real deployment requires a worked use case grounded in real provider documentation, Article 6(3) derogation evaluation, provider/deployer obligation entailment, and external counsel review. A worked walkthrough comparing ARCO's current certificate to what a defensible determination would say lives in [`docs/REFERENCE_USE_CASE.md`](docs/REFERENCE_USE_CASE.md).
 
