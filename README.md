@@ -39,11 +39,11 @@ flowchart LR
     --> ANSWER["Certificate<br/>(Annex III applicability + evidence path)"]
     --> CDO["CDO-readable answer<br/>+ disclosed gaps"]
 
-    style SRC fill:#f5f5f5
-    style COMMIT fill:#eef2fb
-    style REASON fill:#eaf3ea
-    style ANSWER fill:#fbf2e8
-    style CDO fill:#fff7e6
+    style SRC fill:#cbd5e1,stroke:#475569,color:#0f172a,stroke-width:2px
+    style COMMIT fill:#bfdbfe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
+    style REASON fill:#bbf7d0,stroke:#15803d,color:#14532d,stroke-width:2px
+    style ANSWER fill:#fde68a,stroke:#b45309,color:#78350f,stroke-width:2px
+    style CDO fill:#fed7aa,stroke:#c2410c,color:#7c2d12,stroke-width:2px
 ```
 
 Each arrow is auditable. Source documentation licenses reviewed RDF commitments via an evidence ledger (see `docs/EVIDENCE_TO_COMMITMENT_POLICY.md`). The reasoned graph is verified by `test_gate_removal.py` (each gate is independently necessary) and by HermiT cross-check on certificate-grade fixtures. The certificate's classification line and evidence path are graph-derived; the surrounding pass/fail summary fields are currently Python-composed and are being moved to a graph-bound emitter (see [`LIMITATIONS.md §7.5`](LIMITATIONS.md) and `OPEN_PROBLEMS.md`).

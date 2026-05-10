@@ -31,6 +31,7 @@ Run from repo root or any subdirectory:
 
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 import sys
@@ -127,13 +128,38 @@ def ask_all(g: Graph, system_iri: URIRef) -> dict[str, bool]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="HermiT vs OWL-RL cross-reasoner agreement check across certificate-grade fixtures.",
+    )
+    parser.add_argument(
+        "--fixture",
+        default=None,
+        help="Run only the named fixture file (e.g. ARCO_instances_sentinel.ttl). "
+             "If omitted, runs all certificate-grade fixtures sequentially. "
+             "Used by the matrix-strategy CI workflow to fan out per-fixture jobs.",
+    )
+    args = parser.parse_args()
+
+    if args.fixture:
+        scenarios = [(f, s) for f, s in CERTIFICATE_GRADE_SCENARIOS if f == args.fixture]
+        if not scenarios:
+            valid = [f for f, _ in CERTIFICATE_GRADE_SCENARIOS]
+            print(f"FATAL: --fixture '{args.fixture}' not in certificate-grade set.", file=sys.stderr)
+            print(f"Valid fixtures: {valid}", file=sys.stderr)
+            return 2
+    else:
+        scenarios = list(CERTIFICATE_GRADE_SCENARIOS)
+
     if not ROBOT_JAR.exists():
         print(f"FATAL: ROBOT JAR not found at {ROBOT_JAR}.", file=sys.stderr)
         print("Set ROBOT_JAR env var or place jar at $HOME/.local/share/robot/robot.jar.", file=sys.stderr)
         return 2
 
     print("=" * 92)
-    print("HermiT vs OWL-RL cross-reasoner agreement check (certificate-grade fixtures)")
+    if args.fixture:
+        print(f"HermiT vs OWL-RL cross-reasoner agreement check (single fixture: {args.fixture})")
+    else:
+        print("HermiT vs OWL-RL cross-reasoner agreement check (certificate-grade fixtures)")
     print("=" * 92)
     print(f"ROBOT JAR: {ROBOT_JAR}")
     print(f"Excluded fixtures: GhostSystem (anonymous-individual probe, queued for modeling session).")
@@ -144,7 +170,7 @@ def main() -> int:
     all_agree = True
     with tempfile.TemporaryDirectory() as tmp:
         workdir = Path(tmp)
-        for fixture_name, system_names in CERTIFICATE_GRADE_SCENARIOS:
+        for fixture_name, system_names in scenarios:
             instance_file = ONTOLOGY_DIR / fixture_name
 
             try:
