@@ -108,9 +108,21 @@ The architectural pattern ARCO demonstrates is reusable. The current scope is bo
 
 ---
 
-## Getting started
+## Try it
 
-Requirements: Python 3.10 or newer.
+Two ways: run on GitHub (no clone, no install) or run locally.
+
+### Run on GitHub Actions (recommended for a first look)
+
+Go to [Actions → ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml), click **Run workflow** (right side), wait about 3 minutes, then open the completed run and download the `runs-demo-output` artifact at the bottom. The zip contains the certificate, JSON summary, evidence bindings, SHACL report, and HTML view. No installation needed.
+
+**What the artifact accurately reports:** the classification line (whether the system is entailed as Annex III applicable), the evidence path (system → component → disposition), and the SHACL conformance status. These are computed directly from the reasoned graph and are trustworthy.
+
+**What the artifact does NOT yet fully report:** a few of the surrounding pass/fail summary fields are still composed by Python rather than queried from the reasoned graph. Known bug, being worked on. See `LIMITATIONS.md §7.5` and `OPEN_PROBLEMS.md` for the specific fields and the cleanup plan.
+
+### Run locally
+
+Useful if you want to inspect the ontology, modify a fixture, or run the test suite. Light: about 5 MB of repo, about 30 seconds to run. Requirements: Python 3.10 or newer.
 
 ```bash
 git clone https://github.com/Amosk21/ARCO.git
@@ -121,7 +133,7 @@ python -m pip install -r requirements.txt
 python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 ```
 
-The pipeline loads BFO + BOT-extracted RO/IAO/CCO + ARCO core/governance + Sentinel instance data; runs OWL-RL closure (about 7,800 asserted -> 27,765 post-reasoning); validates SHACL; runs SPARQL ASK audit queries on the reasoned graph; and writes outputs to `runs/demo/`. The same pipeline runs in CI (Actions > ARCO Demo Run) and the workflow uploads `runs/demo/` as a downloadable artifact.
+Output goes to `runs/demo/`. The same caveat applies to the locally-produced artifacts: classification line and evidence path are graph-derived, surrounding pass/fail fields are under cleanup.
 
 ---
 
