@@ -49,7 +49,10 @@ jobs:
   ontology-validate:
     name: DL profile + HermiT consistency
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 30 min: realistic per-job is ~10-15 min (ROBOT setup + Java + merge +
+    # validate-profile + HermiT consistency on the merged ontology). 30 gives
+    # comfortable headroom for slow runners without masking a hung job.
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -180,7 +183,12 @@ jobs:
   hermit-cross-check:
     name: HermiT vs OWL-RL (${{ matrix.fixture }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 45 min: realistic per-job is ~10-15 min (one fixture's HermiT pass plus
+    # setup). 45 gives 3x headroom on a slow runner so we are not chasing
+    # timeouts on what is supposed to be the fast parallel design. Real fix
+    # if a single matrix job ever hits 45 min is profiling that fixture, not
+    # bumping further.
+    timeout-minutes: 45
     needs: ontology-validate
 
     strategy:
