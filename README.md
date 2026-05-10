@@ -114,7 +114,17 @@ Two ways: run on GitHub (no clone, no install) or run locally.
 
 ### Run on GitHub Actions (recommended for a first look)
 
-Go to [Actions → ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml), click **Run workflow** (right side), wait about 3 minutes, then open the completed run and download the `runs-demo-output` artifact at the bottom. The zip contains the certificate, JSON summary, evidence bindings, SHACL report, and HTML view. No installation needed.
+Go to [Actions → ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml), click **Run workflow** (right side), wait about **3 minutes**, then open the completed run and download the `runs-demo-output` artifact at the bottom. No installation needed.
+
+A note on runtime: the Demo Run uses OWL-RL reasoning and finishes in around 3 minutes. The longer ~25-minute workflow you may see in the Actions tab is `ROBOT Validation`, a separate CI gate that cross-checks classifications against the HermiT OWL 2 DL reasoner. That workflow is a safety net for the project itself; a visitor does not need to trigger it.
+
+**The zip contains, in roughly the order most useful to a reader:**
+
+1. `determination_view.html` — the human-readable visual artifact. Open this first. Dark-themed, shows per-gate Yes/No answers in plain English, expandable Technical Evidence sections with the OWL axiom patterns, and a visual chain like `Sentinel_ID_System → has_part → Sentinel_FaceID_Module → has_disposition → Sentinel_FaceID_Disposition → rdf:type ⊆ AnnexIIITriggeringCapability → OWL-RL ⊢ AnnexIII1aApplicableSystem`.
+2. `certificate.txt` — the same result as a structured text certificate.
+3. `summary.json` / `determination_packet.json` — structured outputs for machine consumption.
+4. `evidence.json` — the evidence-path bindings.
+5. `shacl_report.txt` — SHACL conformance result.
 
 **What the artifact accurately reports:** the classification line (whether the system is entailed as Annex III applicable), the evidence path (system → component → disposition), and the SHACL conformance status. These are computed directly from the reasoned graph and are trustworthy.
 
