@@ -14,7 +14,7 @@
 8. [03_TECHNICAL_CORE/docs/architecture_defense_memo.md](03_TECHNICAL_CORE/docs/architecture_defense_memo.md) — load-bearing design choices
 9. [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) — commitment backtest grading each load-bearing choice
 
-**Last reviewed:** 2026-04-21
+**Last reviewed:** 2026-05-09
 
 **Refresh trigger:** any change to ontology class hierarchy, three-gate axioms, imported upstream ontology, Annex III category coverage, or instance-file design conventions.
 
@@ -111,7 +111,9 @@ Many AI systems decompose cleanly as aggregates of material hardware components.
 
 Gate 1 locates the capability disposition on a `SystemComponent`, not on the `System` itself. This is a design choice for traceability: it produces evidence paths like "system → component → disposition → triggering capability." The EU AI Act talks about systems, not hardware subcomponents. A whole-system bearer pattern would also be ontologically defensible. The component-level choice is not legally compelled.
 
-A second, narrower simplification sits inside this gate: for a model-driven biometric module, the in-repo Sentinel fixture types the bearer as `:HardwareComponent` only, but a strict realist reading would locate the disposition on the *amalgam* of hardware plus the concretized model artifact running on it (per Beverley et al. "Capabilities" arXiv:2405.00183 §4.1: software qua pattern is a generically dependent continuant and is not itself a capable continuant; capabilities require a material bearer that concretizes the pattern). ARCO's classification result does not depend on which of these two bearer choices is taken — Gate 1 is satisfied as long as some component bearer instantiates a triggering-capability disposition — so the simplification is documented here rather than rebuilt as a structural change.
+A second, narrower simplification sits inside this gate: for a model-driven biometric module, the in-repo Sentinel fixture types the bearer as `:HardwareComponent` only, but a strict realist reading would locate the disposition on the *amalgam* of hardware plus the concretized model artifact running on it. The 2024 Capabilities paper's hardware-software-amalgam discussion treats software qua pattern as a generically dependent continuant, not itself a capable continuant; capabilities require a material bearer that concretizes the pattern. ARCO's classification result does not depend on which of these two bearer choices is taken — Gate 1 is satisfied as long as some component bearer instantiates a triggering-capability disposition — so the simplification is documented here rather than rebuilt as a structural change.
+
+A third, related point: for software-configurable AI systems where the same hardware can be configured for different modes (e.g., 1:1 verification vs 1:N identification on the same biometric kiosk hardware), the disposition assertion describes what THIS specific deployment is intended to do under its current commitments, not what the hardware-in-isolation could theoretically do. ARCO does not make closed-world hardware-incapability claims; per-fixture disposition assertions reflect the configured-system commitments under OWA. A different deployment of the same hardware (different configuration, software, or database) would be modeled as a separate `:System` instance with its own asserted disposition. This matches the EU AI Act's classification on intended use (Article 3(36), Recital 15), not on raw hardware capability. Validated 2026-05-10 against vendor documentation for Suprema, ZKTeco, Matrix, HID, and IDEMIA biometric kiosks, all of which advertise the same hardware as configurable for both 1:1 and 1:N modes.
 
 ### 3.6 Reality/representation split
 
@@ -155,7 +157,7 @@ ARCO loads BFO 2020 as a full upstream file and loads RO, IAO, and CCO as **ROBO
 | BFO 2020 | ISO/IEC 21838-2:2021 | Full upstream file | `imports/bfo-2020.owl` |
 | RO | release `2025-12-17` | ROBOT BOT slim module | `imports/ro_bot.owl` (seed: `seeds/ro_seed.txt`) |
 | IAO | release `2026-03-30` | ROBOT BOT slim module | `imports/iao_bot.owl` (seed: `seeds/iao_seed.txt`) |
-| CCO | release `v1.7-2024-11-03` | ROBOT BOT slim module + bridging assertions | `imports/cco_bot.owl` (seed: `seeds/cco_seed.txt`) plus two `rdfs:subClassOf iao:0000030` bridging assertions in `ARCO_governance_extension.ttl` for DirectiveICE and DescriptiveICE (upstream CCO does not formally link `cco:InformationContentEntity` to `iao:0000030`) |
+| CCO | v1.7 pinned semantic-IRI release | ROBOT BOT slim module + bridge/readability declarations | `imports/cco_bot.owl` (seed: `seeds/cco_seed.txt`) plus local declarations in `ARCO_governance_extension.ttl` that map CCO Directive, Descriptive, and Designative Information Content Entity classes into `iao:0000030`, assert `cco:designates rdfs:subPropertyOf iao:0000136`, and keep BFO subsumptions for `cco:Person` and `cco:Organization` readable in-file |
 
 Per-ontology audits (2026-04-29, see `docs/agent/alignment_audit_{RO,IAO,CCO}_2026-04-29.md`) verify term-level consistency: RO 5/5, IAO 2/2, CCO 6/6.
 
@@ -243,6 +245,37 @@ A SHACL fail and an OWL-RL classification result are independent. Diagnose each 
 GhostSystem is a reasoner-property probe (it tests OWL-RL's `owl:someValuesFrom` entailment on anonymous existentials), not production modeling guidance. The question of whether ARCO should require named IRIs for evidence-bearing dependent continuants in certificate-grade data is queued for a human modeling session, not resolved by this CI gate. See [runs/loop/2026-05-09_beverley-research/design_memo_named-evidence-bearing-particulars.md](runs/loop/2026-05-09_beverley-research/design_memo_named-evidence-bearing-particulars.md) and [runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md](runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md) (Q1).
 
 **Operational implication.** Real ARCO classification scenarios use named dispositions, named ICEs, and named role categories — see Sentinel, CreditScorer, the verification kiosk, the flag fixtures. The HermiT cross-check holds on all of them. The blank-node case is a fixture-only edge that does not appear in production modeling.
+
+### 7.5 Output composition layer (Boundary 4): known integrity gaps
+
+**Added 2026-05-09.** Reference: adversarial code-only audit `runs/loop/2026-05-09_beverley-research/adversarial_audit_2026-05-09.md`.
+
+The pipeline's output layer (`run_pipeline.py` from line 1699 onward, plus `write_html_view`) composes the certificate, `summary.json`, `determination_packet.json`, and the HTML view from SPARQL bindings, Python computations over those bindings, and hardcoded constants. This layer has no discipline analogous to the two-layer rule of §7.1 through §7.3. The 2026-05-09 code-only audit identified the following gaps.
+
+**Cross-layer contradictions** (output emits commitment-shaped values inconsistent with the graph or with adjacent fields):
+
+- `all_checks_passed: true` can coexist with per-check `FAIL` fields in the same `summary.json`. On non-applicable runs (e.g. `VerificationKiosk_001`), `audit_pass` is set to `True` by a Python short-circuit (`run_pipeline.py:1643-1655`) regardless of which audit checks failed. The certificate's "ALL CHECKS PASSED" banner is false on these runs.
+- `determination_node_uri` is a hardcoded constant (`run_pipeline.py:1906`). It emits `:HighRisk_Determination_001`, which exists as a graph node only in `ARCO_instances_sentinel.ttl`. Runs against `ARCO_instances_creditscoring.ttl` or `ARCO_instances_verification.ttl` emit an IRI not asserted in the loaded graph for that run.
+- Gate 2 evidence selection uses `LIMIT 1` without `ORDER BY` and without category filtering (`run_pipeline.py:323-342`). The behaviour is **underdetermined**: on `FlagTest_CreditSystem_WithFraudProcess` the packet and HTML can name either `:FraudDetectionProcess` or `:CreditworthinessEvaluationProcess` as the process satisfying Gate 2, because SPARQL row order without `ORDER BY` is implementation-defined. Same fixture, same data, different certificate evidence across runs. The 5(b) classification entails correctly either way; the audit-trace claim is what is non-reproducible. Closing this requires both `ORDER BY` (for determinism) and a category filter (for correctness); a half-fix that does only one leaves the underdetermined behaviour live.
+
+**Sentinel-shaped hardcoding** (the same affected-role pattern is hardcoded in three independent places, making the Gate 3 surface category-specific rather than parameterized):
+
+- Python: `gate_evidence["gate3"]["role_uri"]` initializes to `:NaturalPersonRole` (`run_pipeline.py:371`); display labels fall back to biometric-identification strings when SPARQL returns zero rows (`run_pipeline.py:740-743`); `gate3_ok` checks USS existence only, not which role is designated (`run_pipeline.py:735`).
+- SPARQL: `check_intended_use.sparql:31` hardcodes `cco:designates :NaturalPersonRole`, bundling Gates 2 and 3 into one ASK with the affected role baked in.
+- SHACL: `assessment_documentation_shape.ttl:96-100` hardcodes `sh:hasValue :NaturalPersonRole` at the shape level.
+
+**Synthesized narrative**:
+
+- The certificate's Annex III line carries a Python string literal "VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" (`run_pipeline.py:1725-1738`). The graph does not commit to "derogation not evaluated" as a state.
+
+**Operational**:
+
+- `runs/demo/` is not auto-cleaned. The OUTPUT FILES listing (`run_pipeline.py:1946-1947`) advertises every file present, so reverted artifacts can appear as current outputs until manually removed.
+- Pipeline exit code reflects classification only (`run_pipeline.py:1949-1955`). Audit-layer failure produces exit 0. Wrappers consuming exit code must separately parse `summary.json` to detect audit failure.
+- The MCP HermiT tool runs one named fixture per call; the standalone `hermit_cross_check.py` is the fixture-wide sweep used by CI. An LLM calling the MCP tool gets a bounded single-fixture assurance signal unless it explicitly runs multiple calls.
+- The fixture-wide HermiT cross-check has failed with `WinError 5` on at least one Windows local environment. The 24/24 agreement claim holds in CI but is not currently reproducible across all developer machines.
+
+**Path forward.** A "Three-Block Output Discipline" rule (graph-backed / run-metadata / documentary) is queued in `runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md` Q12. The schema bumps it implies (`summary.json` and `determination_packet.json` 1.2 to 2.0) are contract changes requiring a human modeling session. A planned CI gate (`test_output_provenance.py`) will fail on current output and pass after the schema rework. Until that work lands, the gaps above are present in the pipeline.
 
 ---
 
