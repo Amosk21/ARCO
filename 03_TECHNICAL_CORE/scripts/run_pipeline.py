@@ -546,9 +546,15 @@ def write_html_view(
             "label": "Annex III, Category 5(b)",
             "title": "Creditworthiness evaluation of natural persons",
             "article_ref": "Article 6(2), Annex III point 5(b)",
-            "capability": "Creditworthiness evaluation",
-            "process": "Creditworthiness evaluation",
-            "role": "Natural persons",
+            # L3.3: read from graph-derived gate_evidence (same pattern as the
+            # 1(a) branch above). The existing helpers _select_gate1_capability /
+            # _select_gate2_process / _select_gate3_role are category-agnostic
+            # and system-scoped, so they return creditworthiness-shaped values
+            # for a 5(b) system. Hardcoding them as Python literals would emit
+            # the same string regardless of what the graph actually contains.
+            "capability": gate_evidence["gate1"]["cap_type_label"] or "Creditworthiness evaluation",
+            "process": gate_evidence["gate2"]["process_type_label"] or "Creditworthiness evaluation",
+            "role": gate_evidence["gate3"]["role_label"] or "Natural persons",
         })
 
     has_applicable_category = bool(triggered_categories)
