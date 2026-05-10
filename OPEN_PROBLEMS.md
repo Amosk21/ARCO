@@ -55,6 +55,23 @@ Each change should make that chain clearer, shorter, or more trustworthy. If it 
 
 ---
 
+## L4 PR Harness — operational discipline for output-emission PRs
+
+Every PR closing an L4 row (or any field-emission cleanup) runs through this checklist BEFORE merge. This is the Critique + Conform stages of the AI-assisted ontology-engineering methodology made operational. Each rule exists because we have already had a real bug it would have caught.
+
+0. **Consult canon first.** Before authoring a new SPARQL query, axiom edit, or modeling change, name which canon source(s) the decision is grounded in. Canon = `KB/00_INBOX_RAW/papers/` (Beverley CCO/Capabilities/Middle-Architecture, Smith papers, BFO2-Reference, Allemang Working Ontologist, Dougal Watt slides), `docs/agent/`, `runs/loop/2026-05-09_beverley-research/` and `2026-05-10_beverley-procedure/`. **If no canon clearly answers, STOP and ask the user, even in auto mode.** Modeling decisions are not routine. (Memory rule: `feedback_consult-canon-or-ask.md`)
+1. **Names the OPEN_PROBLEMS row(s) it closes** in the PR body. Each PR closes at least one row.
+2. **For each new or changed SPARQL query, lists the BFO/CCO/IAO/RO axiom path the query mirrors** in the PR body. The realist Critique-stage check made visible.
+3. **Each new query has a per-fixture expected-answer test** added in `test_scenarios.py` (Sentinel for 1(a), CreditScorer for 5(b), VerificationKiosk for negative case).
+4. **`test_output_provenance.py` violation count goes down or stays the same.** Up = regression, blocked.
+5. **No new custom predicates.** Every property in the query namespace is from {BFO, RO, IAO, CCO} or `https://arco.ai/ontology/core#`.
+6. **PR body short** per `feedback_pr-descriptions-short.md`. Bullet list of fixes; no test-plan tables; no rationale essays.
+7. **Dual-PhD QA agent review** for any non-trivial ontology/SHACL/SPARQL/pipeline change per `feedback_dual-phd-qa-agent.md`.
+
+If a step does not apply, the PR body says so explicitly with `N/A: <reason>`. Skipping a step silently is forbidden.
+
+---
+
 ## L4 — Output / trust surface (synthesis without graph backing)
 
 | # | Problem | Where | Status | Fix | Acceptance |
