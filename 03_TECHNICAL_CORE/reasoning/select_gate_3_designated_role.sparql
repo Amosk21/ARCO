@@ -1,0 +1,35 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+
+# EMISSION LAYER — binds Gate 3 evidence rows from the reasoned graph.
+#
+# Gate 3: a documented UseScenarioSpecification (designative ICE) is_about the
+# system AND cco:designates a role universal. Returns whichever role the USS
+# designates. Under current commitments for Annex III 1(a) and 5(b) this is
+# :NaturalPersonRole, but the query is NOT hardcoded to that role — future
+# Annex III categories with different affected roles surface here without
+# query change.
+#
+# CALLER CONTRACT:
+#   - ?system is bound by the caller to the system IRI under evaluation.
+#   - role_label is OPTIONAL.
+#   - The category-specific role check (e.g., NaturalPersonRole for 1(a)) is
+#     enforced by the OWL gate axiom (owl:hasValue per category-specific
+#     equivalentClass in ARCO_governance_extension.ttl), NOT in this query.
+#   - OPEN_PROBLEMS L3.2 (parameterize :NaturalPersonRole at audit-layer
+#     SPARQL + SHACL loci) remains open; this query already avoids the
+#     hardcode at the emission layer.
+#
+# Replaces the inline SELECT at run_pipeline.py:342-358 which carried
+# FILTER(?role = :NaturalPersonRole).
+
+SELECT ?uss ?role_iri ?role_label WHERE {
+  ?uss rdf:type :UseScenarioSpecification ;
+       iao:0000136 ?system ;
+       cco:designates ?role_iri .
+  OPTIONAL { ?role_iri rdfs:label ?role_label }
+}
+ORDER BY ?uss

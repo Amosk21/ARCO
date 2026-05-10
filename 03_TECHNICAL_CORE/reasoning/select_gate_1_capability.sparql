@@ -1,0 +1,49 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+
+# EMISSION LAYER — binds Gate 1 evidence rows from the reasoned graph.
+#
+# Gate 1: the system has a part (bfo:0000051) that bears (ro:0000091) a
+# disposition whose type is a direct subclass of :AnnexIIITriggeringCapability.
+# Returns one row per (component, disposition, capability_class) tuple.
+#
+# Sentinel: one row (face-ID disposition typed as
+# :BiometricIdentificationCapability, which is rdfs:subClassOf
+# :AnnexIIITriggeringCapability).
+# CreditScorer: one row (creditworthiness eval capability).
+# VerificationKiosk: zero rows (verification capability is disjoint from
+# identification; not a subclass of :AnnexIIITriggeringCapability).
+#
+# CALLER CONTRACT:
+#   - ?system is bound by the caller to the system IRI under evaluation.
+#   - cap_label is OPTIONAL; if absent, downstream falls back to IRI local name.
+#   - FILTER(!isBlank(?cap_class)) excludes anonymous OWL restriction classes
+#     that OWL-RL closure materializes as transitive parents of named
+#     capability subclasses. Without this filter, ORDER BY ?cap_class would
+#     surface a blank-node IRI as the "capability class" (Anonymous Entity
+#     (Blank Node)), masking the named subclass.
+#   - FILTER(?cap_class != :AnnexIIITriggeringCapability) excludes the parent
+#     class itself. rdfs:subClassOf is reflexive under OWL-RL (each class is
+#     a subclass of itself), so without this filter the parent
+#     :AnnexIIITriggeringCapability returns alongside the named subclass
+#     (e.g. :BiometricIdentificationCapability), and ORDER BY ?cap_class
+#     sorts the parent first alphabetically, masking the named subclass.
+#     The Gate 1 evidence we want to surface is the most specific
+#     capability the disposition is typed as, not the union class.
+#
+# Replaces the inline SELECT at run_pipeline.py:303-321 and the inline
+# primary-bindings SELECT at run_pipeline.py:241-252.
+
+SELECT ?component ?disposition ?cap_class ?cap_label WHERE {
+  ?system bfo:0000051 ?component .
+  ?component ro:0000091 ?disposition .
+  ?disposition rdf:type ?cap_class .
+  ?cap_class rdfs:subClassOf :AnnexIIITriggeringCapability .
+  FILTER(!isBlank(?cap_class))
+  FILTER(?cap_class != :AnnexIIITriggeringCapability)
+  OPTIONAL { ?cap_class rdfs:label ?cap_label }
+}
+ORDER BY ?cap_class

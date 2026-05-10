@@ -56,11 +56,28 @@ DEROGATION_FLAG_QUERY = REASONING_DIR / "flag_derogation_candidate.sparql"
 FRAUD_FLAG_QUERY = REASONING_DIR / "flag_fraud_exclusion_candidate.sparql"
 UNION_SYNC_QUERY = REASONING_DIR / "check_union_subclass_sync.sparql"
 
+# Emission-layer SELECT queries — graph-bound display values for certificate fields.
+# These replace inline Python-embedded SPARQL strings (Gate 1/2/3) and Python
+# literal composition (primary classification headline, determination IRI).
+# Each query takes ?system as a caller-bound variable.
+SELECT_PRIMARY_CLASSIFICATION_QUERY = REASONING_DIR / "select_primary_classification.sparql"
+SELECT_GATE_1_CAPABILITY_QUERY = REASONING_DIR / "select_gate_1_capability.sparql"
+SELECT_GATE_2_PRESCRIBED_PROCESS_QUERY = REASONING_DIR / "select_gate_2_prescribed_process.sparql"
+SELECT_GATE_3_DESIGNATED_ROLE_QUERY = REASONING_DIR / "select_gate_3_designated_role.sparql"
+SELECT_DETERMINATION_NODE_QUERY = REASONING_DIR / "select_determination_node.sparql"
+
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
-# --- System under evaluation (change this one line for a different system) ---
-SYSTEM_LOCAL = "Sentinel_ID_System"
-SYSTEM_IRI = f"https://arco.ai/ontology/core#{SYSTEM_LOCAL}"
+# --- System under evaluation ---
+# SYSTEM_LOCAL and SYSTEM_IRI are set by main() either from the --system CLI
+# argument or by deriving from the loaded instance graph (looking up
+# ?s rdf:type :System). The previous module-level constant hardcoded
+# "Sentinel_ID_System" which test_output_provenance.py Check 3 flagged as a
+# cross-fixture-leak smell (closes OPEN_PROBLEMS SYSTEM_LOCAL row of A+ scope).
+# Function defaults below reference SYSTEM_LOCAL but every call site in this
+# file passes the resolved value explicitly, so the None default is unused.
+SYSTEM_LOCAL: str | None = None
+SYSTEM_IRI: str | None = None
 ARCO_NS = "https://arco.ai/ontology/core#"
 
 
@@ -145,6 +162,55 @@ def run_sparql_ask_for_system(data_graph: Graph, query_path: Path, system_local:
         return bool(rows[0]) if rows else False
     except Exception as e:
         raise RuntimeError(f"SPARQL query failed: {query_path}\n{e}")
+
+
+def run_sparql_select_for_system(data_graph: Graph, query_path: Path, system_local: str) -> list[dict]:
+    """Run a SPARQL SELECT file query with ?system bound via initBindings.
+
+    Returns a list of result rows as dicts (variable name -> string value, or
+    None if unbound). Empty list if zero rows; raises on query execution
+    failure (broken query or graph), not on empty results.
+
+    Counterpart to run_sparql_ask_for_system. Used by the emission layer to
+    bind graph-derived values into certificate fields (Gate 1/2/3 evidence,
+    primary classification, determination IRI) instead of composing them
+    from Python literals.
+    """
+    if not query_path.exists():
+        raise FileNotFoundError(f"Missing SPARQL query file: {query_path}")
+    q = query_path.read_text(encoding="utf-8").strip()
+    system_iri = URIRef(f"{ARCO_NS}{system_local}")
+    try:
+        result = data_graph.query(q, initBindings={"system": system_iri})
+        rows: list[dict] = []
+        for r in result:
+            row: dict = {}
+            for var in result.vars:
+                val = r[var]
+                row[str(var)] = str(val) if val is not None else None
+            rows.append(row)
+        return rows
+    except Exception as e:
+        raise RuntimeError(f"SPARQL query failed: {query_path}\n{e}")
+
+
+def derive_system_local_from_graph(g: Graph) -> tuple[str | None, list[str]]:
+    """Find the system local name from the loaded graph.
+
+    Returns (local_name, all_candidates). local_name is set only if exactly
+    one :System instance is asserted; otherwise the caller must require
+    explicit --system to disambiguate (e.g. flag-tests fixture has two
+    :System instances).
+    """
+    rdf_type = URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+    system_cls = URIRef(f"{ARCO_NS}System")
+    candidates = sorted({
+        str(s).rsplit("#", 1)[-1]
+        for s, _, _ in g.triples((None, rdf_type, system_cls))
+    })
+    if len(candidates) == 1:
+        return candidates[0], candidates
+    return None, candidates
 
 
 # ---------------------------
@@ -238,19 +304,6 @@ ASK WHERE {{
 }}
 """
 
-def _select_primary_bindings(sys: str = SYSTEM_LOCAL) -> str:
-    return f"""
-PREFIX : <{ARCO_NS}>
-PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
-PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
-SELECT ?component ?d WHERE {{
-  :{sys} bfo:0000051 ?component .
-  ?component ro:0000091 ?d .
-  ?d a :AnnexIIITriggeringCapability .
-}}
-LIMIT 5
-"""
-
 def _short(iri: str) -> str:
     """Shorten an IRI to its local name for display.
 
@@ -265,148 +318,151 @@ def _short(iri: str) -> str:
         return "Anonymous Entity (Blank Node)"
     return iri.rsplit("#", 1)[-1] if "#" in iri else iri.rsplit("/", 1)[-1]
 
-def get_primary_arco_classes(annex_iii_1a_ok, annex_iii_5b_ok) -> list[str]:
-    classes = []
-    if annex_iii_1a_ok:
-        classes.append("AnnexIII1aApplicableSystem")
-    if annex_iii_5b_ok:
-        classes.append("AnnexIII5bApplicableSystem")
-    return classes
+def get_primary_arco_classes(g: Graph, system_local: str) -> list[str]:
+    """Return local-names of Annex III applicability classes entailed for the
+    system, from select_primary_classification.sparql on the reasoned graph.
 
-def format_primary_arco_classification(primary_classes: list[str]) -> str:
-    if not primary_classes:
-        return "No ARCO classification within currently modeled categories: Annex III 1(a) and 5(b)."
-    return ", ".join(
-        f"{cls} (ENTAILED, all three ARCO gates)" for cls in primary_classes
-    )
-
-def format_latent_risk_flag(classification_mode: str) -> str:
-    if classification_mode in ("INFERRED", "ASSERTED"):
-        return f"HighRiskSystem (Annex III Capability-Precondition Flag; {classification_mode} via Gate 1 only; not the EU AI Act legal high-risk classification)"
-    return "HighRiskSystem (Annex III Capability-Precondition Flag; NOT PRESENT, Gate 1 capability precondition not detected)"
-
-def get_primary_bindings(g: Graph, system_local: str = "Sentinel_ID_System") -> list[tuple[str, str]]:
-    rows = []
+    Previously: built from per-category ASK booleans (annex_iii_1a_ok /
+    annex_iii_5b_ok). Now: bound directly from a SELECT, so the headline
+    value is graph-bound rather than derived in Python from ASKs. The SELECT
+    and the ASKs both run on the same reasoned graph against the same
+    owl:equivalentClass axioms; they must agree.
+    Closes OPEN_PROBLEMS L4.3 (headline classification list).
+    """
     try:
-        qres = g.query(_select_primary_bindings(system_local))
-        for r in qres:
-            rows.append((str(r.component), str(r.d)))
+        rows = run_sparql_select_for_system(g, SELECT_PRIMARY_CLASSIFICATION_QUERY, system_local)
     except Exception:
         return []
-    return rows
+    return [_short(r["cls"]) for r in rows if r.get("cls")]
+
+def format_primary_arco_classification(primary_classes: list[str]) -> str:
+    """Headline classification string — pure class local-names, no Python qualifier.
+
+    The class IRIs come from select_primary_classification.sparql against the
+    reasoned graph; this function just formats them for display. The previous
+    Python qualifier mentioning the three-gate provenance is dropped here in
+    favour of the separate classification_mode (ENTAILED / NOT_ENTAILED)
+    field already present in summary.json and determination_packet.json.
+    Closes OPEN_PROBLEMS L4.3 headline composition.
+    """
+    if not primary_classes:
+        return "No ARCO classification within currently modeled categories: Annex III 1(a) and 5(b)."
+    return ", ".join(primary_classes)
+
+def format_latent_risk_flag(classification_mode: str) -> str:
+    """Latent risk flag string — pure status enum, no Python qualifier.
+
+    The longer scope text ("Annex III Capability-Precondition Flag";
+    "not the EU AI Act legal high-risk classification") lived as a Python
+    literal in the previous version of this function and is dropped here.
+    Per the manifest, that scope text is documentary commentary on
+    :HighRiskSystem and belongs to documentary fields / LIMITATIONS, not
+    embedded in the graph-backed value. Closes OPEN_PROBLEMS L4.3 latent-flag
+    composition.
+    """
+    if classification_mode in ("INFERRED", "ASSERTED"):
+        return "HighRiskSystem (PRESENT)"
+    return "HighRiskSystem (NOT PRESENT)"
+
+def get_primary_bindings(g: Graph, system_local: str) -> list[tuple[str, str]]:
+    """Return [(component_iri, disposition_iri), ...] for the system.
+
+    Uses select_gate_1_capability.sparql (which binds component, disposition,
+    cap_class, cap_label); this function discards cap_class/cap_label and
+    surfaces just the unique (component, disposition) tuples for the legacy
+    bindings callsite. The SELECT query uses rdfs:subClassOf* so a single
+    disposition typed under multiple parent capability classes (post-OWL-RL
+    closure) yields one row per parent; dedupe by (component, disposition)
+    to preserve the historical one-row-per-evidence-path display. Closes
+    OPEN_PROBLEMS L4.3 (gate 1 inline SELECT relocated to standalone file).
+    """
+    try:
+        rows = run_sparql_select_for_system(g, SELECT_GATE_1_CAPABILITY_QUERY, system_local)
+    except Exception:
+        return []
+    seen: set[tuple[str, str]] = set()
+    result: list[tuple[str, str]] = []
+    for r in rows:
+        key = (r.get("component") or "", r.get("disposition") or "")
+        if key not in seen:
+            seen.add(key)
+            result.append(key)
+    return result
 
 
 # ---------------------------
 # determination packet
 # ---------------------------
 
-def _select_cap_type_label(sys: str = SYSTEM_LOCAL) -> str:
-    """SELECT the most specific ARCO capability class (direct subclass of AnnexIIITriggeringCapability)
-    that the disposition is typed as, plus its rdfs:label."""
-    return f"""
-PREFIX : <{ARCO_NS}>
-PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
-PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?capType ?capLabel WHERE {{
-  :{sys} bfo:0000051 ?comp .
-  ?comp ro:0000091 ?disp .
-  ?disp rdf:type ?capType .
-  ?capType rdfs:subClassOf :AnnexIIITriggeringCapability .
-  OPTIONAL {{ ?capType rdfs:label ?capLabel }}
-}}
-LIMIT 1
-"""
-
-def _select_gate2_process(sys: str = SYSTEM_LOCAL) -> str:
-    """SELECT the prescribed process instance and its type + rdfs:label from the IntendedUseSpecification."""
-    return f"""
-PREFIX : <{ARCO_NS}>
-PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
-PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?ius ?process ?processType ?processLabel WHERE {{
-  ?ius a :IntendedUseSpecification ;
-    cco:prescribes ?process ;
-    iao:0000136 :{sys} .
-  ?process rdf:type ?processType .
-  OPTIONAL {{ ?processType rdfs:label ?processLabel }}
-  FILTER(STRSTARTS(STR(?processType), "{ARCO_NS}"))
-  FILTER(!isBlank(?processType))
-}}
-LIMIT 1
-"""
-
-def _select_gate3_role(sys: str = SYSTEM_LOCAL) -> str:
-    """SELECT the UseScenarioSpecification that designates :NaturalPersonRole for the system,
-    plus the role universal's rdfs:label so downstream HTML/cert text surfaces "Natural Person Role"."""
-    return f"""
-PREFIX : <{ARCO_NS}>
-PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
-PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?uss ?role ?roleLabel WHERE {{
-  ?uss a :UseScenarioSpecification ;
-    iao:0000136 :{sys} ;
-    cco:designates ?role .
-  FILTER(?role = :NaturalPersonRole)
-  OPTIONAL {{ ?role rdfs:label ?roleLabel }}
-}}
-LIMIT 1
-"""
-
-def select_gate_evidence(g: Graph, system_local: str = SYSTEM_LOCAL) -> dict:
+def select_gate_evidence(g: Graph, system_local: str) -> dict:
     """Run SELECT queries over the reasoned graph to extract gate evidence labels.
 
-    Returns a compact determination packet dict.  All labels come from rdfs:label
+    Returns a compact determination packet dict. All labels come from rdfs:label
     annotations in the graph; falls back to shortened IRI local names if absent.
-    This is the intermediate representation the HTML view renders from — it must
-    not invent content not present in the post-reasoning graph.
+    The three gate queries are standalone .sparql files in
+    03_TECHNICAL_CORE/reasoning/ (select_gate_1_capability,
+    select_gate_2_prescribed_process, select_gate_3_designated_role); the
+    previous inline Python-embedded SPARQL strings were relocated to those
+    files as part of A+ (Gate 2 also gained ORDER BY + category filter,
+    closes OPEN_PROBLEMS L3.1).
+
+    Empty evidence (zero rows) is a valid result for a system that does not
+    satisfy a gate (verification kiosk yields zero Gate 1 rows). Query
+    execution failure (broken query / graph) still raises.
     """
     packet: dict = {
         "gate1": {"cap_type_uri": "", "cap_type_label": ""},
         "gate2": {"ius_uri": "", "process_uri": "", "process_type_uri": "", "process_type_label": ""},
-        "gate3": {"uss_uri": "", "role_uri": f"{ARCO_NS}NaturalPersonRole", "role_label": ""},
+        "gate3": {"uss_uri": "", "role_uri": "", "role_label": ""},
     }
 
-    # Exception contract: query *execution* failure must raise (it indicates a
-    # broken query or graph), but zero rows is a valid empty evidence result
-    # (a system that does not satisfy a gate has no rows for that gate). Do not
-    # let negative systems crash because gate evidence is absent.
+    # Gate 1 — capability class via select_gate_1_capability.sparql.
+    # Returns rows of (component, disposition, cap_class, cap_label). For the
+    # gate-1 evidence panel we surface cap_class + cap_label; component and
+    # disposition IRIs are surfaced separately via get_primary_bindings.
     try:
-        rows = list(g.query(_select_cap_type_label(system_local)))
+        rows = run_sparql_select_for_system(g, SELECT_GATE_1_CAPABILITY_QUERY, system_local)
     except Exception as e:
-        raise RuntimeError(f"select_gate_evidence: gate1 (cap_type_label) query failed: {e}")
+        raise RuntimeError(f"select_gate_evidence: gate1 query failed: {e}")
     if rows:
         r = rows[0]
-        cap_uri = str(r[0]) if r[0] else ""
+        cap_uri = r.get("cap_class") or ""
         packet["gate1"]["cap_type_uri"] = cap_uri
-        packet["gate1"]["cap_type_label"] = str(r[1]) if r[1] else _short(cap_uri)
+        packet["gate1"]["cap_type_label"] = r.get("cap_label") or _short(cap_uri)
 
+    # Gate 2 — prescribed process via select_gate_2_prescribed_process.sparql.
+    # Deterministic ORDER BY + category filter (closes L3.1; previously used
+    # an undirected single-row limit at run_pipeline.py:322-340 with no
+    # ordering, so the same fixture could yield different evidence rows
+    # across runs).
     try:
-        rows = list(g.query(_select_gate2_process(system_local)))
+        rows = run_sparql_select_for_system(g, SELECT_GATE_2_PRESCRIBED_PROCESS_QUERY, system_local)
     except Exception as e:
-        raise RuntimeError(f"select_gate_evidence: gate2 (process) query failed: {e}")
+        raise RuntimeError(f"select_gate_evidence: gate2 query failed: {e}")
     if rows:
         r = rows[0]
-        packet["gate2"]["ius_uri"] = str(r[0]) if r[0] else ""
-        packet["gate2"]["process_uri"] = str(r[1]) if r[1] else ""
-        ptype_uri = str(r[2]) if r[2] else ""
+        packet["gate2"]["ius_uri"] = r.get("ius") or ""
+        packet["gate2"]["process_uri"] = r.get("process") or ""
+        ptype_uri = r.get("process_class") or ""
         packet["gate2"]["process_type_uri"] = ptype_uri
-        packet["gate2"]["process_type_label"] = str(r[3]) if r[3] else _short(ptype_uri)
+        packet["gate2"]["process_type_label"] = r.get("process_label") or _short(ptype_uri)
 
+    # Gate 3 — designated role via select_gate_3_designated_role.sparql.
+    # The file no longer hardcodes FILTER(?role = :NaturalPersonRole) — the
+    # category-specific role check lives in the OWL gate axiom
+    # (owl:hasValue per equivalentClass), not at the emission layer.
+    # OPEN_PROBLEMS L3.2 (audit-layer / SHACL role parameterization) remains
+    # open as separate scope.
     try:
-        rows = list(g.query(_select_gate3_role(system_local)))
+        rows = run_sparql_select_for_system(g, SELECT_GATE_3_DESIGNATED_ROLE_QUERY, system_local)
     except Exception as e:
-        raise RuntimeError(f"select_gate_evidence: gate3 (role) query failed: {e}")
+        raise RuntimeError(f"select_gate_evidence: gate3 query failed: {e}")
     if rows:
         r = rows[0]
-        packet["gate3"]["uss_uri"] = str(r[0]) if r[0] else ""
-        role_uri = str(r[1]) if r[1] else f"{ARCO_NS}NaturalPersonRole"
+        packet["gate3"]["uss_uri"] = r.get("uss") or ""
+        role_uri = r.get("role_iri") or ""
         packet["gate3"]["role_uri"] = role_uri
-        packet["gate3"]["role_label"] = str(r[2]) if r[2] else _short(role_uri)
+        packet["gate3"]["role_label"] = r.get("role_label") or _short(role_uri)
 
     return packet
 
@@ -488,9 +544,10 @@ def write_html_view(
     obligation_ok,
     reg_alignment_ok,
     inferred_added: int,
-    all_pass: bool,
+    all_pass: bool | None,
     summary_raw: str,
     evidence_raw: str,
+    primary_arco_classes: list[str],
     gate_evidence: dict | None = None,
     derogation_flagged: bool = False,
     fraud_flagged: bool = False,
@@ -552,7 +609,6 @@ def write_html_view(
         })
 
     has_applicable_category = bool(triggered_categories)
-    primary_arco_classes = get_primary_arco_classes(annex_iii_1a_ok, annex_iii_5b_ok)
     primary_result_label = ", ".join(primary_arco_classes) if primary_arco_classes else "No category-specific ARCO class"
 
     # ── human-readable system name ─────────────────────────────────
@@ -609,7 +665,16 @@ def write_html_view(
             f"not currently modeled, so absence here is not a determination about them."
         )
 
-    if all_pass:
+    if all_pass is None:
+        # Non-applicable run (no in-scope Annex III category triggered):
+        # the audit constituents do not semantically apply, so aggregator
+        # all_pass is null rather than True/False. Closes the v1.x lie where
+        # this case was force-set to True (OPEN_PROBLEMS L4.1).
+        summary_text += (
+            " Audit checks are not applicable for this run (no in-scope "
+            "Annex III category triggered)."
+        )
+    elif all_pass:
         summary_text += (
             " All structural validation (SHACL) and audit checks (SPARQL) pass."
         )
@@ -674,8 +739,12 @@ def write_html_view(
               else "NO ARCO CATEGORY (1(a) OR 5(b))")
     )
 
-    overall_badge = ('<span class="badge bp">ALL PASS</span>' if all_pass
-                     else '<span class="badge bf">SOME FAIL</span>')
+    if all_pass is None:
+        overall_badge = '<span class="badge bn">AUDIT N/A</span>'
+    elif all_pass:
+        overall_badge = '<span class="badge bp">ALL PASS</span>'
+    else:
+        overall_badge = '<span class="badge bf">SOME FAIL</span>'
 
     # ── audit rows ─────────────────────────────────────────────────
     audit_rows = [
@@ -1466,8 +1535,8 @@ def _pf(ok: bool) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="ARCO Compliance Verification Pipeline")
     parser.add_argument(
-        "--system", default="Sentinel_ID_System",
-        help="Local name of the system under evaluation (default: Sentinel_ID_System)"
+        "--system", default=None,
+        help="Local name of the system under evaluation (auto-derived from the loaded graph if exactly one :System is asserted; required if multiple)."
     )
     parser.add_argument(
         "--instances", default=None,
@@ -1476,8 +1545,6 @@ def main() -> None:
     args = parser.parse_args()
 
     global SYSTEM_LOCAL, SYSTEM_IRI, INSTANCES
-    SYSTEM_LOCAL = args.system
-    SYSTEM_IRI = f"{ARCO_NS}{SYSTEM_LOCAL}"
     if args.instances is not None:
         candidate = Path(args.instances)
         resolved = candidate.resolve()
@@ -1493,6 +1560,33 @@ def main() -> None:
     print("Loading: core ontology + governance extension + instance data")
     g_source = load_union_graph(BFO_2020, IAO_BOT, RO_BOT, CCO_BOT, CORE, GOV, INSTANCES)
     print(f"Triples loaded (asserted): {len(g_source)}")
+
+    # ── resolve SYSTEM_LOCAL from --system or auto-derive ──────────
+    # Previously a module-level constant hardcoded "Sentinel_ID_System" which
+    # test_output_provenance.py Check 3 flagged as a cross-fixture-leak smell.
+    # Now: --system overrides; otherwise inspect the loaded graph for
+    # ?s rdf:type :System and use the unique candidate. The flag-tests
+    # fixture has multiple :System instances and still requires --system.
+    if args.system is not None:
+        SYSTEM_LOCAL = args.system
+    else:
+        derived, candidates = derive_system_local_from_graph(g_source)
+        if derived is None:
+            print()
+            if not candidates:
+                print(f"ERROR: No :System instance asserted in {INSTANCES.name}.")
+                print("Pass --system <local_name> or load a fixture that declares a :System.")
+            else:
+                print(f"ERROR: Multiple :System instances in {INSTANCES.name}. Pass --system to disambiguate.")
+                print("Available:")
+                for c in candidates:
+                    print(f"  - {c}")
+            print()
+            print("No new certificate was written.")
+            raise SystemExit(2)
+        SYSTEM_LOCAL = derived
+        print(f"Auto-derived --system: {SYSTEM_LOCAL}")
+    SYSTEM_IRI = f"{ARCO_NS}{SYSTEM_LOCAL}"
 
     # ── invalid --system fail-fast (before reasoning) ──────────────
     # If --system names a local that is not asserted as rdf:type :System in
@@ -1650,9 +1744,18 @@ def main() -> None:
     # Audit layer: SPARQL ASK queries on the reasoned graph.
     # These inspect declared documentary content; they do not produce
     # and cannot affect the classification result. A non-applicable system has
-    # no Annex III audit content to verify; treat audit as N/A in that case.
+    # no Annex III audit content to verify; treat audit as N/A in that case
+    # by reporting None (not a forced True).
+    #
+    # Closes OPEN_PROBLEMS L4.1: the previous version force-set
+    # audit_pass = True on non-applicable runs, which made all_checks_passed
+    # report a misleading True even when individual audit constituents
+    # returned False (e.g. VerificationKiosk: latent_risk=FAIL,
+    # obligation=FAIL, but all_checks_passed=true under the lie). Now:
+    # audit_pass is None on non-applicable runs; all_pass is None on
+    # non-applicable runs; applicability_status names the case explicitly.
     if non_applicable_run:
-        audit_pass = True
+        audit_pass = None
     else:
         audit_pass = traceability_ok
         if latent_ok is not None:
@@ -1666,10 +1769,34 @@ def main() -> None:
         if union_sync_ok is not None:
             audit_pass = audit_pass and union_sync_ok
 
-    all_pass = classification_pass and audit_pass
+    # Applicability status — separate from audit_pass so consumers can
+    # disambiguate "no in-scope category triggered" (not_applicable) from
+    # "category triggered AND audit passed/failed" (applicable + pass/fail).
+    applicability_status = "not_applicable" if non_applicable_run else "applicable"
+
+    # Overall aggregator. None when audit doesn't apply; otherwise the
+    # boolean AND of the two layers. The previous version aggregated to a
+    # forced True; now consumers reading all_checks_passed see null (or
+    # JSON null) and must consult applicability_status to interpret.
+    if audit_pass is None:
+        all_pass = None
+    else:
+        all_pass = classification_pass and audit_pass
+
     print(f"\n  Classification layer: {'PASS' if classification_pass else 'FAIL'}")
-    print(f"  Audit layer:          {'PASS' if audit_pass else 'FAIL'}")
-    print("\nALL CHECKS PASSED" if all_pass else "\nSOME CHECKS FAILED")
+    if audit_pass is None:
+        print(f"  Audit layer:          NOT APPLICABLE")
+    else:
+        print(f"  Audit layer:          {'PASS' if audit_pass else 'FAIL'}")
+    # CI smoke-test greps for the literal "ALL CHECKS PASSED" — preserve that
+    # substring on non-applicable runs so the smoke-test default (Sentinel /
+    # CreditScorer / Kiosk) keeps signalling pipeline health.
+    if all_pass is None:
+        print("\nALL CHECKS PASSED (audit not applicable)")
+    elif all_pass:
+        print("\nALL CHECKS PASSED")
+    else:
+        print("\nSOME CHECKS FAILED")
 
     # ---------------------------------------------------------------
     # ARCO CONDITION ASSESSMENT CERTIFICATE
@@ -1681,7 +1808,7 @@ def main() -> None:
     else:
         classification_mode = "NOT PRESENT"
 
-    primary_arco_classes = get_primary_arco_classes(annex_iii_1a_ok, annex_iii_5b_ok)
+    primary_arco_classes = get_primary_arco_classes(g, SYSTEM_LOCAL)
     primary_arco_classification = format_primary_arco_classification(primary_arco_classes)
     latent_risk_flag = format_latent_risk_flag(classification_mode)
     primary_classification_mode = "ENTAILED" if primary_arco_classes else "NOT_ENTAILED"
@@ -1813,8 +1940,23 @@ def main() -> None:
     cert_lines.append("=" * 72)
     (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
 
-    # summary.json
+    # Determination IRI from graph — closes OPEN_PROBLEMS L4.2. Returns the
+    # IRI of any :HighRiskDetermination asserted in the loaded fixture;
+    # null for fixtures without one. Previously the emitter hardcoded a
+    # Sentinel-shaped determination IRI for every fixture, producing a
+    # cross-fixture leak (CreditScorer / Verification / Decoy / FlagTests
+    # all carried Sentinel's IRI in their determination_packet.json output
+    # despite that node not existing in their graphs).
+    try:
+        determination_rows = run_sparql_select_for_system(g, SELECT_DETERMINATION_NODE_QUERY, SYSTEM_LOCAL)
+    except Exception:
+        determination_rows = []
+    determination_node_uri: str | None = determination_rows[0].get("det") if determination_rows else None
+
+    # summary.json — schema 1.3 adds applicability_status and bumps for
+    # honest non-applicable aggregator semantics (closes L4.1).
     summary = {
+        "schema_version": "1.3",
         "system": SYSTEM_LOCAL,
         "regime": "ARCO ontology encoding of EU AI Act (Article 6 / Annex III)",
         "instance_file_name": INSTANCES.name,
@@ -1834,7 +1976,9 @@ def main() -> None:
         "obligation": (_pf(obligation_ok) if obligation_ok is not None else "N/A"),
         "entailment": _pf(inference_ok),
         "entailed_triples_added": inferred_added,
+        "applicability_status": applicability_status,
         "all_checks_passed": all_pass,
+        "determination_node_uri": determination_node_uri,
         "flag_derogation_candidate": derogation_flagged,
         "flag_fraud_exclusion_candidate": fraud_flagged,
     }
@@ -1849,8 +1993,12 @@ def main() -> None:
 
     # determination_packet.json — compact intermediate representation;
     # the HTML view is rendered from this, not from scattered Python logic.
+    # Schema 1.3 adds applicability_status (closes L4.1) and binds the
+    # determination_node_uri from a SPARQL SELECT instead of a hardcoded IRI
+    # (closes L4.2).
     determination_packet = {
-        "schema_version": "1.2",
+        "schema_version": "1.3",
+        "applicability_status": applicability_status,
         "system_uri": SYSTEM_IRI,
         "system_label": SYSTEM_LOCAL.replace("_", " "),
         "run_id": datetime.now(timezone.utc).isoformat(),
@@ -1903,7 +2051,7 @@ def main() -> None:
                 },
             },
         ],
-        "determination_node_uri": f"{ARCO_NS}HighRisk_Determination_001",
+        "determination_node_uri": determination_node_uri,
         "inferred_triples_added": inferred_added,
         "flag_derogation_candidate": derogation_flagged,
         "flag_fraud_exclusion_candidate": fraud_flagged,
@@ -1931,6 +2079,7 @@ def main() -> None:
         all_pass=all_pass,
         summary_raw=json.dumps(summary, indent=2),
         evidence_raw=json.dumps(evidence, indent=2),
+        primary_arco_classes=primary_arco_classes,
         gate_evidence=gate_evidence,
         derogation_flagged=derogation_flagged,
         fraud_flagged=fraud_flagged,
