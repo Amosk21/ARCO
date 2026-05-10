@@ -28,7 +28,13 @@ on:
 jobs:
   robot-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # 60 min: HermiT cross-check now runs across all certificate-grade
+    # fixtures (Sentinel, CreditScorer, VerificationKiosk, DecoySystem,
+    # both flag-tests). Six sequential HermiT reasoning passes plus
+    # setup overhead routinely run 35-45 min; the prior 30-min limit
+    # was exceeded on the broadened scope. Follow-up: parallelize via
+    # matrix (one fixture per job) to drop wall time back under 10 min.
+    timeout-minutes: 60
 
     env:
       ROBOT_VERSION: v1.9.10
