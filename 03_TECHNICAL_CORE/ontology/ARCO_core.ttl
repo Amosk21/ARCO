@@ -23,9 +23,19 @@
 #   of material components. Defensible for component-level disposition
 #   tracing. If a future system has stronger functional unity, revisit.
 #
-#   CapabilityDisposition ⊑ Disposition (not Function): Function would
-#   require design-intent evidence we do not model yet. Disposition is
-#   correct; Function is a future precision upgrade.
+#   CapabilityDisposition ⊑ Disposition (not Function): ARCO's target is the
+#   latent capability that the bearer's physical make-up grounds at design
+#   time, regardless of whether the make-up was designed for that purpose.
+#   BFO 2020 [064-001] defines Function as the disposition-subkind whose
+#   bearer's physical make-up exists "either through evolution or through
+#   intentional design, in order to realize processes of a certain sort";
+#   typing as Function would narrow to designed-for cases and exclude
+#   non-designed-in capacities that the hardware nonetheless grounds.
+#   Disposition admits both, with Function instances participating as a
+#   subkind. This is terminal, not a deferred upgrade. Provider intent
+#   (EU AI Act Article 3(12)) lives at Gate 2 (cco:prescribes on the IUS),
+#   ICE/representation-side, not at the BFO category of the hardware-side
+#   disposition.
 #
 #   HighRiskSystem and AnnexIIITriggeringCapability live in the governance
 #   extension, not here. Core contains only reality-side universals.
