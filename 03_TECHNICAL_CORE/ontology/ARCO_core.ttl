@@ -72,7 +72,12 @@
 :CapabilityDisposition rdf:type owl:Class ;
   rdfs:label "AI Capability Disposition"@en ;
   skos:definition "A disposition borne by a system component whose realization is the component participating in a process that produces the capability's output. ARCO subclasses this to enumerate capability kinds named by Annex III (biometric identification, creditworthiness evaluation, and others)."@en ;
-  rdfs:subClassOf bfo:0000016 . # Disposition
+  rdfs:subClassOf bfo:0000016 ; # Disposition
+  rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty bfo:0000052 ; # inheres in
+    owl:someValuesFrom :SystemComponent
+  ] .
 
 :BiometricIdentificationCapability rdf:type owl:Class ;
   rdfs:label "Biometric Identification Capability"@en ;
