@@ -118,9 +118,9 @@ Why ISO standardization matters: BFO 2020 is the second edition of Basic Formal 
 
 ### RO (OBO Relations Ontology)
 
-RO defines the relations ARCO uses to connect entities: `bfo:0000051` (has_part), `ro:0000091` (has_disposition), `ro:0000052` (inheres_in), `ro:0000057` (has_participant), `ro:0000087` (has_role). These are the load-bearing relations of the gate axioms. A system has-part a hardware component that has-disposition a capability. A role inheres-in a bearer.
+RO defines the relations ARCO uses to connect entities: `bfo:0000051` (has_part), `ro:0000091` (has_disposition), `ro:0000052` (RO label "characteristic of"; ARCO locally commits this as `rdfs:subPropertyOf bfo:0000197` inheres_in, see `LIMITATIONS.md` §3.8), `ro:0000057` (has_participant), `ro:0000087` (has_role). These are the load-bearing relations of the gate axioms. A system has-part a hardware component that has-disposition a capability. A role inheres-in a bearer.
 
-Using RO instead of project-local properties means the property characteristics (functional, transitive, inverse-of relationships) are defined upstream. A reasoner sees `ro:0000052` and knows what it means without ARCO having to redeclare it.
+Using RO instead of project-local properties means the property characteristics (functional, transitive, inverse-of relationships) are defined upstream. A reasoner sees `ro:0000052` and knows what it means without ARCO having to redeclare it. ARCO additionally commits `ro:0000052 rdfs:subPropertyOf bfo:0000197` in `ARCO_core.ttl` section 5 so the reasoner inherits BFO 2020's IndependentContinuant range on the inferred inherence triple. See `LIMITATIONS.md` §3.8 for the bounded-enforcement disclosure and forward-looking constraints.
 
 ### IAO (Information Artifact Ontology)
 

@@ -165,11 +165,21 @@ bfo:0000051 rdfs:label "has part" .
 bfo:0000055 rdfs:label "realizes" .
 
 # RO relations
-ro:0000052 rdfs:label "inheres in" .
+ro:0000052 rdfs:label "characteristic of" .
 ro:0000053 rdfs:label "bearer of" .
 ro:0000057 rdfs:label "has participant" .
 ro:0000087 rdfs:label "has role" .
 ro:0000091 rdfs:label "has disposition" .
+
+# BFO 2020 inherence direct label (referenced by the subPropertyOf binding below)
+bfo:0000197 rdfs:label "inheres in" .
+
+#################################################################
+# 5) EXTERNAL PROPERTY COMMITMENT — subPropertyOf binding to BFO 2020
+#################################################################
+
+ro:0000052 rdfs:subPropertyOf bfo:0000197 ;  # inheres in
+  rdfs:comment "ARCO commits RO 'characteristic of' (ro:0000052) as a specialization of bfo:0000197 (BFO 2020 'inheres in') so the reasoner inherits BFO's IndependentContinuant range on the inferred inherence triple. RO removed the range to support qualities of processes or ICE; ARCO does not model those cases. Bounded enforcement: catches wrong-typed bearer only when typed as a disjoint sibling of IC. Same axiomatic shape as cco:designates rdfs:subPropertyOf iao:0000136 at ARCO_governance_extension.ttl:139 (note: that binding widens cco:designates up into iao:is_about; this binding narrows ro:0000052 down through BFO's stricter range). See LIMITATIONS.md §3.8."@en .
 
 # IAO relations
 iao:0000136 rdfs:label "is about" .
