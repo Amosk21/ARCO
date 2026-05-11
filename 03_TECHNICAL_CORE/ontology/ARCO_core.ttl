@@ -41,6 +41,8 @@
 #   - has_disposition has domain: independent continuant, range: disposition
 #   - bearer_of is generic (covers qualities, roles, functions, dispositions)
 #   - This aligns with OBO Foundry best practices
+# See section 5 for the parallel ro:0000052 → bfo:0000197 subPropertyOf
+# binding (BFO range adds the IC constraint RO removed from characteristic_of).
 #################################################################
 
 :System rdf:type owl:Class ;
