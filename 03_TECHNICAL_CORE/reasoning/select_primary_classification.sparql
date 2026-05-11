@@ -1,0 +1,30 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# EMISSION LAYER — binds the headline classification field from the reasoned graph.
+#
+# Selects which Annex III applicability class(es) the system is entailed as
+# under post-OWL-RL closure. Returns zero rows for non-applicable systems
+# (e.g., verification kiosk), one row for an in-scope category, more if
+# multiple categories ever apply to one system.
+#
+# CALLER CONTRACT:
+#   - ?system is bound by the caller to the system IRI under evaluation.
+#   - Result is the pure class IRI; no Python qualifier is composed downstream.
+#   - classification_mode (ENTAILED / NOT_ENTAILED) lives in run-metadata,
+#     not here — it is derived from whether this query returned any rows
+#     combined with the pre-vs-post-reasoning triple delta.
+#
+# Adding a new Annex III applicability class requires updating the FILTER list
+# and creating the corresponding owl:equivalentClass axiom in
+# ARCO_governance_extension.ttl.
+#
+# Closes OPEN_PROBLEMS L4.3 (was: Python f-string composing
+# "AnnexIII5bApplicableSystem (ENTAILED, all three ARCO gates)" at
+# run_pipeline.py:1703-1704).
+
+SELECT ?cls WHERE {
+  ?system rdf:type ?cls .
+  FILTER(?cls IN (:AnnexIII1aApplicableSystem, :AnnexIII5bApplicableSystem))
+}
+ORDER BY ?cls

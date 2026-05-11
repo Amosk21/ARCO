@@ -1,0 +1,29 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+
+# EMISSION LAYER — binds the determination IRI from the run's reasoned graph.
+#
+# Returns the IRI(s) of HighRiskDetermination instance(s) asserted in the
+# loaded fixture's TTL whose iao:0000136 (is_about) the system under
+# evaluation. Most fixtures yield ZERO rows today; only Sentinel's TTL asserts
+# such a node (`:HighRisk_Determination_001`). The previous emitter hardcoded
+# that one IRI for every fixture, producing a cross-fixture leak (the IRI
+# appeared in CreditScorer / VerificationKiosk / Adversarial Decoy / FlagTests
+# determination_packet.json output despite not existing as a node in those
+# graphs).
+#
+# CALLER CONTRACT:
+#   - ?system is bound by the caller to the system IRI under evaluation.
+#   - If zero rows: emit JSON null and a status field of
+#     "absent_in_loaded_graph"; do NOT fall back to a hardcoded default IRI.
+#
+# Closes OPEN_PROBLEMS L4.2 (was: hardcoded
+# f"{ARCO_NS}HighRisk_Determination_001" at run_pipeline.py:1906 emitted
+# for every fixture regardless of graph content).
+
+SELECT ?det WHERE {
+  ?det rdf:type :HighRiskDetermination ;
+       iao:0000136 ?system .
+}
+ORDER BY ?det

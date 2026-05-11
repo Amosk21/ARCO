@@ -1,0 +1,36 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+
+# EMISSION LAYER — binds Gate 2 evidence rows from the reasoned graph.
+#
+# Gate 2: a documented IntendedUseSpecification is_about the system AND
+# cco:prescribes a process instance whose type is one of the Annex-III-relevant
+# category-specific process classes. Currently scoped to:
+#   - :RemoteBiometricIdentificationProcess  (Annex III 1(a))
+#   - :CreditworthinessEvaluationProcess     (Annex III 5(b))
+#
+# CALLER CONTRACT:
+#   - ?system is bound by the caller to the system IRI under evaluation.
+#   - process_label is OPTIONAL.
+#   - ORDER BY ?ius ?process makes the result deterministic across runs.
+#     Previously LIMIT 1 with no ORDER BY meant the same fixture could yield
+#     different evidence rows across runs (rdflib hash-iteration order).
+#   - FILTER restricts process_class to currently modeled categories — adding
+#     a new Annex III category requires updating this filter AND creating the
+#     corresponding category-specific process subclass.
+#
+# Closes OPEN_PROBLEMS L3.1 (was: inline SELECT at run_pipeline.py:322-340
+# with LIMIT 1 and no ORDER BY, no category filter).
+
+SELECT ?ius ?process ?process_class ?process_label WHERE {
+  ?ius rdf:type :IntendedUseSpecification ;
+       iao:0000136 ?system ;
+       cco:prescribes ?process .
+  ?process rdf:type ?process_class .
+  FILTER(?process_class IN (:RemoteBiometricIdentificationProcess, :CreditworthinessEvaluationProcess))
+  OPTIONAL { ?process_class rdfs:label ?process_label }
+}
+ORDER BY ?ius ?process
