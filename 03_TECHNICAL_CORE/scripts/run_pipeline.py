@@ -798,24 +798,36 @@ def write_html_view(
     )
 
     # ── gate cards (for Layer 2) ───────────────────────────────────
-    # Gate 1 is satisfied if inference_ok (HighRiskSystem entailed
-    # requires has_part some (SystemComponent and has_disposition some
-    # AnnexIIITriggeringCapability))
+    # Each gate_ok flag is bound to the typed evidence the emission queries
+    # produce, NOT to the audit-layer documentary ASKs. This is the
+    # output-discipline contract that prevents the HTML gate-card affirmative
+    # branch from firing when the loaded TTL does not assert typed gate
+    # evidence (OPEN_PROBLEMS L4.7).
+    #
+    # Gate 1: inference_ok mirrors :HighRiskSystem entailment via has_part /
+    # has_disposition / AnnexIIITriggeringCapability; cap_type_uri is the
+    # typed-evidence binding from select_gate_1_capability.sparql.
     gate1_ok = inference_ok
-    # Gate 2 satisfied if intended_use is modelled with correct process type
-    gate2_ok = intended_use_ok
-    # Gate 3 satisfied if use scenario references NaturalPersonRole
-    # Derived from gate evidence (parallel to gate2_ok = intended_use_ok),
-    # NOT from reg_alignment_ok which is a separate audit-layer SPARQL result.
+    # Gate 2: bound to typed-process-class evidence from
+    # select_gate_2_prescribed_process.sparql (which FILTERs to the regulated
+    # category classes). intended_use_ok (the check_intended_use.sparql ASK)
+    # is a separate documentary-traceability audit and does NOT prove
+    # typed-content satisfaction by itself — its own header at
+    # reasoning/check_intended_use.sparql:5-12 declares it documentary.
+    gate2_ok = bool(gate_evidence["gate2"]["process_type_uri"])
+    # Gate 3: USS designation is asserted (already evidence-coupled).
     gate3_ok = bool(gate_evidence["gate3"]["uss_uri"])
 
     # Pre-compute gate display labels from the determination packet.
     # These are used in axiom pattern text, gate answers, and counterfactuals.
     # Using the full rdfs:label so text tracks ontology changes automatically.
-    _cap_label      = gate_evidence["gate1"]["cap_type_label"] or "BiometricIdentificationCapability"
-    _process_label  = gate_evidence["gate2"]["process_type_label"] or "RemoteBiometricIdentificationProcess"
-    _role_label     = gate_evidence["gate3"]["role_label"] or "Natural Person Role"
-    _role_local     = _short(gate_evidence["gate3"]["role_uri"]) if gate_evidence["gate3"]["role_uri"] else "NaturalPersonRole"
+    # The fallback placeholders are non-concretizing — they do NOT name a
+    # category-specific class IRI that may not be asserted in the loaded TTL
+    # (OPEN_PROBLEMS L4.7 closure; output_manifest_v2.yaml forbidden patterns).
+    _cap_label      = gate_evidence["gate1"]["cap_type_label"] or "(no Annex III triggering capability bound for this run)"
+    _process_label  = gate_evidence["gate2"]["process_type_label"] or "(no in-scope regulated process bound for this run)"
+    _role_label     = gate_evidence["gate3"]["role_label"] or "(no role designated for this run)"
+    _role_local     = _short(gate_evidence["gate3"]["role_uri"]) if gate_evidence["gate3"]["role_uri"] else "(no role local)"
 
     gate_cards_html = f"""
         <div class="gate-card {_gate_status_class(gate1_ok)}">
@@ -2038,7 +2050,12 @@ def main() -> None:
             {
                 "id": "gate_2",
                 "label": "Prescribed Process Type",
-                "status": "SATISFIED" if intended_use_ok else "NOT_SATISFIED",
+                # Packet-side gate_2 status mirrors HTML-side `gate2_ok` rebind
+                # (run_pipeline.py:806): typed-evidence presence, not the
+                # documentary ASK `intended_use_ok`. Closes the schema-incoherent
+                # SATISFIED-with-empty-evidence state on non-applicable runs.
+                # Parallel to gate_3 below which is already evidence-coupled.
+                "status": "SATISFIED" if bool(gate_evidence["gate2"]["process_type_uri"]) else "NOT_SATISFIED",
                 "evidence": {
                     "ius_uri": gate_evidence["gate2"]["ius_uri"],
                     "process_uri": gate_evidence["gate2"]["process_uri"],
