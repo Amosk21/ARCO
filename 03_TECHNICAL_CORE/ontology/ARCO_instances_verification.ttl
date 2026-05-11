@@ -99,3 +99,66 @@
   rdfs:label "Kiosk Assessment Documentation 001" ;
   iao:0000136 :VerificationKiosk_001 ;
   iao:0000136 :AnnexIII_Condition_1a_Exclusion .
+
+#################################################################
+# 5) CONCRETIZATION BEARER SLOTS (currently HYPOTHETICAL)
+#
+# An IntendedUseSpecification and a UseScenarioSpecification are
+# information artifacts. In BFO 2020 terms they are generically
+# dependent continuants, which means they exist by being concretized
+# in something more specific: an inscription on a particular document,
+# a pattern of bits in a particular file, a structured arrangement on
+# a particular screen. Without that link, the specification is
+# correctly typed but not anchored in anything real.
+#
+# Why this block matters. The kiosk source packet is HYPOTHETICAL
+# today (see docs/kiosk_demo_v1/source_packet.md). When ARCO is
+# applied to a real published kiosk specification (a vendor product
+# page, an EU AI Act compliance filing, a public NIST AI RMF example),
+# the steps to close the realist chain are mechanical:
+#   1. Add a typed instance for the real document file (a Material
+#      Entity with file hash, retrieval timestamp, source citation).
+#   2. Add a typed instance for the inscription quality on that file
+#      (a Specifically Dependent Continuant that characterizes the
+#      file via ro:0000052, which ARCO commits as a specialization of
+#      bfo:0000197 in ARCO_core.ttl section 5).
+#   3. Assert that the inscription concretizes the specification ICE
+#      via bfo:0000059 (BFO 2020 "concretizes": b concretizes c =Def
+#      b is a process or specifically dependent continuant, c is a
+#      generically dependent continuant, c is the pattern b shares
+#      with actual or potential copies).
+#
+# The block below shows that shape with placeholder IRIs. The block
+# is commented out because uncommenting it without a real document
+# would assert reality-side particulars the source ledger does not
+# license, which is the fake-witness discipline the
+# EVIDENCE_TO_COMMITMENT_POLICY rules out.
+#
+# Related: OPEN_PROBLEMS L2.2 tracks the equivalent slot for the
+# pipeline-emitted side (the determination output ICE concretizes in
+# the certificate.txt file the pipeline writes). The slot pattern
+# below is the source-side analogue. Both halves together close the
+# realist chain from real input documents through the reasoner to
+# real output files.
+#################################################################
+
+# Slot 1. The source document particular.
+# When the kiosk source is real, fill in the file hash, retrieval
+# timestamp, and source URL or path. The IRI naming flag below
+# ("PLACEHOLDER") marks that the entity has no real-world referent yet.
+#
+# :Kiosk_SourceDoc_PLACEHOLDER rdf:type bfo:0000040 ;  # Material Entity
+#   rdfs:label "Kiosk Product Specification (PLACEHOLDER)" ;
+#   rdfs:comment "Slot for the real source document particular. Replace when the kiosk source becomes real per OPEN_PROBLEMS L1.1. Properties to add when real: file hash, retrieval timestamp, source URL, document title." .
+
+# Slot 2. The inscription on the source document.
+# The inscription is a specifically dependent continuant that
+# characterizes the document (ro:0000052, bound to bfo:0000197 in
+# ARCO_core.ttl section 5) and concretizes the specification ICEs it
+# expresses (bfo:0000059).
+#
+# :Kiosk_SourceDoc_Inscription_PLACEHOLDER rdf:type bfo:0000020 ;  # SDC
+#   rdfs:label "Kiosk Source Inscription (PLACEHOLDER)" ;
+#   ro:0000052 :Kiosk_SourceDoc_PLACEHOLDER ;  # characteristic_of (inheres in) the document
+#   bfo:0000059 :Kiosk_IntendedUse_001 ;  # concretizes the IntendedUseSpecification
+#   bfo:0000059 :Kiosk_UseScenario_001 .  # concretizes the UseScenarioSpecification

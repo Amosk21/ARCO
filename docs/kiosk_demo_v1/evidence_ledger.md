@@ -35,3 +35,20 @@ Every reality-side and information-side triple in `ARCO_instances_verification.t
 - Does not claim every triple in the fixture is automatically derivable from the source. Rows 1-7 are adjudicator commitments; the adjudicator's review is the load-bearing step.
 - Does not capture every detail in the source packet. Rows 8-9 explicitly hold (no triple) because the source's OWA framing must remain documentary, not be flattened into a closed-world claim.
 - Does not provide a runtime extraction pipeline. The source packet is hand-authored prose for this demonstration; LLM-assisted extraction is out of scope per `docs/EVIDENCE_TO_COMMITMENT_POLICY.md`.
+
+---
+
+## Bearer particulars (currently HYPOTHETICAL slots)
+
+Rows 4 (IntendedUseSpecification) and 6 (UseScenarioSpecification) above mint information artifacts that, in BFO 2020 terms, are generically dependent continuants. A generically dependent continuant exists by being concretized in something more specific. For a document-derived specification, that something is an inscription on a particular document file. The kiosk source packet is HYPOTHETICAL, so the bearer particulars for these information artifacts are not asserted in the fixture today.
+
+The fixture reserves the slot pattern at `03_TECHNICAL_CORE/ontology/ARCO_instances_verification.ttl` section 5 (commented out). When the kiosk source becomes a real published document, uncommenting and filling those slots closes the realist chain back to the real world. Until then, the information artifacts exist as existential commitments under the Open World Assumption without an asserted concretizer. BFO 2020 declares the relation that closes the chain (`bfo:0000059` concretizes) but does not enforce it as an OWL restriction, so the reasoner accepts the unconcretized state without inconsistency.
+
+| Information artifact | Source-side bearer slot | Status |
+|---|---|---|
+| `:Kiosk_IntendedUse_001` (row 4) | `:Kiosk_SourceDoc_Inscription_PLACEHOLDER` concretizes the IUS via `bfo:0000059`. The inscription inheres in `:Kiosk_SourceDoc_PLACEHOLDER` (a material entity) via `ro:0000052`. | slot reserved, currently HYPOTHETICAL |
+| `:Kiosk_UseScenario_001` (row 6) | Same source document inscription concretizes the USS as well (the same source document covers both intended use and use scenario). | slot reserved, currently HYPOTHETICAL |
+| `:KioskAssessmentDoc_001` (row 7) | Pipeline-emitted side. The bearer slot for this kind of information artifact lives at `OPEN_PROBLEMS.md` L2.2: the assessment documentation should be tokenized by the certificate file the pipeline writes for this run. | tracked separately (L2.2) |
+| `:Kiosk_Determination_001` (no row in this ledger; pipeline-emitted) | Same as above. L2.2 acceptance criterion covers the pipeline-emitted determination information artifact. | tracked separately (L2.2) |
+
+When the kiosk demo gains a real source document, the source-side slots (rows 4 and 6) get filled mechanically. The pipeline-emitted side (row 7 and the determination information artifact) gets filled by L2.2's planned pipeline emission of `cco:is_tokenized_by` triples to the certificate file. Both ends of the chain anchor in real-world particulars then.
