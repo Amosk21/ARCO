@@ -2050,7 +2050,12 @@ def main() -> None:
             {
                 "id": "gate_2",
                 "label": "Prescribed Process Type",
-                "status": "SATISFIED" if intended_use_ok else "NOT_SATISFIED",
+                # Packet-side gate_2 status mirrors HTML-side `gate2_ok` rebind
+                # (run_pipeline.py:806): typed-evidence presence, not the
+                # documentary ASK `intended_use_ok`. Closes the schema-incoherent
+                # SATISFIED-with-empty-evidence state on non-applicable runs.
+                # Parallel to gate_3 below which is already evidence-coupled.
+                "status": "SATISFIED" if bool(gate_evidence["gate2"]["process_type_uri"]) else "NOT_SATISFIED",
                 "evidence": {
                     "ius_uri": gate_evidence["gate2"]["ius_uri"],
                     "process_uri": gate_evidence["gate2"]["process_uri"],
