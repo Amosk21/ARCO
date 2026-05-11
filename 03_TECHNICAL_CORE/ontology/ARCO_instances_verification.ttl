@@ -37,12 +37,12 @@
 
 :Kiosk_VeriComp_Module rdf:type :HardwareComponent ;
   rdfs:label "Kiosk Biometric Verification Module" ;
-  rdfs:comment "Hardware component bearing 1:1 verification capability. NOT an identification module." ;
+  rdfs:comment "Hardware component asserted to bear 1:1 verification capability under this deployment's reviewed commitments. Identification capability is not asserted; whether the underlying hardware could in principle realize identification under a different configuration is not adjudicated by ARCO (see LIMITATIONS §3.5 on software-configurable bearers)." ;
   ro:0000091 :Kiosk_VeriComp_Disposition .
 
 :VerificationKiosk_001 rdf:type :System ;
   rdfs:label "Verification Kiosk 001" ;
-  rdfs:comment "A 1:1 identity verification kiosk. Confirms claimed identities; does not identify unknown individuals from a population. BiometricVerificationCapability does not trigger AnnexIIITriggeringCapability." ;
+  rdfs:comment "A 1:1 identity verification kiosk under this deployment's reviewed commitments. The asserted disposition is :BiometricVerificationCapability, which is not a member of the :AnnexIIITriggeringCapability owl:unionOf; under current commitments, identification is not entailed and Annex III 1(a) is not entailed. ARCO does not claim hardware-incapability under OWA (LIMITATIONS §3.5, §3.6)." ;
   bfo:0000051 :Kiosk_VeriComp_Module .
 
 #################################################################
