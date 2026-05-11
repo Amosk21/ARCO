@@ -64,6 +64,12 @@ jobs:
           set -euo pipefail
           python -u 03_TECHNICAL_CORE/scripts/test_scenarios.py
 
+      - name: Run kiosk HTML no-false-concretization regression test (L4.7)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u 03_TECHNICAL_CORE/scripts/test_kiosk_html_no_false_concretization.py
+
       - name: Verify artifact files exist
         shell: bash
         run: |
