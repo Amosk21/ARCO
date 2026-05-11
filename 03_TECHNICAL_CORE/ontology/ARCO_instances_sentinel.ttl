@@ -18,6 +18,7 @@
 
 :AnnexIII_List rdf:type :RegulatoryContent ;
   rdfs:label "Annex III List" ;
+  rdfs:comment "Mereological scaffold for modeled regulatory conditions. New Annex III categories add as members via bfo:0000051 (has_part). Peer regulation lists (e.g. GDPR_Article22_List) follow the same pattern. Extension point by design; do not remove as orphaned." ;
   bfo:0000051 :AnnexIII_Condition_1a .  # has part
 
 :AnnexIII_Condition_1a rdf:type :RegulatoryContent ;
