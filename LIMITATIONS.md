@@ -8,13 +8,13 @@
 2. [CLAUDE.md](CLAUDE.md) — project invariants
 3. [README.md](README.md) — outward-facing claim
 4. [docs/agent/ARCO_public_claims.md](docs/agent/ARCO_public_claims.md) — claim discipline
-5. [docs/ARCO_DSQs_and_Scope.md](docs/ARCO_DSQs_and_Scope.md) — decision-support questions and scope
+5. [docs/COMPETENCY_QUESTIONS.md](docs/COMPETENCY_QUESTIONS.md) — CQ0-CQ17 modeling spine and human interview flow
 6. [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md) — BFO/CCO alignment state
 7. [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md) — regulatory scope rules
 8. [03_TECHNICAL_CORE/docs/architecture_defense_memo.md](03_TECHNICAL_CORE/docs/architecture_defense_memo.md) — load-bearing design choices
 9. [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) — commitment backtest grading each load-bearing choice
 
-**Last reviewed:** 2026-05-09
+**Last reviewed:** 2026-05-11
 
 **Refresh trigger:** any change to ontology class hierarchy, three-gate axioms, imported upstream ontology, Annex III category coverage, or instance-file design conventions.
 
@@ -262,25 +262,25 @@ GhostSystem is a reasoner-property probe (it tests OWL-RL's `owl:someValuesFrom`
 
 ### 7.5 Output composition layer (Boundary 4): known integrity gaps
 
-**Added 2026-05-09.** Reference: adversarial code-only audit `runs/loop/2026-05-09_beverley-research/adversarial_audit_2026-05-09.md`.
+**Added 2026-05-09. Updated 2026-05-11** — closure annotations added for items resolved on main; remaining live items retain their original framing.
 
 The pipeline's output layer (`run_pipeline.py` from line 1699 onward, plus `write_html_view`) composes the certificate, `summary.json`, `determination_packet.json`, and the HTML view from SPARQL bindings, Python computations over those bindings, and hardcoded constants. This layer has no discipline analogous to the two-layer rule of §7.1 through §7.3. The 2026-05-09 code-only audit identified the following gaps.
 
 **Cross-layer contradictions** (output emits commitment-shaped values inconsistent with the graph or with adjacent fields):
 
-- `all_checks_passed: true` can coexist with per-check `FAIL` fields in the same `summary.json`. On non-applicable runs (e.g. `VerificationKiosk_001`), `audit_pass` is set to `True` by a Python short-circuit (`run_pipeline.py:1643-1655`) regardless of which audit checks failed. The certificate's "ALL CHECKS PASSED" banner is false on these runs.
-- `determination_node_uri` is a hardcoded constant (`run_pipeline.py:1906`). It emits `:HighRisk_Determination_001`, which exists as a graph node only in `ARCO_instances_sentinel.ttl`. Runs against `ARCO_instances_creditscoring.ttl` or `ARCO_instances_verification.ttl` emit an IRI not asserted in the loaded graph for that run.
-- Gate 2 evidence selection uses `LIMIT 1` without `ORDER BY` and without category filtering (`run_pipeline.py:323-342`). The behaviour is **underdetermined**: on `FlagTest_CreditSystem_WithFraudProcess` the packet and HTML can name either `:FraudDetectionProcess` or `:CreditworthinessEvaluationProcess` as the process satisfying Gate 2, because SPARQL row order without `ORDER BY` is implementation-defined. Same fixture, same data, different certificate evidence across runs. The 5(b) classification entails correctly either way; the audit-trace claim is what is non-reproducible. Closing this requires both `ORDER BY` (for determinism) and a category filter (for correctness); a half-fix that does only one leaves the underdetermined behaviour live.
+- `all_checks_passed: true` can coexist with per-check `FAIL` fields in the same `summary.json`. On non-applicable runs (e.g. `VerificationKiosk_001`), `audit_pass` is set to `True` by a Python short-circuit (`run_pipeline.py:1643-1655`) regardless of which audit checks failed. The certificate's "ALL CHECKS PASSED" banner is false on these runs. **CLOSED 2026-05-10 (PR #36, OPEN_PROBLEMS L4.1).** The force-True short-circuit is removed: `audit_pass` and `all_pass` both return `None` on non-applicable runs. A new `applicability_status` enum (`applicable` / `not_applicable`) is added to `summary.json` and `determination_packet.json`. Schema bumped 1.2 → 1.3. Consumers see distinct applicability vs. audit fields.
+- `determination_node_uri` is a hardcoded constant (`run_pipeline.py:1906`). It emits `:HighRisk_Determination_001`, which exists as a graph node only in `ARCO_instances_sentinel.ttl`. Runs against `ARCO_instances_creditscoring.ttl` or `ARCO_instances_verification.ttl` emit an IRI not asserted in the loaded graph for that run. **CLOSED 2026-05-10 (PR #36, OPEN_PROBLEMS L4.2).** New `reasoning/select_determination_node.sparql` selects the determination node from the run's reasoned graph; `run_pipeline.py:1972` binds the result. Sentinel returns `:HighRisk_Determination_001`, CreditScorer returns `:CreditScorer_Determination_001`, verification kiosk and decoy return `null`, flag-tests return their asserted IRIs. Asserted-vs-entailment alignment is tracked separately at `OPEN_PROBLEMS.md` X.9.
+- Gate 2 evidence selection uses `LIMIT 1` without `ORDER BY` and without category filtering (`run_pipeline.py:323-342`). The behaviour is **underdetermined**: on `FlagTest_CreditSystem_WithFraudProcess` the packet and HTML can name either `:FraudDetectionProcess` or `:CreditworthinessEvaluationProcess` as the process satisfying Gate 2, because SPARQL row order without `ORDER BY` is implementation-defined. Same fixture, same data, different certificate evidence across runs. The 5(b) classification entails correctly either way; the audit-trace claim is what is non-reproducible. Closing this requires both `ORDER BY` (for determinism) and a category filter (for correctness); a half-fix that does only one leaves the underdetermined behaviour live. **CLOSED 2026-05-10 (PR #36, OPEN_PROBLEMS L3.1).** Inline SPARQL moved to `reasoning/select_gate_2_prescribed_process.sparql` with `ORDER BY ?ius ?process` for determinism and a `FILTER(?process_class IN (:RemoteBiometricIdentificationProcess, :CreditworthinessEvaluationProcess))` category filter for correctness.
 
 **Sentinel-shaped hardcoding** (the same affected-role pattern is hardcoded in three independent places, making the Gate 3 surface category-specific rather than parameterized):
 
-- Python: `gate_evidence["gate3"]["role_uri"]` initializes to `:NaturalPersonRole` (`run_pipeline.py:371`); display labels fall back to biometric-identification strings when SPARQL returns zero rows (`run_pipeline.py:740-743`); `gate3_ok` checks USS existence only, not which role is designated (`run_pipeline.py:735`).
-- SPARQL: `check_intended_use.sparql:31` hardcodes `cco:designates :NaturalPersonRole`, bundling Gates 2 and 3 into one ASK with the affected role baked in.
-- SHACL: `assessment_documentation_shape.ttl:96-100` hardcodes `sh:hasValue :NaturalPersonRole` at the shape level.
+- Python: `gate_evidence["gate3"]["role_uri"]` initializes to `:NaturalPersonRole` (`run_pipeline.py:371`); display labels fall back to biometric-identification strings when SPARQL returns zero rows (`run_pipeline.py:740-743`); `gate3_ok` checks USS existence only, not which role is designated (`run_pipeline.py:735`). **LIVE** (OPEN_PROBLEMS L3.2 and L3.4): the Python `role_uri` initialization and fallback display labels are still category-specific to biometric identification; `gate3_ok` is still a `bool(uss_uri)` Python predicate weaker than the OWL Gate 3 axiom.
+- SPARQL: `check_intended_use.sparql:31` hardcodes `cco:designates :NaturalPersonRole`, bundling Gates 2 and 3 into one ASK with the affected role baked in. **LIVE** (OPEN_PROBLEMS L3.2).
+- SHACL: `assessment_documentation_shape.ttl:96-100` hardcodes `sh:hasValue :NaturalPersonRole` at the shape level. **LIVE** (OPEN_PROBLEMS L3.2). The 5(b) HTML-emission counterpart was a separate locus and is **CLOSED 2026-05-10 (PR #34, OPEN_PROBLEMS L3.3)**: `write_html_view`'s 5(b) branch now reads `gate_evidence["gate2"]["process_type_label"]` and the parameterized gate-evidence helpers rather than Python literals.
 
 **Synthesized narrative**:
 
-- The certificate's Annex III line carries a Python string literal "VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" (`run_pipeline.py:1725-1738`). The graph does not commit to "derogation not evaluated" as a state.
+- The certificate's Annex III line carries a Python string literal "VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" (`run_pipeline.py:1725-1738`). The graph does not commit to "derogation not evaluated" as a state. **HEADLINE COMPOSITION CLOSED 2026-05-10 (PR #36, OPEN_PROBLEMS L4.3).** New `reasoning/select_primary_classification.sparql` returns the entailed class IRI list; the headline value is now the pure class IRI. Mode/scope text moved to separate fields. Composite qualifiers like `(ENTAILED, all three ARCO gates)` and `(Annex III Capability-Precondition Flag; ...; not the EU AI Act legal high-risk classification)` are dropped from the headline format functions. **REMAINING**: the polarity of the `(Article 6(3) derogation not evaluated)` qualifier when a `:DerogationClaim` is flagged is a queued semantic-correctness item (regulator-defensibility concern surfaced 2026-05-11; the honest qualifier should *strengthen*, not drop, when more uncertainty exists). Tracked separately.
 
 **Operational**:
 
@@ -344,6 +344,6 @@ If a downstream tool requires ARCO output as input, the interface is the current
 
 - Update this document **first** when scope changes, before README or commercial copy.
 - A claim in README, EXEC_PITCH, or any outward-facing artifact that exceeds what this document permits is a bug. Correct the outward artifact, not this one.
-- The scope boundary in §2 is coupled to [docs/ARCO_DSQs_and_Scope.md](docs/ARCO_DSQs_and_Scope.md) and [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md). All three must be updated together when coverage changes.
+- The scope boundary in §2 is coupled to [docs/COMPETENCY_QUESTIONS.md](docs/COMPETENCY_QUESTIONS.md) and [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md). All three must be updated together when coverage changes.
 - The ontological commitment status in §3 is coupled to [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md). When a commitment's grade changes (a stretch is resolved, a new stretch is introduced), update the backtest first, then this document.
 - The property-layer status in §4 is coupled to [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md). Import progress updates there first.

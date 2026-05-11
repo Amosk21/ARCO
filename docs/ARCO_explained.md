@@ -157,8 +157,8 @@ Annex III of the EU AI Act has a recurring grammatical structure. Almost every c
 | Gate | Layer | What it checks | OWL mechanism |
 |------|-------|----------------|---------------|
 | Gate 1 | Reality | The system has a hardware component that bears the regulated capability disposition | `bfo:0000051` (has_part) chained to `ro:0000091` (has_disposition), with `owl:someValuesFrom` on the capability class |
-| Gate 2 | Representation (intended use) | An `IntendedUseSpecification` is_about the system and prescribes a typed instance of the regulated process class | Anonymous inverse property expression on `iao:0000136`, intersected with `cco:prescribes` and `owl:someValuesFrom` on the process class |
-| Gate 3 | Representation (affected role) | A `UseScenarioSpecification` is_about the system and is_about the regulated role universal | Anonymous inverse property expression on `iao:0000136`, intersected with another `iao:0000136` and `owl:hasValue` on the role universal |
+| Gate 2 | Representation (intended use) | An `IntendedUseSpecification` is_about the system and prescribes a typed instance of the regulated process class | Anonymous inverse property expression on `iao:0000136`, with `owl:someValuesFrom` on the named IUS subkind class (e.g. `:RemoteBiometricIdentificationIntendedUseSpec`). The subkind is itself defined by `owl:equivalentClass owl:intersectionOf (:IntendedUseSpecification, cco:prescribes someValuesFrom :RegulatedProcessClass)`. Mirrors the CCO Specification family pattern (`cco:ArtifactFunctionSpecification`, `cco:QualitySpecification`, etc.). |
+| Gate 3 | Representation (affected role) | A `UseScenarioSpecification` is_about the system and designates the regulated role universal | Anonymous inverse property expression on `iao:0000136`, with `owl:someValuesFrom` on `:UseScenarioSpecification` intersected with `cco:designates owl:hasValue` on the role universal. `cco:designates` is CCO's typed designation property whose range admits universals; this is the canonical CCO usage for designation by inscription. |
 
 For category-specific Annex III applicability (`AnnexIII1aApplicableSystem`, `AnnexIII5bApplicableSystem`), all three gates must fire. Gate independence is verified by a regression test (`test_gate_removal.py`): with any single gate removed, the entailment must not fire. With all three present, it must.
 
@@ -187,24 +187,20 @@ Here is the actual OWL axiom for `AnnexIII1aApplicableSystem`, drawn directly fr
         ]
       ]
 
-      # Gate 2: intended use spec is_about the system AND prescribes a typed
-      # instance of RemoteBiometricIdentificationProcess
+      # Gate 2: an :IntendedUseSpecification of the regulated subkind
+      # is_about this system. The IUS subkind is defined separately by
+      # owl:equivalentClass intersection (:IntendedUseSpecification ⊓
+      # cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess),
+      # so the type-check on the prescribed process happens at the IUS
+      # subkind class level. Mirrors the CCO Specification family pattern.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
-        owl:someValuesFrom [
-          rdf:type owl:Class ;
-          owl:intersectionOf (
-            :IntendedUseSpecification
-            [ rdf:type owl:Restriction ;
-              owl:onProperty cco:prescribes ;
-              owl:someValuesFrom :RemoteBiometricIdentificationProcess
-            ]
-          )
-        ]
+        owl:someValuesFrom :RemoteBiometricIdentificationIntendedUseSpec
       ]
 
-      # Gate 3: scenario spec is_about the system AND is_about the
-      # NaturalPersonRole universal
+      # Gate 3: scenario spec is_about the system AND cco:designates the
+      # :NaturalPersonRole universal. cco:designates is CCO's typed
+      # designation property whose range admits universals.
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -212,7 +208,7 @@ Here is the actual OWL axiom for `AnnexIII1aApplicableSystem`, drawn directly fr
           owl:intersectionOf (
             :UseScenarioSpecification
             [ rdf:type owl:Restriction ;
-              owl:onProperty iao:0000136 ;
+              owl:onProperty cco:designates ;
               owl:hasValue :NaturalPersonRole
             ]
           )
@@ -228,9 +224,9 @@ A few specific things this axiom is doing that are worth reading carefully.
 
 **`owl:inverseOf iao:0000136` as an anonymous expression (Gates 2 and 3).** The gate restriction is on the *inverse* of `is_about`: that is, "this system is the subject of some `IntendedUseSpecification` that is_about it." This is OWL 2 DL expressible and OWL-RL materializes it correctly via inverse-of materialization, but it is the kind of axiom MIREOT would silently break if the inverse-of axiom on `iao:0000136` were lost. This is one of the reasons ARCO uses BOT extraction, not MIREOT.
 
-**`owl:someValuesFrom :RemoteBiometricIdentificationProcess` (Gate 2).** The `cco:prescribes` filler must be a *typed instance*, not the class IRI itself. This is the content-sensitivity check. An earlier ARCO version used `owl:hasValue` here, which would have been satisfied by the class IRI as a punned individual. That pattern is content-blind: it would fire whenever any document mentions the regulated process class, regardless of whether the document actually prescribes a specific process token. The `owl:someValuesFrom` pattern requires that some specific named individual, typed as the regulated process class, exists as the filler. A classification-relevant assertion has to actually be made.
+**Gate 2 factoring via subkind class.** Rather than inlining `cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess` directly in the Gate 2 restriction, ARCO factors the type-check into a named IUS subkind class. `:RemoteBiometricIdentificationIntendedUseSpec` is defined by `owl:equivalentClass owl:intersectionOf (:IntendedUseSpecification, cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess)`. The Gate 2 axiom then references the subkind by name. This mirrors the CCO Specification family pattern (`cco:ArtifactFunctionSpecification`, `cco:QualitySpecification`, etc.); each new Annex III category adds a new IUS subkind via the same template. The content-sensitivity check still requires that the `cco:prescribes` filler be a *typed instance* of the regulated process class, not the class IRI itself — that check now happens at the IUS subkind class membership level. An earlier ARCO version inlined `owl:hasValue` on the prescribes restriction, which would have been satisfied by the class IRI as a punned individual; that content-blind pattern is gone in both the subkind axiom and the gate axiom.
 
-**`owl:hasValue :NaturalPersonRole` (Gate 3).** Here `owl:hasValue` is intentional, in contrast with Gate 2. The use scenario specification is about the role *category*, not a specific role-bearer instance. ARCO operates at the specification level. Bearer-token modeling (a particular natural person at a particular time) is a deployment-time concern outside ARCO's scope. Referencing the class IRI as a concept-individual is ARCO's encoding convention for "this scenario addresses the regulated role type" within the specification-level scope. The convention is documented in the rdfs:comment on the axiom and in the public claims doc.
+**`cco:designates owl:hasValue :NaturalPersonRole` (Gate 3).** Gate 3's role designation uses `cco:designates`, not `iao:0000136`. `cco:designates` is CCO's typed designation property whose range admits universals (its formal range is `bfo:0000001 Entity`, which subsumes universals). The use scenario specification designates the role *category*, not a specific role-bearer instance. ARCO operates at the specification level; bearer-token modeling (a particular natural person at a particular time) is a deployment-time concern outside ARCO's scope. Designation by inscription naming the regulated role universal is the canonical CCO pattern (a URL designates a Web Page, a name designates a person, an instruction designates a procedure). The pattern also avoids minting bearer-less role tokens (BFO Roles are bearer-dependent specifically dependent continuants requiring `ro:0000052` to an independent continuant). The convention is documented in `LIMITATIONS.md §3.1` and in `docs/agent/ARCO_public_claims.md`.
 
 Three ways this axiom could fail to fire, each diagnostic of something different:
 
@@ -379,10 +375,10 @@ Representation side (use scenario):
 ```turtle
 :Sentinel_UseScenario_001 rdf:type :UseScenarioSpecification ;
   iao:0000136 :Sentinel_ID_System ;
-  iao:0000136 :NaturalPersonRole .
+  cco:designates :NaturalPersonRole .
 ```
 
-The use scenario is about the system and about the `NaturalPersonRole` universal. This satisfies Gate 3.
+The use scenario is `iao:0000136` (is_about) the system and `cco:designates` the `NaturalPersonRole` universal. The role-designation property is `cco:designates`, not `iao:0000136`: `cco:designates` is CCO's typed designation property whose range admits universals, so the inscription names the regulated role category directly. This satisfies Gate 3.
 
 Three gates, each satisfied independently. The reasoner has everything it needs.
 
@@ -621,7 +617,7 @@ The cost is that instance authoring has to include a typed process token (`:Sent
 
 ### Gate 3 uses `owl:hasValue` on the role universal, intentionally
 
-This one runs the opposite direction from Gate 2 and the asymmetry is intentional. Gate 3 says: the use scenario specification is_about `:NaturalPersonRole`. `:NaturalPersonRole` is the class IRI used as a concept-individual. ARCO is asserting that the specification is about the role *category*, not a specific role-bearer.
+This one runs the opposite direction from Gate 2 and the asymmetry is intentional. Gate 3 says: the use scenario specification `cco:designates` `:NaturalPersonRole`. `:NaturalPersonRole` is the class IRI used as a concept-individual (a designation by inscription naming the regulated role category). `cco:designates` is CCO's typed designation property whose range admits universals. ARCO is asserting that the specification is about the role *category*, not a specific role-bearer.
 
 Why not require a typed bearer instance? Because role-bearers are deployment-time particulars. A specific natural person at a specific time is a token outside ARCO's specification-level scope. Modeling bearer tokens at classification time would force ARCO to be a runtime tool, not a pre-deployment classifier.
 
@@ -637,14 +633,15 @@ A consequence: removing `:AnnexIII_List` is not allowed even if no system ever q
 
 ### CCO bridging assertions are kept minimal and documented
 
-ARCO uses CCO's directive ICE class hierarchy (`cco:DirectiveICE`, `cco:DescriptiveICE`) and the `cco:prescribes` property. Upstream CCO has its own `cco:InformationContentEntity` class that is not formally linked to IAO's `iao:0000030`. ARCO's `ARCO_governance_extension.ttl` contains two small bridging assertions:
+ARCO uses CCO's information-content class hierarchy (`cco:DirectiveInformationContentEntity`, `cco:DescriptiveInformationContentEntity`, `cco:DesignativeInformationContentEntity`) and the `cco:prescribes` and `cco:designates` properties. Upstream CCO has its own `cco:InformationContentEntity` class that is not formally linked to IAO's `iao:0000030`. ARCO's `ARCO_governance_extension.ttl` contains three small bridging assertions:
 
 ```turtle
-cco:DirectiveICE rdfs:subClassOf iao:0000030 .
-cco:DescriptiveICE rdfs:subClassOf iao:0000030 .
+cco:DirectiveInformationContentEntity rdfs:subClassOf iao:0000030 .
+cco:DescriptiveInformationContentEntity rdfs:subClassOf iao:0000030 .
+cco:DesignativeInformationContentEntity rdfs:subClassOf iao:0000030 .
 ```
 
-These bridge the CCO and IAO information-content hierarchies so that CCO directive classes inherit IAO's `is_about` relation cleanly. The README and the public claims doc both surface these bridges explicitly. They are not silent. They are documented as the only non-trivial axiomatic additions ARCO makes on top of the upstream ontologies.
+These bridge the CCO and IAO information-content hierarchies so that CCO directive, descriptive, and designative classes inherit IAO's `is_about` relation cleanly. The README and the public claims doc both surface these bridges explicitly. They are not silent. They are documented as the only non-trivial axiomatic additions ARCO makes on top of the upstream ontologies.
 
 The discipline matters because the trust story for ARCO is "what we use is upstream; what we add is small, explicit, and documented." Inventing project-local bridging axioms invisibly is the failure mode that makes other compliance graphs untrustworthy. ARCO refuses to do that.
 
