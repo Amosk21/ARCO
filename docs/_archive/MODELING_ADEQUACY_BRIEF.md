@@ -42,7 +42,7 @@ flowchart TB
   DOC["Source packet / documentation<br/>not itself a graph commitment"]:::source
   LEDGER["Evidence ledger<br/>human adjudicates what the source licenses"]:::source
   RDF["Reviewed RDF commitments<br/>fixture triples"]:::graph
-  BUCKET["BFO/CCO bucket assignment<br/>material entity / quality / realizable / process / temporal+site / ICE / material basis+realization"]:::bfo
+  BUCKET["BFO/CCO bucket assignment (canonical seven)<br/>material entity / quality / realizable entity / process / immaterial entity (sites) / temporal region / GDC (information)<br/><br/>material basis + realization is a cross-bucket relation pattern, not a bucket"]:::bfo
   AXIOM["OWL defined classes<br/>Gate 1 capability + Gate 2 prescribed process + Gate 3 designated role"]:::reason
   CLOSURE["Reasoned graph<br/>OWL-RL closure + HermiT cross-check"]:::reason
   WITNESS["SPARQL / SHACL witnesses<br/>query the reasoned graph and validate structure"]:::graph
