@@ -62,7 +62,7 @@ No automated extraction writes to reality-side ARCO instance TTL. Source documen
 
 Adding participant facts, temporal regions, sites, or role-bearer particulars to ARCO instance data is forbidden when source evidence does not warrant them. Hand-authored fixtures (Sentinel, adversarial fixtures) cannot host runtime-shaped commitments. The legitimate place to ask participant-asserting questions is a fixture with source-document warrant.
 
-**Anchor**: `CLAUDE.md` "Modeling discipline" section; reinforced by `docs/_archive/OPEN_PROBLEMS.md` L2.4 DISCLOSED (NaturalPersonRole bearer-less designation).
+**Anchor**: `CLAUDE.md` "Modeling discipline" section; reinforced by `OPEN_PROBLEMS.md` L2.4 DISCLOSED (NaturalPersonRole bearer-less designation).
 
 **Why it matters**: A graph full of fake witnesses looks more populated but is structurally false. The discipline accepts honest sparseness over dishonest completeness.
 
@@ -93,7 +93,7 @@ ARCO treats a system as an aggregate of material hardware components. Defensible
 
 The capability disposition is located on a `SystemComponent`, not on the `System` itself. This produces evidence paths the certificate can show: "system → component → disposition → triggering capability." A whole-system bearer would also be ontologically defensible — BFO allows ObjectAggregates to bear dispositions — but loses the granularity to say *which specific part* of the system bears the regulated capability.
 
-**Anchor**: `LIMITATIONS.md §3.5` (lines 110-116); `docs/_archive/OPEN_PROBLEMS.md` L2.5 DISCLOSED.
+**Anchor**: `LIMITATIONS.md §3.5` (lines 110-116); `OPEN_PROBLEMS.md` L2.5 DISCLOSED.
 
 **The three-stacked rationale** from `LIMITATIONS §3.5`:
 
@@ -127,7 +127,7 @@ Membership fires from Gate 1 alone (capability precondition): the system has a S
 
 Gate 3 references the role universal at the class-IRI level via `cco:designates owl:hasValue`. BFO Roles are bearer-dependent specifically dependent continuants requiring `ro:0000052` to an independent continuant. ARCO does not mint role-bearer particulars without source warrant; the designation pattern lets the gate reference the role category by its class IRI without inventing a bearer-less role token.
 
-**Anchor**: `ARCO_governance_extension.ttl:446-466` (inline rationale block within the Gate 3 axiom); `LIMITATIONS.md §3.1` (Gate 3 role-category encoding); `docs/_archive/OPEN_PROBLEMS.md` L2.4 DISCLOSED (aboutness-only design).
+**Anchor**: `ARCO_governance_extension.ttl:446-466` (inline rationale block within the Gate 3 axiom); `LIMITATIONS.md §3.1` (Gate 3 role-category encoding); `OPEN_PROBLEMS.md` L2.4 DISCLOSED (aboutness-only design).
 
 **Why it matters**: `cco:designates` is a typed designation property whose range admits universals (`bfo:0000001 Entity`). Using it with `owl:hasValue` references the role universal directly. This is the canonical CCO usage for designation by inscription (a URL designates a Web Page; a name designates a person), not informal class-as-individual punning, and avoids fake-witness role tokens.
 
@@ -155,7 +155,7 @@ ARCO commits RO's `characteristic_of` as a specialization of BFO 2020's `inheres
 
 ARCO's fixtures mint typed process individuals to satisfy Gate 2's `owl:someValuesFrom` existence-witness requirement. These tokens carry only the type assertion — no participants, no temporal region, no realizer, no output. The process has not unfolded at design time, so participants and temporal extent would be assertions of facts that are not true. ARCO declines to adorn tokens with placeholder context that would be known-not-true.
 
-**Anchor**: `LIMITATIONS.md §3.7.a` (lines 126-128); `docs/_archive/OPEN_PROBLEMS.md` L2.1 DISCLOSED + BLOCKED; reinforced by X.11 finding 4 verdict (KEEP — OWA sparseness is not category error).
+**Anchor**: `LIMITATIONS.md §3.7.a` (lines 126-128); `OPEN_PROBLEMS.md` L2.1 DISCLOSED + BLOCKED; reinforced by X.11 finding 4 verdict (KEEP — OWA sparseness is not category error).
 
 **Why it matters**: Under OWA, "no participants asserted" is silence about participants, not denial. The token is OWL-consistent. The architectural alternative (redesign Gate 2 to avoid token witnesses entirely) is Path Gamma, queued behind real-document warrant.
 
