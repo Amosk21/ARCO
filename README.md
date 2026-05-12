@@ -20,14 +20,14 @@ ARCO is an open-source solo learning and research project. It is a research-grad
 
 ## What's modeled
 
-ARCO encodes one formal architectural pattern instantiated per Annex III category. A system is applicable to a category when three independently necessary gates are jointly entailed by an `owl:equivalentClass owl:intersectionOf` axiom over the system's BFO/CCO-aligned commitments — not by hand-coded checks.
+ARCO encodes two Annex III categories as one architectural pattern instantiated twice. A system is applicable to a category only when **all three** gates of that category's `owl:equivalentClass` axiom are jointly entailed.
 
-| Annex III category | Gate 1 *(reality)*: capability disposition borne by hardware | Gate 2 *(representation)*: intended-use spec prescribes | Gate 3 *(representation)*: use-scenario designates |
+| Annex III category | Capability *(reality)* | Intended use *(representation)* | Affected role *(representation)* |
 |---|---|---|---|
-| 1(a) Remote biometric identification | `:BiometricIdentificationCapability` | `:RemoteBiometricIdentificationProcess` | `:NaturalPersonRole` |
-| 5(b) Creditworthiness evaluation | `:CreditworthinessEvaluationCapability` | `:CreditworthinessEvaluationProcess` | `:NaturalPersonRole` |
+| 1(a) Remote biometric identification | biometric identification | remote biometric identification | natural-person role |
+| 5(b) Creditworthiness evaluation | creditworthiness evaluation | creditworthiness evaluation | natural-person role |
 
-The reality / representation split is load-bearing. Capabilities are BFO dispositions (`bfo:0000016`) inhering in independent continuants (the hardware component); intended uses and use scenarios are IAO Information Content Entities (`iao:0000030`) `is_about` the system. Cross-category isolation is enforced by `owl:disjointWith` between the regulated capability disposition classes, not by procedural checks. A separate precondition flag (`HighRiskSystem`) fires from Gate 1 alone — that flag is **not** the legal high-risk classification; the full applicability category requires all three gates.
+Reality (capability dispositions inhering in hardware) and representation (information content entities about the system) are not interchangeable. Cross-category isolation is enforced by `owl:disjointWith` on the capability classes, not by hand-coded checks. A separate `HighRiskSystem` flag fires from the capability gate alone and is **not** the legal high-risk classification — the full applicability category requires all three.
 
 ---
 
