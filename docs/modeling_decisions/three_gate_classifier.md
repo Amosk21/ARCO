@@ -1,4 +1,4 @@
-# Three-Gate Classifier — OWL Axiom Shape and PRIMARY / LATENT-RISK Bifurcation
+# Three-Gate Classifier: OWL Axiom Shape and PRIMARY / LATENT-RISK Bifurcation
 
 ## Purpose
 
@@ -83,7 +83,7 @@ flowchart TB
 
 For a system to be entailed as `:AnnexIII1aApplicableSystem`, OWL-RL needs the conjunction of three things to hold on that system:
 
-**Gate 1 (reality side):** the system has a part — a `:SystemComponent` — that bears a disposition typed as `:BiometricIdentificationCapability`. The relation is `bfo:0000051` (has_part) from System to Component and `ro:0000091` (has_disposition) from Component to the disposition.
+**Gate 1 (reality side):** the system has a part (a `:SystemComponent`) that bears a disposition typed as `:BiometricIdentificationCapability`. The relation is `bfo:0000051` (has_part) from System to Component and `ro:0000091` (has_disposition) from Component to the disposition.
 
 **Gate 2 (representation side):** there exists an `:IntendedUseSpecification` instance whose `iao:0000136` (is_about) target is the system, AND that instance is typed as the defined class `:RemoteBiometricIdentificationIntendedUseSpec`. That subkind is itself a defined class whose membership requires `cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess`. Putting the type-check on the IUS subkind avoids the bare-token problem; an IUS is classified as the regulated subkind only if it prescribes a particular of the regulated process kind.
 
@@ -95,11 +95,11 @@ For Annex III 5(b), Gate 1 swaps the capability class to `:CreditworthinessEvalu
 
 The certificate carries TWO distinct classification claims. They are not the same thing and the bifurcation is load-bearing.
 
-**PRIMARY ARCO classification** is the category-specific applicability — `:AnnexIII1aApplicableSystem` or `:AnnexIII5bApplicableSystem`, entailed only when all three gates hold. This is the operative determination an auditor or regulator would treat as the answer to "is this system Annex III applicable under this category?"
+**PRIMARY ARCO classification** is the category-specific applicability: `:AnnexIII1aApplicableSystem` or `:AnnexIII5bApplicableSystem`, entailed only when all three gates hold. This is the operative determination an auditor or regulator would treat as the answer to "is this system Annex III applicable under this category?"
 
-**LATENT-RISK FLAG** is `:HighRiskSystem` membership, entailed by Gate 1 alone — the system has a part bearing some triggering capability. This is the looser, capability-only signal. It fires on any system whose hardware bears identification OR creditworthiness capability, regardless of whether the intended-use or use-scenario gates are satisfied. The latent flag is NOT the legal high-risk classification; it is a "look harder here" signal grounded in the latent-disposition target ARCO names in its thesis.
+**LATENT-RISK FLAG** is `:HighRiskSystem` membership, entailed by Gate 1 alone: the system has a part bearing some triggering capability. This is the looser, capability-only signal. It fires on any system whose hardware bears identification OR creditworthiness capability, regardless of whether the intended-use or use-scenario gates are satisfied. The latent flag is NOT the legal high-risk classification; it is a "look harder here" signal grounded in the latent-disposition target ARCO names in its thesis.
 
-The bifurcation matters because Gate 1 is reality-side (the hardware physically grounds the capability) and Gates 2 and 3 are representation-side (provider intent and use scenario). The thesis at `CLAUDE.md` line 11 is "surface latent dispositions at design time": Gate 1 alone surfaces the latent capability; the full three-gate axiom is what the regulation actually keys on for applicability.
+The bifurcation matters because Gate 1 is reality-side (the hardware physically grounds the capability) and Gates 2 and 3 are representation-side (provider intent and use scenario). ARCO's stated target is to surface latent dispositions at design time: Gate 1 alone surfaces the latent capability; the full three-gate axiom is what the regulation actually keys on for applicability.
 
 ## Verification table
 
@@ -110,7 +110,7 @@ The bifurcation matters because Gate 1 is reality-side (the hardware physically 
 | `:HighRiskSystem` (latent flag, Gate 1 generic only) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:199-221` | `owl:equivalentClass owl:intersectionOf` over `:System` and Gate-1-generic component restriction |
 | `:AnnexIIITriggeringCapability` (regulatory fiat union) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:180-190` | Defined class via `owl:unionOf` over named member capability classes |
 | `:BiometricIdentificationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:89-93` | In triggering union; 1:N |
-| `:BiometricVerificationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:95-99` | NOT in triggering union; 1:1 — why kiosk fixture is negative |
+| `:BiometricVerificationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:95-99` | NOT in triggering union; 1:1 (why kiosk fixture is negative) |
 | `:CreditworthinessEvaluationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:101-105` | In triggering union |
 | `:RemoteBiometricIdentificationIntendedUseSpec` (Gate 2 1(a) IUS subkind) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:249-262` | `owl:equivalentClass` with `cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess` |
 | `:CreditworthinessEvaluationIntendedUseSpec` (Gate 2 5(b) IUS subkind) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:264-277` | Same shape, category-specific |
@@ -127,20 +127,20 @@ The bifurcation matters because Gate 1 is reality-side (the hardware physically 
 
 ## Why the disposition-not-function choice matters here
 
-The three-gate axiom uses `:CapabilityDisposition` (subclass of `bfo:0000016`) for the capability conjunct. If `:CapabilityDisposition` were instead typed under `bfo:0000034 (Function)`, Gate 1 would narrow to designed-for capabilities and exclude latent capacities that the hardware grounds without explicit design intent. This is the X.11 finding 1 verdict (KEEP axiom, FIX comment) — Disposition is correct for the latent-capacity target the thesis names. See `seven_buckets_status.md` Bucket 3 and `ARCO_core.ttl:26-38` (the rationale comment expanded by the X.11 fix; cites BFO 2020 [064-001] Function elucidation).
+The three-gate axiom uses `:CapabilityDisposition` (subclass of `bfo:0000016`) for the capability conjunct. If `:CapabilityDisposition` were instead typed under `bfo:0000034 (Function)`, Gate 1 would narrow to designed-for capabilities and exclude latent capacities that the hardware grounds without explicit design intent. Disposition is the correct parent class for the latent-capacity target ARCO surfaces; the rationale comment at `ARCO_core.ttl:26-38` cites the BFO 2020 [064-001] Function elucidation directly.
 
 ## What this diagram does NOT show
 
 - The full `owl:intersectionOf` RDF serialization. The diagram describes the conjunction; the actual axiom triples are at the cited lines.
 - Pre-reasoning vs post-reasoning state. The defined classes fire entailment; SPARQL queries audit the closed graph. See `value_chain.md` for the reasoner + audit layer.
-- Article 6(3) derogation. Provider-submitted claim that the system "does not pose a significant risk of harm" — ARCO surfaces the `:DerogationClaim` ICE but does not evaluate validity. Disclosed at `LIMITATIONS.md`; out of OWL gate scope.
+- Article 6(3) derogation. Provider-submitted claim that the system "does not pose a significant risk of harm"; ARCO surfaces the `:DerogationClaim` ICE but does not evaluate validity. Disclosed at `LIMITATIONS.md`; out of OWL gate scope.
 - Article 5 (prohibited practices) routing. Out of v1 scope; future work.
-- The mapping from gates to specific Annex III text. Annex III 1(a) and 5(b) are the only two categories currently encoded; future Annex III categories would extend `:AnnexIIITriggeringCapability` per `CLAUDE.md` Global Invariant 8.
+- The mapping from gates to specific Annex III text. Annex III 1(a) and 5(b) are the only two categories currently encoded; future Annex III categories would extend `:AnnexIIITriggeringCapability` via `owl:unionOf` (the regulatory scaffold pattern).
 
 ## When to update
 
 - A new Annex III category lands (e.g., 1(b), 1(c), or any of Annex III points 2-8). Add to `:AnnexIIITriggeringCapability` union per Invariant 8, extend the diagram with the new category-specific class.
-- The bare-token modeling pattern is refactored (L2.1 — currently DISCLOSED + BLOCKED behind Path Gamma). Update the Gate 2 description.
+- The bare-token modeling pattern is refactored (disclosed at `LIMITATIONS.md §3.7.a`, queued behind Path Gamma). Update the Gate 2 description.
 - Article 5 or Article 6(3) modeling enters scope. Add the corresponding entailment branch.
 - The PRIMARY / LATENT-RISK FLAG output split is refactored. Update the certificate-output node and possibly the `:HighRiskDetermination` class.
 - Any cited line number shifts due to a file edit. Re-verify and update.
