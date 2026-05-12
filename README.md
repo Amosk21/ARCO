@@ -91,20 +91,47 @@ The classification result is **derived**, not asserted: removing any gate triple
 
 ---
 
+## What works today
+
+**Seven systems across six fixtures.** Two positive (Sentinel 1(a), CreditScorer 5(b)), one negative (Verification Kiosk — 1:1 verification is not in the triggering capability union), two adversarial, two flag-test.
+
+**The adversarial fixtures verify the reasoner does real DL work, not IRI pattern-matching.** The decoy fixture types its disposition only as `:WeirdScanner`, declared `owl:equivalentClass :BiometricIdentificationCapability`; classification fires through equivalence propagation. The blank-node fixture's disposition has no IRI at all (anonymous individual typed as `:BiometricIdentificationCapability`); `owl:someValuesFrom` is satisfied by existential entailment. A Python script doing `rdf:type` lookup on either disposition returns false for the regulated class; OWL-RL returns true.
+
+**The flag-test fixtures verify layer separation.** All three gates satisfied AND a `:DerogationClaim` or `:FraudDetectionProcess` present; the OWL classification fires regardless of the audit flag. Classification and audit do not bleed.
+
+**Gate-removal regression** (`test_gate_removal.py`) proves each Annex III 1(a) gate is independently necessary by removing supporting triples in turn and verifying the entailment fails (5(b) symmetric coverage queued, `OPEN_PROBLEMS` L3.5).
+
+**HermiT OWL 2 DL cross-check** runs in CI against all six certificate-grade fixtures with one documented reasoner-profile divergence on the blank-node audit-side latent-risk traversal (see [`LIMITATIONS.md §7.4`](LIMITATIONS.md)).
+
+**Kiosk demo (PR #38)** walks one fixture end-to-end source packet → evidence ledger → reviewed RDF → reasoner non-entailment → certificate, with each commitment adjudicated per the documented evidence-to-commitment policy. Source packet is hypothetical.
+
+---
+
 ## What ARCO does NOT do
 
-A real EU AI Act deployment needs more than ARCO currently provides. For each gap, the format is: *what is missing, why an auditor or buyer would want it, why ARCO does not have it yet*.
+- **No paper trail to source documents.** The Article 3(12) citation chain from intended use to specific clauses in vendor materials (instructions for use, technical documentation, promotional copy) is queued.
+- **No Article 6(3) derogation evaluation.** ARCO surfaces the provider's claim for human legal review; it does not judge the claim.
+- **No Article 5 prohibition routing.** The 5(1)(h) real-time-RBI-in-publicly-accessible-spaces subset is not split out from the parent 1(a) class.
+- **No obligation chain.** Article 16 (provider) and Article 26 (deployer) duties are not entailed from positive classification.
+- **Only 2 of 8 Annex III categories.** 1(a) and 5(b) are modeled. Others follow the same three-gate pattern; content work, not architecture work.
+- **No raw document ingestion.** ARCO consumes hand-reviewed RDF, not vendor PDFs. LLM-assisted extraction may help upstream of the classification path; it never participates in classification.
 
-- **No paper trail back to real source documents.** An auditor signing off on a real determination needs the system's documented intended use to point at specific paragraphs in specific vendor materials (instructions for use, technical documentation, promotional copy, per Article 3(12)). ARCO accepts hand-reviewed RDF describing intended use but does not yet require a citation chain to the source documents. Building that input mile is the next major modeling step; it is queued, not built.
-- **No Article 6(3) derogation evaluation.** Article 6(3) lets a provider exit the high-risk label by demonstrating the system does not pose significant risk of harm, subject to four named conditions and a profiling exclusion. A real evaluation needs to assess whether the provider's claim actually meets those conditions. ARCO can detect that a provider has filed a derogation claim and surfaces it for human legal review, but does not judge the claim. That decision requires legal judgment ARCO deliberately does not encode.
-- **No prohibition routing under Article 5.** Annex III 1(a) labels biometric identification as high-risk. Article 5(1)(h) goes further: it outright prohibits a specific subset (real-time identification of people in publicly accessible spaces by law enforcement, with narrow exceptions). Any real-world evaluation of a biometric system needs to check whether the deployment falls into that prohibited subset, because the obligations are different from high-risk obligations. ARCO currently treats biometric identification as one category and does not split out the prohibited slice. Adding that distinction is real ontology work, queued.
-- **No automatic obligation chain.** Once a system is classified high-risk, the EU AI Act assigns specific duties to providers (Article 16: documentation, post-market monitoring, conformity assessment, and so on) and to deployers (Article 26: instruction-for-use, human oversight, log retention, and so on). A buyer deploying a third-party AI system needs to know which duties attach to which actor. ARCO names the provider and deployer roles in its model but does not yet derive the duty list from a positive classification. This is content work, not architecture.
-- **Only two of the eight Annex III categories.** Annex III lists eight high-risk areas; ARCO models two of them. A real deployment evaluation would need its specific category modeled. Adding more categories follows the same three-condition pattern shown above; it is content, not architecture. New categories will be added as worked use cases justify them.
-- **No raw document ingestion.** A working compliance product would accept the vendor's PDFs, marketing copy, and technical sheets and produce the structured description ARCO consumes. ARCO does not do that. Turning unstructured documents into a reviewed RDF description is a separate upstream problem (typically LLM-assisted extraction with human review) that ARCO deliberately keeps outside the classification path.
+See [`LIMITATIONS.md`](LIMITATIONS.md) for the full disclosure surface.
 
-Producing a defensible client-facing determination for a real deployment requires a worked use case grounded in real provider documentation, Article 6(3) derogation evaluation, provider/deployer obligation entailment, and external counsel review.
+---
 
-The architectural pattern ARCO demonstrates is reusable. The current scope is bounded. Closing the gap from "reference implementation" to "deployable compliance tool" is a distinct phase of work, not a finishing pass on the current artifact. See [`LIMITATIONS.md`](LIMITATIONS.md) for the full disclosure surface.
+## Upcoming
+
+**Active sequenced work.**
+- Replace the kiosk demo's hypothetical source packet with real vendor documentation; closes the input-mile demonstration from structural to substantive
+- Complete output-layer graph binding (schema v2, per-field source-query manifest, G/M/D provenance labels)
+- Extend `test_gate_removal.py` to cover Annex III 5(b) CreditScorer symmetrically
+- Auto-generated reasoning-chain artifact per fixture so the diagram tracks the code
+
+**Stated goals.**
+- The architecture generalizes. The three-gate pattern (capability + prescribed process + affected role) reuses for GDPR Article 22 (automated decision-making), NYC Local Law 144 (automated employment decision tools), HIPAA covered electronic transactions, and other regimes where obligations attach to capability, intended use, and affected subject.
+- Additional Annex III categories follow the same pattern as content work, not architecture work.
+- Demonstrate the chain on a real-world AI system with real provider documentation.
 
 ---
 
