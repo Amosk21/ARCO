@@ -48,7 +48,7 @@ python -m pip install -r requirements.txt
 python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 ```
 
-Requirements: Python 3.10 or newer. Outputs land at `runs/demo/`: the certificate, a JSON summary, evidence bindings, the SHACL report. The same pipeline runs in CI on every push and pull request and uploads `runs/demo/` as a downloadable artifact.
+Requirements: Python 3.10 or newer. Outputs land at `runs/demo/`: the certificate, a JSON summary, evidence bindings, the SHACL report. The same pipeline runs in CI on every push and pull request and uploads `runs/demo/` as a downloadable artifact. Every merge to `main` also redeploys the latest output to GitHub Pages, so the current certificate is one click away without cloning.
 
 Sample certificate excerpt:
 
@@ -90,13 +90,19 @@ These commitments are what distinguishes the output from one a procedural script
 
 **Classification is entailment, not procedure.** The Annex III applicability classes are defined by their conditions. When a system satisfies them, the reasoner adds the membership triple. No piece of code decides the classification — the axioms do, mechanically. This means a regulator does not need to trust the pipeline's source code; the axioms and the input facts are the audit trail.
 
+**The three layers do different jobs and are not interchangeable.** OWL-RL classifies (entails membership in the Annex III applicability classes). SHACL validates that the documentary record supporting a determination is structurally complete. SPARQL audits the post-reasoning graph and surfaces conditions for human review. A SHACL pass does not mean the system is high-risk. A SPARQL false does not overturn an OWL classification. The non-substitutability is the discipline that makes the certificate auditable; confusing the layers is the most common error in writing about this kind of architecture.
+
 **The reasoner does real OWL inference.** One adversarial fixture types its capability disposition only as `:WeirdScanner`; the regulated class IRI never appears in the input data — the connection runs through an `owl:equivalentClass` declaration. Another fixture's disposition has no IRI at all; it's a blank node. Both classify correctly because the reasoner performs actual OWL inference. An approach that did string matching on class names, or required named individuals at every position, would miss both.
 
 **Two reasoners cross-check each other.** OWL-RL (rule-based) and HermiT (tableau-based, full OWL 2 DL profile) agree on every classification across the certificate-grade fixtures. Two algorithmically different reasoners converging on the same answer is the strongest convergence signal achievable with off-the-shelf tooling. Disagreements would surface consistency issues a single reasoner could miss.
 
+**Layer separation is verified by fixtures.** Two flag-test fixtures present cases where all three Annex III gates are satisfied AND an audit-layer flag (a provider-asserted `:DerogationClaim`, or a `:FraudDetectionProcess` token) is also present. The OWL classification fires regardless of the audit flag; the flag fires alongside the classification. Classification and audit do not bleed into each other.
+
 **Gate independence is empirically verified.** A regression test programmatically removes the supporting triples for each gate of Annex III 1(a) in turn and confirms the classification fails — empirical proof that each gate is independently necessary, not just architecturally so. (Symmetric coverage for 5(b) is queued.)
 
-**Every output value has a declared source.** The certificate's classification and evidence path are SPARQL queries against the reasoned graph, not literals composed in Python. A contract test runs against an output manifest that declares the provenance of every emitted field; tightening provenance labels across the remaining surrounding fields is active work.
+**Every output value has a declared source.** The output-provenance contract lives in `03_TECHNICAL_CORE/scripts/output_manifest_v2.yaml` (the declarations) and `test_output_provenance.py` (failing-by-design enforcement). The certificate's classification and evidence path are bound to SPARQL queries against the reasoned graph, not to Python literals. Tightening provenance labels across the remaining surrounding fields is active work, disclosed in [`LIMITATIONS.md §7.5`](LIMITATIONS.md).
+
+**The graph stays honest about what it doesn't know.** ARCO does not mint participant facts, temporal regions, role-bearer particulars, or other instance-level content that source evidence does not warrant. Under the Open World Assumption, absent triples mean "not asserted by the reviewed commitments," not "denied." Honest sparseness over dishonest completeness is a project discipline, not a future task.
 
 ---
 
@@ -115,7 +121,7 @@ The next concrete step is substituting the kiosk demo's hypothetical source pack
 - Only 2 of 8 Annex III categories modeled.
 - No raw document ingestion — ARCO consumes structured RDF; turning vendor PDFs into structured RDF is a separate upstream problem.
 
-For the complete disclosure surface see [`LIMITATIONS.md`](LIMITATIONS.md). For the canonical diagrams and decision rationale see [`docs/modeling_decisions/`](docs/modeling_decisions/). For the worked input-mile example see [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/).
+For the complete disclosure surface, see [`LIMITATIONS.md`](LIMITATIONS.md).
 
 ---
 
@@ -127,3 +133,13 @@ For the complete disclosure surface see [`LIMITATIONS.md`](LIMITATIONS.md). For 
 | **RO** | OBO Relations Ontology release `2025-12-17` | ROBOT BOT slim module |
 | **IAO** | Information Artifact Ontology release `2026-03-30` | ROBOT BOT slim module |
 | **CCO** | Common Core Ontologies v1.7 (pinned semantic-IRI release) | ROBOT BOT slim module + local bridge declarations |
+
+The BOT-extracted slim modules carry a formal entailment-preservation guarantee (syntactic locality module extraction, Cuenca Grau et al. 2007/2008): for any axiom whose signature is contained in the seed signature, the slim module entails the axiom if and only if the full upstream ontology does. The slim modules are not lossy abbreviations; they are logically equivalent to the full upstreams for the seed signature ARCO uses, with substantially faster reasoning. The seed term lists are version-controlled at `03_TECHNICAL_CORE/ontology/imports/seeds/` and the slim modules can be regenerated reproducibly from the pinned upstream releases.
+
+---
+
+## More
+
+- [`LIMITATIONS.md`](LIMITATIONS.md) — scope cuts, disclosed non-claims, and dual-use disclosure
+- [`docs/modeling_decisions/`](docs/modeling_decisions/) — canonical diagrams and decisions justification map (every load-bearing modeling decision anchored to a specific TTL file or canon citation)
+- [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/) — worked input-mile example: source packet, evidence ledger, decision packet (source packet is hypothetical)
