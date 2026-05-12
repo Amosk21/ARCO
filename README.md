@@ -20,14 +20,14 @@ ARCO is an open-source solo learning and research project. It is a research-grad
 
 ## What's modeled
 
-ARCO formally encodes two Annex III categories. A system is classified into a category only when **all three** of these conditions hold for that row:
+ARCO encodes one formal architectural pattern instantiated per Annex III category. A system is applicable to a category when three independently necessary gates are jointly entailed by an `owl:equivalentClass owl:intersectionOf` axiom over the system's BFO/CCO-aligned commitments — not by hand-coded checks.
 
-| Annex III category | The system has a component capable of... | ...and is documented as intended to... | ...affecting... |
+| Annex III category | Gate 1 *(reality)*: capability disposition borne by hardware | Gate 2 *(representation)*: intended-use spec prescribes | Gate 3 *(representation)*: use-scenario designates |
 |---|---|---|---|
-| 1(a) Remote biometric identification | biometric identification | perform remote biometric identification | natural persons |
-| 5(b) Creditworthiness evaluation | creditworthiness evaluation | evaluate creditworthiness or assign credit scores | natural persons |
+| 1(a) Remote biometric identification | `:BiometricIdentificationCapability` | `:RemoteBiometricIdentificationProcess` | `:NaturalPersonRole` |
+| 5(b) Creditworthiness evaluation | `:CreditworthinessEvaluationCapability` | `:CreditworthinessEvaluationProcess` | `:NaturalPersonRole` |
 
-The three conditions are checked formally against the system's RDF description by OWL reasoning. Cross-category isolation (a biometric-only system cannot be classified as creditworthiness, and vice versa) is enforced by the ontology itself, not by hand. A separate precondition flag (`HighRiskSystem`) fires when just the capability is present (column 1 only); that flag is not the full applicability category — the full category needs all three.
+The reality / representation split is load-bearing. Capabilities are BFO dispositions (`bfo:0000016`) inhering in independent continuants (the hardware component); intended uses and use scenarios are IAO Information Content Entities (`iao:0000030`) `is_about` the system. Cross-category isolation is enforced by `owl:disjointWith` between the regulated capability disposition classes, not by procedural checks. A separate precondition flag (`HighRiskSystem`) fires from Gate 1 alone — that flag is **not** the legal high-risk classification; the full applicability category requires all three gates.
 
 ---
 
@@ -122,16 +122,7 @@ See [`LIMITATIONS.md`](LIMITATIONS.md) for the full disclosure surface.
 
 ## Upcoming
 
-**Active sequenced work.**
-- Replace the kiosk demo's hypothetical source packet with real vendor documentation; closes the input-mile demonstration from structural to substantive
-- Complete output-layer graph binding (schema v2, per-field source-query manifest, G/M/D provenance labels)
-- Extend `test_gate_removal.py` to cover Annex III 5(b) CreditScorer symmetrically
-- Auto-generated reasoning-chain artifact per fixture so the diagram tracks the code
-
-**Stated goals.**
-- The architecture generalizes. The three-gate pattern (capability + prescribed process + affected role) reuses for GDPR Article 22 (automated decision-making), NYC Local Law 144 (automated employment decision tools), HIPAA covered electronic transactions, and other regimes where obligations attach to capability, intended use, and affected subject.
-- Additional Annex III categories follow the same pattern as content work, not architecture work.
-- Demonstrate the chain on a real-world AI system with real provider documentation.
+Direction is moving the input-mile chain from structural demonstration to substantive grounding — substituting the kiosk demo's hypothetical source for real vendor documentation is the next concrete step, with output-layer graph binding and additional Annex III categories following as worked use cases justify them. The three-gate pattern generalizes to other regimes where obligations attach to capability, intended use, and affected subject (GDPR Article 22, NYC Local Law 144, HIPAA covered transactions), but the current value ends at the bounded scope (Annex III 1(a) and 5(b)), at hand-authored RDF as input, and at the encoded interpretation of the regulatory text — which has not been externally reviewed by counsel.
 
 ---
 
