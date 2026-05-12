@@ -11,8 +11,7 @@
 5. [docs/_archive/COMPETENCY_QUESTIONS.md](docs/_archive/COMPETENCY_QUESTIONS.md) — CQ0-CQ17 modeling spine and human interview flow
 6. [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md) — BFO/CCO alignment state
 7. [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md) — regulatory scope rules
-8. [03_TECHNICAL_CORE/docs/architecture_defense_memo.md](03_TECHNICAL_CORE/docs/architecture_defense_memo.md) — load-bearing design choices
-9. [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) — commitment backtest grading each load-bearing choice
+8. [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) — commitment backtest grading each load-bearing choice
 
 **Last reviewed:** 2026-05-11
 
@@ -289,7 +288,7 @@ The pipeline's output layer (`run_pipeline.py` from line 1699 onward, plus `writ
 - The MCP HermiT tool runs one named fixture per call; the standalone `hermit_cross_check.py` is the fixture-wide sweep used by CI. An LLM calling the MCP tool gets a bounded single-fixture assurance signal unless it explicitly runs multiple calls.
 - The fixture-wide HermiT cross-check has failed with `WinError 5` on at least one Windows local environment. The 24/24 agreement claim holds in CI but is not currently reproducible across all developer machines.
 
-**Path forward.** A "Three-Block Output Discipline" rule (graph-backed / run-metadata / documentary) is queued in `runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md` Q12. The schema bumps it implies (`summary.json` and `determination_packet.json` 1.2 to 2.0) are contract changes requiring a human modeling session. A planned CI gate (`test_output_provenance.py`) will fail on current output and pass after the schema rework. Until that work lands, the gaps above are present in the pipeline.
+**Path forward.** A "Three-Block Output Discipline" rule (graph-backed / run-metadata / documentary) is queued in `runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md` Q12. The schema bumps it implies (`summary.json` and `determination_packet.json` 1.3 to 2.0) are contract changes requiring a human modeling session. A planned CI gate (`test_output_provenance.py`) will fail on current output and pass after the schema rework. Until that work lands, the gaps above are present in the pipeline.
 
 ---
 

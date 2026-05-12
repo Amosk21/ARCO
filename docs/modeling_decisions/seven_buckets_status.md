@@ -53,7 +53,7 @@ flowchart TB
 
 | Bucket | Status | Verified against | OPEN_PROBLEMS reference |
 |---|---|---|---|
-| 1. Material entities | POPULATED | `ARCO_core.ttl:58-82`, `ARCO_governance_extension.ttl:45-64, 144-150`; `cco:Person` and `cco:Organization` at `cco_seed.txt:1, 8` | none |
+| 1. Material entities | POPULATED | `ARCO_core.ttl:58-82`, `ARCO_governance_extension.ttl:45-64, 144-150`; `cco:Organization` and `cco:Person` at `cco_seed.txt:1, 8` | none |
 | 2. Qualities (SDC) | IN PROGRESS | Pattern verified at CCO v1.7 `cco:InformationQualityEntity` (canonical IRI); seeds NOT in current `cco_seed.txt` (8 entries); L1.2 row reverted | L1.1 (ledger), L1.2 (reverted, planned for re-add) |
 | 3. Realizable entities | POPULATED | `ARCO_core.ttl:84-105`; `:NaturalPersonRole` at `ARCO_governance_extension.ttl:323-327`; Disposition not Function per BFO 2020 [064-001] (canonical line at `bfo-2020.owl:1326-1327`); X.11 rationale-comment fix landed at `ARCO_core.ttl:26-38`; component-level bearer rationale at `LIMITATIONS.md §3.5` (three-stacked: traceability, hardware-software amalgam simplification, software-configurable deployment scope); see `decisions_justification_map.md` entries F2, S2 for the full justification map | none — Disposition framing locked per X.11 verdict |
 | 4. Processes | POPULATED | `ARCO_governance_extension.ttl:290-321`; Sentinel realization at `ARCO_instances_sentinel.ttl:83-87`; kiosk has no realization (design-time scope) | L2.1 (bare token disclosure, DISCLOSED+BLOCKED) |

@@ -142,5 +142,5 @@ The three-gate axiom uses `:CapabilityDisposition` (subclass of `bfo:0000016`) f
 - A new Annex III category lands (e.g., 1(b), 1(c), or any of Annex III points 2-8). Add to `:AnnexIIITriggeringCapability` union per Invariant 8, extend the diagram with the new category-specific class.
 - The bare-token modeling pattern is refactored (L2.1 — currently DISCLOSED + BLOCKED behind Path Gamma). Update the Gate 2 description.
 - Article 5 or Article 6(3) modeling enters scope. Add the corresponding entailment branch.
-- The PRIMARY / LATENT-RISK FLAG output split is refactored (paused change B in `project_pending_AB_structural_changes.md`). Update the certificate-output node and possibly the `:HighRiskDetermination` class.
+- The PRIMARY / LATENT-RISK FLAG output split is refactored. Update the certificate-output node and possibly the `:HighRiskDetermination` class.
 - Any cited line number shifts due to a file edit. Re-verify and update.
