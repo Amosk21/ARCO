@@ -17,11 +17,17 @@ Open-source solo research project. Current encoding covers Annex III 1(a) (remot
 ```mermaid
 flowchart LR
     SRC["Source documentation<br/>(vendor docs, intended use,<br/>technical specs)"]
-    --> ADJ["Human adjudication<br/>(evidence ledger)"]
-    --> COMMIT["Reviewed RDF commitments<br/>(typed instance graph)"]
-    --> REASON["BFO-grounded reasoning<br/>OWL-RL + HermiT cross-check"]
-    --> AUDIT["SHACL completeness<br/>+ SPARQL evidence audit"]
-    --> CERT["Certificate<br/>+ evidence path"]
+    ADJ["Human adjudication<br/>(evidence ledger)"]
+    COMMIT["Reviewed RDF commitments<br/>(typed instance graph)"]
+    REASON["BFO-grounded reasoning<br/>OWL-RL + HermiT cross-check"]
+    AUDIT["SHACL completeness<br/>+ SPARQL evidence audit"]
+    CERT["Certificate<br/>+ evidence path"]
+
+    SRC --> ADJ
+    ADJ --> COMMIT
+    COMMIT --> REASON
+    REASON --> AUDIT
+    AUDIT --> CERT
 
     style SRC fill:#cbd5e1,stroke:#475569,color:#0f172a,stroke-width:2px
     style ADJ fill:#fed7aa,stroke:#c2410c,color:#7c2d12,stroke-width:2px
@@ -69,25 +75,29 @@ A separate flag (`HighRiskSystem`) fires from the capability gate alone. That fl
 
 ## Why the architecture matters
 
-What follows is what the architecture buys you that a procedural script could not.
+The architecture grounds in BFO 2020 (ISO/IEC 21838-2:2021) and uses the seven-bucket BFO modeling discipline. Material entities, qualities, realizable entities, processes, immaterial entities, temporal regions, and information artifacts are the seven categories every model has to populate or honestly disclose a scope cut on. Bucket assignment for each modeled entity is canonical, not improvised. The BFO 2020 axioms live at `imports/bfo-2020.owl`; the seven-bucket discipline is operationalized in the diagrams at `docs/modeling_decisions/` and verified per-entity in `seven_buckets_status.md`.
 
-**Reality and representation are kept separate.** Capabilities are physical: a hardware component bears them as BFO dispositions. Intended uses, use scenarios, and compliance determinations are documentary: IAO information content entities about the system. A reviewer can ask what the system has the capacity to do and what the provider has committed to as two separate questions with separate answers. The ontology treats mixing them as a category error and the reasoner enforces that.
+**Reality and representation are kept separate.** Capabilities are physical: a hardware component bears them as BFO dispositions (`ARCO_core.ttl:74-87`). Intended uses, use scenarios, and compliance determinations are documentary: IAO information content entities about the system. The reasoner enforces the separation through BFO 2020 standard disjointness between Independent Continuant and Generically Dependent Continuant; the binding mechanism that catches category errors at materialization time is verified by `03_TECHNICAL_CORE/scripts/probe_disjointness_and_binding.py`.
 
-**Classification is entailment, not procedure.** The Annex III applicability classes are defined by their conditions. When a system satisfies them, the reasoner adds the membership triple. No piece of code decides the classification; the axioms do, mechanically. A regulator does not need to trust the pipeline's source code; the axioms and the input facts are the audit trail.
+**Source documentation reaches the graph through human adjudication, not automated extraction.** Vendor documentation, intended-use specs, and technical evidence pass through a reviewed evidence ledger before becoming RDF commitments. Source documents generate descriptive ICE claims; promotion of a claim to a reality-side commitment is rare, conditional, and human-adjudicated. No automated extraction writes to instance TTL. The kiosk demo v1 (`docs/kiosk_demo_v1/`) is the first working instance of the evidence-ledger step; substituting a real vendor document for the current hypothetical packet is the active priority (`OPEN_PROBLEMS.md L1.1`).
 
-**The three layers do different jobs and are not interchangeable.** OWL-RL classifies (entails membership in the Annex III applicability classes). SHACL validates that the documentary record supporting a determination is structurally complete. SPARQL audits the post-reasoning graph and surfaces conditions for human review. A SHACL pass does not mean the system is high-risk. A SPARQL false does not overturn an OWL classification. Keeping the layers distinct is what makes the certificate auditable; conflating them is easy to do in prose and breaks the audit story.
+**Dispositions exist as particulars, not just class declarations.** Every fixture instantiates its capability disposition and asserts the bearer relation via `ro:0000091 has_disposition`. Sentinel additionally asserts the realization chain via `bfo:0000055 realizes` (`ARCO_instances_sentinel.ttl:37, 86`). Other fixtures leave realization unmodeled at design time, disclosed at `LIMITATIONS.md §3.7.a`. The graph carries actual disposition instances, not just class hierarchies.
 
-**The reasoner does real OWL inference.** One adversarial fixture types its capability disposition only as `:WeirdScanner`. The regulated class IRI never appears in the input data; the connection runs through an `owl:equivalentClass` declaration. Another fixture's disposition has no IRI at all (it's a blank node). Both classify correctly because the reasoner performs actual OWL inference. An approach that did string matching on class names, or required named individuals at every position, would miss both.
+**Classification is entailment, not procedure.** The Annex III applicability classes are defined by their conditions (three-gate equivalentClass axioms at `ARCO_governance_extension.ttl`). When a system satisfies them, the reasoner adds the membership triple. No Python decides the classification; the axioms do, mechanically. Exposing the full entailment chain in published artifacts is active surfacing work (`OPEN_PROBLEMS.md L4.8`); the classification is already re-derivable from the public axioms by anyone with an OWL reasoner.
 
-**Two reasoners cross-check each other.** OWL-RL (rule-based) and HermiT (tableau-based, full OWL 2 DL profile) agree on every classification across the certificate-grade fixtures. Two reasoners using different algorithms reaching the same answer is a stronger signal than either one alone. Disagreements would surface consistency issues a single reasoner could miss.
+**Two reasoners cross-check every classification.** OWL-RL (rule-based, materializes ~20,000 entailed triples per run) and HermiT (tableau-based, full OWL 2 DL profile) agree on every classification across the certificate-grade fixtures. Two reasoners using different algorithms reaching the same answer is a stronger signal than either alone. The CI workflow at `.github/workflows/robot-validate.yml` runs the cross-check on every PR.
+
+**The three layers do different jobs and are not interchangeable.** OWL-RL classifies (entails membership in the Annex III applicability classes). SHACL validates that the documentary record supporting a determination is structurally complete. SPARQL audits the post-reasoning graph and surfaces conditions for human review. A SHACL pass does not mean the system is high-risk. A SPARQL false does not overturn an OWL classification. The certificate's auditability turns on keeping the layers distinct.
+
+**Actual OWL inference fires, not string matching.** One adversarial fixture types its capability disposition only as `:WeirdScanner`; the regulated class IRI never appears in the input data and the connection runs through an `owl:equivalentClass` declaration. Another fixture's disposition has no IRI at all (anonymous blank node, `ARCO_instances_adversarial_blanknode.ttl:28`). Both classify correctly because the reasoner performs actual OWL inference. An approach that did string matching on class names, or required named individuals at every position, would miss both.
 
 **Layer separation is verified by fixtures.** Two flag-test fixtures present cases where all three Annex III gates are satisfied AND an audit-layer flag (a provider-asserted `:DerogationClaim`, or a `:FraudDetectionProcess` token) is also present. The OWL classification fires regardless of the audit flag; the flag fires alongside the classification. Classification and audit do not bleed into each other.
 
 **Gate independence is empirically verified.** A regression test removes the supporting triples for each Annex III 1(a) gate in turn and confirms the classification fails. Each gate is independently necessary; removing any one breaks the entailment. (Symmetric coverage for 5(b) is queued.)
 
-**Every output value has a declared source.** The output-provenance contract lives in `03_TECHNICAL_CORE/scripts/output_manifest_v2.yaml` (the declarations) and `test_output_provenance.py` (failing-by-design enforcement). The certificate's classification and evidence path are bound to SPARQL queries against the reasoned graph, not to Python literals. Tightening provenance labels across the remaining surrounding fields is active work, disclosed in [`LIMITATIONS.md §7.5`](LIMITATIONS.md).
+**The certificate's classification binds to graph queries.** Classification field and evidence path are bound to SPARQL queries against the reasoned graph; the contract lives in `03_TECHNICAL_CORE/scripts/output_manifest_v2.yaml`, enforced by `test_output_provenance.py` (failing-by-design). Tightening provenance labels across surrounding fields is active work ([`OPEN_PROBLEMS.md L4.4-L4.6`](OPEN_PROBLEMS.md), [`LIMITATIONS.md §7.5`](LIMITATIONS.md)).
 
-**The graph stays honest about what it doesn't know.** ARCO does not mint participant facts, temporal regions, role-bearer particulars, or other instance-level content that source evidence does not warrant. Under the Open World Assumption, absent triples mean "not asserted by the reviewed commitments," not "denied." Keeping the graph sparse where evidence is sparse is a project discipline, not a hypothetical future task.
+**The graph stays honest about what it doesn't know.** ARCO does not mint participant facts, temporal regions, role-bearer particulars, or other instance-level content that source evidence does not warrant. Under the Open World Assumption, absent triples mean "not asserted by the reviewed commitments," not "denied." Keeping the graph sparse where evidence is sparse is a project discipline, enforced in code review.
 
 ---
 
