@@ -48,7 +48,7 @@ flowchart LR
     style CDO fill:#fed7aa,stroke:#c2410c,color:#7c2d12,stroke-width:2px
 ```
 
-Each arrow is auditable. Source documentation licenses reviewed RDF commitments via a documented evidence-to-commitment pattern; the kiosk demo walks one fixture through it end-to-end. The reasoned graph is verified by `test_gate_removal.py` (Sentinel 1(a); 5(b) coverage queued) and by HermiT cross-check on certificate-grade fixtures. The certificate's classification line and evidence path are graph-derived; the surrounding pass/fail summary fields are currently Python-composed and are being moved to a graph-bound emitter (see [`LIMITATIONS.md §7.5`](LIMITATIONS.md)).
+Each arrow is auditable. Source documentation licenses reviewed RDF commitments via a documented evidence-to-commitment pattern; the kiosk demo ([`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/)) walks one fixture through it end-to-end against a hypothetical source packet (substituting a real vendor document is the next concrete step). The reasoned graph is verified by `test_gate_removal.py` (Sentinel 1(a); 5(b) coverage queued) and by HermiT cross-check on certificate-grade fixtures. The certificate's classification line and evidence path are graph-derived; the surrounding pass/fail summary fields are currently Python-composed and are being moved to a graph-bound emitter (see [`LIMITATIONS.md §7.5`](LIMITATIONS.md)).
 
 For the canonical diagrams (value chain, seven buckets, three-gate axiom, decisions justification map), see [`docs/modeling_decisions/`](docs/modeling_decisions/).
 
@@ -140,3 +140,4 @@ The pipeline loads BFO + BOT-extracted RO/IAO/CCO + ARCO core/governance + Senti
 
 - [`LIMITATIONS.md`](LIMITATIONS.md) — scope cuts, disclosed non-claims, and dual-use disclosure
 - [`docs/modeling_decisions/`](docs/modeling_decisions/) — canonical diagrams and decisions justification map
+- [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/) — worked input-mile example (source packet, evidence ledger, decision packet; hypothetical source)
