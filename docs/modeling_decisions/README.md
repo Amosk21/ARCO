@@ -1,6 +1,6 @@
 # Modeling Decisions — Diagram Set
 
-This folder holds the canonical visual artifacts for ARCO's modeling decisions and value chain. The diagrams are tested against the actual technical core (TTL, SPARQL, SHACL, Python), against the active register at `OPEN_PROBLEMS.md`, and against the project's stated goals at `CLAUDE.md`. Every load-bearing claim in a diagram cites the file or line it rests on.
+This folder holds the canonical visual artifacts for ARCO's modeling decisions and value chain. The diagrams are tested against the actual technical core (TTL, SPARQL, SHACL, Python), against the active register at `docs/_archive/OPEN_PROBLEMS.md`, and against the project's stated goals at `CLAUDE.md`. Every load-bearing claim in a diagram cites the file or line it rests on.
 
 ## What's in the folder
 
@@ -9,14 +9,14 @@ This folder holds the canonical visual artifacts for ARCO's modeling decisions a
 | `value_chain.md` | What is the end-to-end path from a source document to an honest certificate, and which BFO/CCO/RO/IAO relation connects each pair of nodes? | A new layer lands in code, an existing layer changes shape, or a new fixture exercises a path that wasn't visible before. |
 | `seven_buckets_status.md` | What does ARCO populate in each of the seven BFO modeling buckets, and what is in progress or deliberately scope-cut? | A bucket gains a populated instance type, an in-progress row lands, or a scope cut is revised. |
 | `three_gate_classifier.md` | What is the OWL axiom shape for Annex III applicability, and how does it relate to the latent-risk flag? | A new Annex III category is added, a gate's axiom shape changes, or the PRIMARY / LATENT-RISK FLAG bifurcation is refactored. |
-| `decisions_justification_map.md` | For every load-bearing modeling decision in ARCO, what is the plain-English rationale and where does its justification live in the canonical files (CLAUDE.md, LIMITATIONS.md, OPEN_PROBLEMS.md, TTL rdfs:comment, BFO/CCO canon)? | A new modeling decision lands, an existing decision is refactored, a LIMITATIONS section is renumbered, or a Global Invariant in CLAUDE.md is added or modified. |
+| `decisions_justification_map.md` | For every load-bearing modeling decision in ARCO, what is the plain-English rationale and where does its justification live in the canonical files (CLAUDE.md, LIMITATIONS.md, docs/_archive/OPEN_PROBLEMS.md, TTL rdfs:comment, BFO/CCO canon)? | A new modeling decision lands, an existing decision is refactored, a LIMITATIONS section is renumbered, or a Global Invariant in CLAUDE.md is added or modified. |
 
 ## Status framing used in the diagrams
 
 The diagrams describe ARCO as it actually is, not as it might be. Three statuses are used:
 
 - **POPULATED** — the artifact is present and load-bearing in the current graph; the pipeline exercises it on at least one fixture; the entailment or audit it supports fires.
-- **IN PROGRESS** — the artifact is spec'd in `OPEN_PROBLEMS.md`, the canon-grounding is verified, the modeling decision is locked, but the code or graph commitment has not yet landed. The diagram shows the artifact with the in-progress visual treatment so a reader can tell what is real today from what is pending.
+- **IN PROGRESS** — the artifact is spec'd in `docs/_archive/OPEN_PROBLEMS.md`, the canon-grounding is verified, the modeling decision is locked, but the code or graph commitment has not yet landed. The diagram shows the artifact with the in-progress visual treatment so a reader can tell what is real today from what is pending.
 - **SCOPE CUT** — the artifact is deliberately not modeled, disclosed at `LIMITATIONS.md` with rationale. Drawing it would overcommit. The diagram shows it as a refusal, not as a gap to be closed silently.
 
 The diagrams avoid the binary "active / gap" framing because reality has gradations and the discipline rules in `CLAUDE.md` (collapse, minimal cut, evidence-to-commitment policy) reward honest staging over aspirational pictures.
