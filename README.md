@@ -72,7 +72,7 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
   SHACL:                   PASS
   ANNEX III 1(a):          VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)
   ANNEX III 5(b):          NOT APPLICABLE
-  ENTAILED TRIPLES ADDED:  +19965
+  ENTAILED TRIPLES ADDED:  +20160
 
   [exception flags - provider-submitted claims, human review required]
   ART. 6(3) DEROGATION:    NOT FLAGGED
