@@ -8,7 +8,7 @@
 2. [CLAUDE.md](CLAUDE.md) — project invariants
 3. [README.md](README.md) — outward-facing claim
 4. [docs/agent/ARCO_public_claims.md](docs/agent/ARCO_public_claims.md) — claim discipline
-5. [docs/COMPETENCY_QUESTIONS.md](docs/COMPETENCY_QUESTIONS.md) — CQ0-CQ17 modeling spine and human interview flow
+5. [docs/_archive/COMPETENCY_QUESTIONS.md](docs/_archive/COMPETENCY_QUESTIONS.md) — CQ0-CQ17 modeling spine and human interview flow
 6. [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md) — BFO/CCO alignment state
 7. [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md) — regulatory scope rules
 8. [03_TECHNICAL_CORE/docs/architecture_defense_memo.md](03_TECHNICAL_CORE/docs/architecture_defense_memo.md) — load-bearing design choices
@@ -340,10 +340,24 @@ If a downstream tool requires ARCO output as input, the interface is the current
 
 ---
 
-## 12. How this document is maintained
+## 12. Dual-use disclosure
+
+The architectural pattern ARCO uses is general-purpose. Deterministic OWL-RL classification, three-gate `equivalentClass` entailment, BFO grounding via slim modules, SHACL completeness validation, SPARQL audit and flag, the full evidence chain. None of these are specific to compliance work or to the EU AI Act. The same pattern, with different class names and different gate definitions, can be reused for surveillance categorization, target classification, behavioral profiling, autonomous-weapons targeting decisions, or any other person-categorization workflow at scale.
+
+A vendor implementing such a system does not need to copy any ARCO file. They re-implement the pattern in their own namespace with their own classes. There is no mechanism by which copyright, licensing, or technical means can prevent this. The pattern itself is mathematics, in published OBO Foundry literature for over a decade. It is not ownable.
+
+The properties that make ARCO valuable for compliance are exactly the properties that would make a surveillance system more powerful and harder to challenge legally. Deterministic output is more legally defensible than a probabilistic classifier. Audit traceability looks the same whether the audit is for compliance or for operational targeting. The three-gate pattern maps cleanly onto person-categorization workflows: capability of the system, intended use of the deployer, role of the affected entity. A judge looking at the certificate output of a compliance system and a surveillance system grounded in the same architecture cannot tell the difference by looking at the reasoning chains alone. Both are equally rigorous.
+
+ARCO has no architectural mechanism to prevent this adaptation. The bounded scope of this work (EU AI Act Annex III 1(a) and 5(b) compliance assessment of AI systems) is a public-claim discipline, not a technical or legal constraint. Disclosure is the only honest response available.
+
+**Required disclosure language.** ARCO uses a formal-ontology approach that is general-purpose. The specific encoding ARCO contains is bounded to EU AI Act Annex III 1(a) and 5(b) compliance classification of AI systems. The architecture's generality means a different encoding could be used for purposes ARCO does not endorse, including surveillance-scale categorization. ARCO has no technical mechanism to prevent that adaptation; the bounded scope is a public-claim discipline, not an architectural constraint.
+
+---
+
+## 13. How this document is maintained
 
 - Update this document **first** when scope changes, before README or commercial copy.
 - A claim in README, EXEC_PITCH, or any outward-facing artifact that exceeds what this document permits is a bug. Correct the outward artifact, not this one.
-- The scope boundary in §2 is coupled to [docs/COMPETENCY_QUESTIONS.md](docs/COMPETENCY_QUESTIONS.md) and [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md). All three must be updated together when coverage changes.
+- The scope boundary in §2 is coupled to [docs/_archive/COMPETENCY_QUESTIONS.md](docs/_archive/COMPETENCY_QUESTIONS.md) and [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md). All three must be updated together when coverage changes.
 - The ontological commitment status in §3 is coupled to [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md). When a commitment's grade changes (a stretch is resolved, a new stretch is introduced), update the backtest first, then this document.
 - The property-layer status in §4 is coupled to [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md). Import progress updates there first.

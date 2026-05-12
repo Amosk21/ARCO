@@ -5,9 +5,9 @@
 **Discipline.** Smallest scale that has a real CDO value point. Anchor each decision to (a) EU AI Act text and (b) the existing `ARCO_instances_verification.ttl` fixture. The packet is structured to either justify or disqualify each modeling step, so a wrong source packet cannot quietly slip through.
 
 **Reference docs (do not duplicate; cite):**
-- `docs/COMPETENCY_QUESTIONS.md` — session-level CDO-question script (CQ0-CQ17)
-- `docs/MODELING_QUESTION_MAP.md` — per-commitment workbench
-- `docs/EVIDENCE_TO_COMMITMENT_POLICY.md` — source-to-RDF discipline
+- `docs/_archive/COMPETENCY_QUESTIONS.md` — session-level CDO-question script (CQ0-CQ17)
+- `docs/_archive/MODELING_QUESTION_MAP.md` — per-commitment workbench
+- `docs/_archive/EVIDENCE_TO_COMMITMENT_POLICY.md` — source-to-RDF discipline
 - `03_TECHNICAL_CORE/ontology/ARCO_instances_verification.ttl` — the existing fixture (already aligned with what the demo proves)
 
 ---
@@ -18,7 +18,7 @@
 |---|---|---|
 | A1 | What single CDO question does the demo answer? | "Is this verification kiosk in scope of EU AI Act Annex III 1(a) (high-risk remote biometric identification)?" |
 | A2 | Regulatory anchor (specific articles)? | Article 3(36) defines biometric verification (1:1). Article 3(41) defines remote biometric identification system (1:N). Annex III 1(a) covers RBI per 3(41); Recital 15 broadens the verification carve-out to access-to-service, unlock, and premises-access purposes. The regulation classifies by **intended use**, not by hardware capability. ARCO Gate 2 anchors to intended use via `:IntendedUseSpecification` and `cco:prescribes`. |
-| A3 | Which CQ from `docs/COMPETENCY_QUESTIONS.md` covers it? | Most likely a "negative-case" CQ (the system does NOT entail Annex III 1(a)). User to fill once CQ backtest finishes. |
+| A3 | Which CQ from `docs/_archive/COMPETENCY_QUESTIONS.md` covers it? | Most likely a "negative-case" CQ (the system does NOT entail Annex III 1(a)). User to fill once CQ backtest finishes. |
 | A4 | CDO value point in one sentence? | "Confirm with formal evidence that a 1:1 verification system is not subject to Annex III high-risk obligations, before deployment, with a re-derivable chain of reasoning rather than a vendor assurance." |
 
 ## B. System scope (smallest meaningful)
@@ -46,7 +46,7 @@ For each row: write the source text that licenses the existing fixture commitmen
 
 ## D. Per-claim BFO/CCO routing
 
-Apply `docs/MODELING_QUESTION_MAP.md` to each claim. The fixture is already aligned, so this is a confirmation pass, not new modeling.
+Apply `docs/_archive/MODELING_QUESTION_MAP.md` to each claim. The fixture is already aligned, so this is a confirmation pass, not new modeling.
 
 | Claim | Reality / Information / Regulatory / Output | BFO bucket | Existing class | Verdict |
 |---|---|---|---|---|
@@ -99,4 +99,4 @@ The kiosk fixture exists and is aligned. The demo's load-bearing work is the *in
 
 ## What the demo proves
 
-`docs/MODELING_ADEQUACY_BRIEF.md` Verdict 3 says input provenance is not yet demonstrated. The kiosk demo closes that gap for one fixture: it shows that the existing reviewed commitments in `ARCO_instances_verification.ttl` are *licensed by* a written source packet, with each licensure step adjudicated and recorded in the evidence ledger. That is the proof the brief identifies as missing.
+`docs/_archive/MODELING_ADEQUACY_BRIEF.md` Verdict 3 says input provenance is not yet demonstrated. The kiosk demo closes that gap for one fixture: it shows that the existing reviewed commitments in `ARCO_instances_verification.ttl` are *licensed by* a written source packet, with each licensure step adjudicated and recorded in the evidence ledger. That is the proof the brief identifies as missing.

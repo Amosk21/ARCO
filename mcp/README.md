@@ -15,7 +15,7 @@ The MCP layer is purely a transport.
 |---|---|
 | `arco_run_pipeline` | Runs `run_pipeline.py` against an instances file and returns parsed structured output (classification, certificate, two-layer pass/fail, exception flags). |
 | `arco_run_hermit_crosscheck` | Materializes a single fixture's HermiT-reasoned graph via ROBOT, computes the OWL-RL baseline for the same fixture, and diffs the classification query set. The full multi-fixture sweep remains `03_TECHNICAL_CORE/scripts/hermit_cross_check.py` in CI. |
-| `arco_competency_check` | Runs a single competency question (CQ1..CQ12 from `docs/COMPETENCY_QUESTIONS.md`) against a system. Returns the question text, regulatory anchor, layer (OWL-RL / SHACL / SPARQL_ASK), implementing file, raw result, and a one-sentence interpretation. |
+| `arco_competency_check` | Runs a single competency question (CQ1..CQ12 from `docs/_archive/COMPETENCY_QUESTIONS.md`) against a system. Returns the question text, regulatory anchor, layer (OWL-RL / SHACL / SPARQL_ASK), implementing file, raw result, and a one-sentence interpretation. |
 
 ## Prerequisites
 

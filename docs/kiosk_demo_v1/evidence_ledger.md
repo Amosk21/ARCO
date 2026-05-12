@@ -4,7 +4,7 @@
 
 **Source:** `source_packet.md` (HYPOTHETICAL).
 **Target fixture:** `03_TECHNICAL_CORE/ontology/ARCO_instances_verification.ttl`.
-**Policy:** `docs/EVIDENCE_TO_COMMITMENT_POLICY.md`.
+**Policy:** `docs/_archive/EVIDENCE_TO_COMMITMENT_POLICY.md`.
 
 Each row shows: a verbatim or close-paraphrase source-text excerpt; the adjudicator's note (what the claim licenses, what bucket it lands in, what is held); the resulting triple in the fixture; and the disposition status.
 
@@ -34,4 +34,4 @@ Every reality-side and information-side triple in `ARCO_instances_verification.t
 
 - Does not claim every triple in the fixture is automatically derivable from the source. Rows 1-7 are adjudicator commitments; the adjudicator's review is the load-bearing step.
 - Does not capture every detail in the source packet. Rows 8-9 explicitly hold (no triple) because the source's OWA framing must remain documentary, not be flattened into a closed-world claim.
-- Does not provide a runtime extraction pipeline. The source packet is hand-authored prose for this demonstration; LLM-assisted extraction is out of scope per `docs/EVIDENCE_TO_COMMITMENT_POLICY.md`.
+- Does not provide a runtime extraction pipeline. The source packet is hand-authored prose for this demonstration; LLM-assisted extraction is out of scope per `docs/_archive/EVIDENCE_TO_COMMITMENT_POLICY.md`.
