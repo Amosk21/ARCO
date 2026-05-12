@@ -73,6 +73,41 @@ A separate flag (`HighRiskSystem`) fires from the capability gate alone. That fl
 
 ---
 
+## What ARCO describes
+
+> *Items marked with (\*) are work-in-progress: a modeling discipline articulated in the technical core but not yet exercised in fixtures, or a pending modeling decision with a clear path forward. Tracked in ARCO's internal working register.*
+
+A system is a real physical thing. Its hardware components bear capabilities, which are actual physical properties of the hardware. A face-recognition module bears the capability to do biometric identification because of its hardware. The capability exists because of the hardware's physical structure. It is there whether the system is running or sitting idle.
+
+Software running on the hardware is treated as information content (a Generically Dependent Continuant per BFO 2020, `bfo:0000031`). The software generically depends on the hardware that runs it (`bfo:0000084 g-depends`); the hardware concretizes the software via an inscription quality (`bfo:0000058 is_concretized_by`); and the hardware is what bears the capability disposition. (\*) The software-hardware concretization layer is articulated as discipline in `ARCO_core.ttl:126-130` but is not yet exercised in any fixture; the hardware-software amalgam is disclosed as a deliberate simplification at `LIMITATIONS.md §3.5`.
+
+Separately, there are documents about the system. The vendor writes an Intended Use Specification saying what the system is for. The vendor writes a Use Scenario Specification saying which role categories the system operates on. These are claims the provider makes about the system; they are typed as Information Content Entities (`iao:0000030`). They describe the system; they are not the system.
+
+EU AI Act Annex III applies when three commitments come together:
+
+1. The system's hardware bears a regulated capability.
+2. The vendor's intended use specification commits the system to a regulated process via the IUS subkind defined-class (`cco:prescribes someValuesFrom :Process`).
+3. The use scenario specification designates the affected role category. For Annex III 1(a), this is natural persons. (\*) The relationship between this designated role and the system's process is pending tightening; the current axiom does not pin down whether natural persons are subjects of identification, operators of the system, or another role-in-context.
+
+When all three appear in a reviewed graph, the reasoner concludes "Annex III applicable." Two reasoners (OWL-RL rule-based, HermiT tableau-based / OWL 2 DL) cross-check the conclusion. A regulator can take the axioms and the input facts and re-derive the classification with any OWL reasoner. No Python line decides for them. (\*) The full entailment chain (around 20,000 entailed triples per run) is not yet exported in the published artifacts; surfacing the reasoned graph and HermiT classification output alongside the certificate is active work.
+
+Some pieces of the picture are kept partial on purpose:
+
+- ARCO does not mint specific natural-person particulars; no source warrant for them at design time.
+- It does not model when or where the system runs (deliberate scope cut for a design-time classifier).
+- It surfaces Article 6(3) derogation claims for human legal review without evaluating their validity.
+- It surfaces Annex III 5(b) fraud-detection exclusion claims the same way: as audit-layer flags, not classification gates.
+
+Some pieces are still being worked out (\*):
+
+- Capability + Interest framing. The canonical capability framing is "a disposition whose realization is associated with the interest of an organism or group." ARCO currently models the disposition side; the interest hookup for capability accountability is pending decision.
+- Regulatory text aboutness. How to express what the Annex III text is about beyond the universal class (canonical options surfaced; decision pending).
+- Vocabulary cleanup. The compositional class name `:CapabilityDisposition` is pending rename to `:Capability` per Smith-Against-Idiosyncrasy Principle 8.
+
+The architectural detail (BFO 2020 grounding, the seven modeling buckets, how the reasoner does its work) is in the section below.
+
+---
+
 ## Why the architecture matters
 
 The architecture grounds in BFO 2020 (ISO/IEC 21838-2:2021) and uses the seven-bucket BFO modeling discipline. Material entities, qualities, realizable entities, processes, immaterial entities, temporal regions, and information artifacts are the seven categories every model has to populate or honestly disclose a scope cut on. Bucket assignment for each modeled entity is canonical, not improvised. The BFO 2020 axioms live at `imports/bfo-2020.owl`; the seven-bucket discipline is operationalized in the diagrams at `docs/modeling_decisions/` and verified per-entity in `seven_buckets_status.md`.
