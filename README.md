@@ -48,9 +48,9 @@ flowchart LR
     style CDO fill:#fed7aa,stroke:#c2410c,color:#7c2d12,stroke-width:2px
 ```
 
-Each arrow is auditable. Source documentation licenses reviewed RDF commitments via an evidence ledger (see `docs/EVIDENCE_TO_COMMITMENT_POLICY.md`). The reasoned graph is verified by `test_gate_removal.py` (each gate is independently necessary) and by HermiT cross-check on certificate-grade fixtures. The certificate's classification line and evidence path are graph-derived; the surrounding pass/fail summary fields are currently Python-composed and are being moved to a graph-bound emitter (see [`LIMITATIONS.md §7.5`](LIMITATIONS.md) and `OPEN_PROBLEMS.md`).
+Each arrow is auditable. Source documentation licenses reviewed RDF commitments via a documented evidence-to-commitment pattern; the kiosk demo walks one fixture through it end-to-end. The reasoned graph is verified by `test_gate_removal.py` (Sentinel 1(a); 5(b) coverage queued) and by HermiT cross-check on certificate-grade fixtures. The certificate's classification line and evidence path are graph-derived; the surrounding pass/fail summary fields are currently Python-composed and are being moved to a graph-bound emitter (see [`LIMITATIONS.md §7.5`](LIMITATIONS.md)).
 
-For the ontology structure itself (class hierarchy, three-gate axiom, reality/representation cut, Sentinel walkthrough diagrams), see [`docs/ARCO_technical_overview.md`](docs/ARCO_technical_overview.md).
+For the canonical diagrams (value chain, seven buckets, three-gate axiom, decisions justification map), see [`docs/modeling_decisions/`](docs/modeling_decisions/).
 
 ---
 
@@ -85,9 +85,9 @@ ARCO CONDITION ASSESSMENT CERTIFICATE
 ========================================================================
 ```
 
-The classification result is **derived**, not asserted: removing any gate triple causes the entailment to fail (verified by `test_gate_removal.py`). The reference pipeline writes the certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
+The classification result is **derived**, not asserted: removing any gate triple causes the entailment to fail (verified by `test_gate_removal.py` on Sentinel 1(a); 5(b) coverage queued). The reference pipeline writes the certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
 
-**Output-layer caveat.** The classification line and the evidence path are computed directly from the reasoned graph. Some of the surrounding pass/fail fields are still composed by Python rather than queried from the graph; that is a known bug being worked on. Tracked in [`OPEN_PROBLEMS.md`](OPEN_PROBLEMS.md) and disclosed in [`LIMITATIONS.md §7.5`](LIMITATIONS.md).
+**Output-layer caveat.** The classification line and the evidence path are computed directly from the reasoned graph. Some of the surrounding pass/fail fields are still composed by Python rather than queried from the graph; that is a known bug being worked on. Disclosed in [`LIMITATIONS.md §7.5`](LIMITATIONS.md).
 
 ---
 
@@ -102,7 +102,7 @@ A real EU AI Act deployment needs more than ARCO currently provides. For each ga
 - **Only two of the eight Annex III categories.** Annex III lists eight high-risk areas; ARCO models two of them. A real deployment evaluation would need its specific category modeled. Adding more categories follows the same three-condition pattern shown above; it is content, not architecture. New categories will be added as worked use cases justify them.
 - **No raw document ingestion.** A working compliance product would accept the vendor's PDFs, marketing copy, and technical sheets and produce the structured description ARCO consumes. ARCO does not do that. Turning unstructured documents into a reviewed RDF description is a separate upstream problem (typically LLM-assisted extraction with human review) that ARCO deliberately keeps outside the classification path.
 
-Producing a defensible client-facing determination for a real deployment requires a worked use case grounded in real provider documentation, Article 6(3) derogation evaluation, provider/deployer obligation entailment, and external counsel review. A worked walkthrough comparing ARCO's current certificate to what a defensible determination would say lives in [`docs/REFERENCE_USE_CASE.md`](docs/REFERENCE_USE_CASE.md).
+Producing a defensible client-facing determination for a real deployment requires a worked use case grounded in real provider documentation, Article 6(3) derogation evaluation, provider/deployer obligation entailment, and external counsel review.
 
 The architectural pattern ARCO demonstrates is reusable. The current scope is bounded. Closing the gap from "reference implementation" to "deployable compliance tool" is a distinct phase of work, not a finishing pass on the current artifact. See [`LIMITATIONS.md`](LIMITATIONS.md) for the full disclosure surface.
 
@@ -121,7 +121,7 @@ python -m pip install -r requirements.txt
 python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 ```
 
-The pipeline loads BFO + BOT-extracted RO/IAO/CCO + ARCO core/governance + Sentinel instance data; runs OWL-RL closure (about 7,800 asserted -> 27,765 post-reasoning); validates SHACL; runs SPARQL ASK audit queries on the reasoned graph; and writes outputs to `runs/demo/`. The same pipeline runs in CI (Actions > ARCO Demo Run) and the workflow uploads `runs/demo/` as a downloadable artifact.
+The pipeline loads BFO + BOT-extracted RO/IAO/CCO + ARCO core/governance + Sentinel instance data; runs OWL-RL closure; validates SHACL; runs SPARQL ASK audit queries on the reasoned graph; and writes outputs to `runs/demo/`. The same pipeline runs in CI (Actions > ARCO Demo Run) and the workflow uploads `runs/demo/` as a downloadable artifact.
 
 ---
 
@@ -134,22 +134,9 @@ The pipeline loads BFO + BOT-extracted RO/IAO/CCO + ARCO core/governance + Senti
 | **IAO** | Information Artifact Ontology release `2026-03-30` | ROBOT BOT slim module |
 | **CCO** | Common Core Ontologies v1.7 (pinned semantic-IRI release) | ROBOT BOT slim module + local bridge declarations |
 
-For the rationale behind ROBOT BOT slim modules over MIREOT or full imports, and the bridge declarations ARCO carries on top, see [`docs/ARCO_imports_rationale.md`](docs/ARCO_imports_rationale.md).
-
 ---
 
-## Documentation
+## More
 
-| Topic | Document |
-|---|---|
-| Class hierarchy, gate axioms, walkthrough diagrams | [`docs/ARCO_technical_overview.md`](docs/ARCO_technical_overview.md) |
-| OWL vs SHACL vs SPARQL: which layer does what, in ARCO | [`docs/ARCO_three_layers.md`](docs/ARCO_three_layers.md) |
-| Why structural-not-behavioral; entailed-triples explanation; active modeling considerations | [`docs/ARCO_design_choices.md`](docs/ARCO_design_choices.md) |
-| Why ROBOT BOT slim modules; bridge declarations | [`docs/ARCO_imports_rationale.md`](docs/ARCO_imports_rationale.md) |
-| Competency questions and modeling interview flow | [`docs/COMPETENCY_QUESTIONS.md`](docs/COMPETENCY_QUESTIONS.md) |
-| Per-commitment modeling workbench | [`docs/MODELING_QUESTION_MAP.md`](docs/MODELING_QUESTION_MAP.md) |
-| Current modeling adequacy verdict | [`docs/MODELING_ADEQUACY_BRIEF.md`](docs/MODELING_ADEQUACY_BRIEF.md) |
-| Source-to-commitment policy | [`docs/EVIDENCE_TO_COMMITMENT_POLICY.md`](docs/EVIDENCE_TO_COMMITMENT_POLICY.md) |
-| Scope cuts and disclosed non-claims | [`LIMITATIONS.md`](LIMITATIONS.md) |
-| Active fix register | [`OPEN_PROBLEMS.md`](OPEN_PROBLEMS.md) |
-| Worked reference use case (in progress) | [`docs/REFERENCE_USE_CASE.md`](docs/REFERENCE_USE_CASE.md) |
+- [`LIMITATIONS.md`](LIMITATIONS.md) — scope cuts, disclosed non-claims, and dual-use disclosure
+- [`docs/modeling_decisions/`](docs/modeling_decisions/) — canonical diagrams and decisions justification map

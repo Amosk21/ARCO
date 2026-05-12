@@ -505,7 +505,7 @@ def arco_run_hermit_crosscheck(fixture: str | None = "sentinel") -> dict[str, An
 # Tool 3: arco_competency_check
 # ---------------------------------------------------------------------------
 
-# CQ-to-implementation mapping. Mirrors docs/COMPETENCY_QUESTIONS.md exactly.
+# CQ-to-implementation mapping. Mirrors docs/_archive/COMPETENCY_QUESTIONS.md exactly.
 # Each CQ identifies (a) the regulator-paraphrase question, (b) the regulatory
 # anchor, (c) the layer that answers it, (d) the file that implements it, and
 # (e) a dispatch tag the tool uses to route to the right runner.
@@ -647,7 +647,7 @@ def arco_competency_check(
     system: str = "Sentinel_ID_System",
     instances: str | None = None,
 ) -> dict[str, Any]:
-    """Run a specific competency question (CQ1-CQ12 from docs/COMPETENCY_QUESTIONS.md) against a system.
+    """Run a specific competency question (CQ1-CQ12 from docs/_archive/COMPETENCY_QUESTIONS.md) against a system.
 
     Args:
         cq_id: One of "CQ1".."CQ12".

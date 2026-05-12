@@ -3,7 +3,7 @@
 **Date:** 2026-05-10.
 **Scope:** Demonstrate the source → reviewed-commitment → entailment → answer chain end-to-end on one negative case (verification kiosk, NOT subject to Annex III 1(a)) paired with one positive case (Sentinel-ID, IS subject to Annex III 1(a)). Same pipeline, same axioms, different fixtures, different outcomes.
 
-**Why this demo exists.** `docs/MODELING_ADEQUACY_BRIEF.md` Verdict 3 says input provenance is not yet demonstrated. The kiosk demo closes that gap for one fixture: it shows that the existing reviewed commitments in `ARCO_instances_verification.ttl` are *licensed by* a written source packet, with each licensure step adjudicated and recorded.
+**Why this demo exists.** `docs/_archive/MODELING_ADEQUACY_BRIEF.md` Verdict 3 says input provenance is not yet demonstrated. The kiosk demo closes that gap for one fixture: it shows that the existing reviewed commitments in `ARCO_instances_verification.ttl` are *licensed by* a written source packet, with each licensure step adjudicated and recorded.
 
 ---
 
@@ -96,7 +96,7 @@ That is the input mile + reasoning + output, end-to-end, for one concrete case. 
 - Does not evaluate Article 6(3) derogation. ARCO flags `:DerogationClaim` artifacts for human review only.
 - Does not route Article 5(1)(h) prohibition for real-time RBI. `LIMITATIONS.md §3.7.c` discloses this scope cut.
 - Does not entail provider/deployer obligations from the negative classification.
-- Does not ingest raw vendor PDFs at runtime. The source packet is hand-authored prose for this demonstration; runtime extraction is a separate problem outside ARCO's current scope (`docs/EVIDENCE_TO_COMMITMENT_POLICY.md`).
+- Does not ingest raw vendor PDFs at runtime. The source packet is hand-authored prose for this demonstration; runtime extraction is a separate problem outside ARCO's current scope (`docs/_archive/EVIDENCE_TO_COMMITMENT_POLICY.md`).
 - Does not enforce cross-property SHACL consistency between disposition + IUS + USS. The OWL disjointness axioms catch the structural inconsistency case at the OWL layer; a SHACL-SPARQL consistency shape would catch adjudicator-error cases earlier in the pipeline, but is a Tier 2 enhancement not authored for this demo.
 
 ---

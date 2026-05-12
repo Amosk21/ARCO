@@ -36,7 +36,7 @@ The pattern is the same as `output_manifest_v2.yaml` for output fields: every co
 
 ## Cross-references
 
-These diagrams supersede the inline mermaid diagrams in `docs/MODELING_ADEQUACY_BRIEF.md` and `docs/MODELING_QUESTION_MAP.md` for the topics they cover. The two parent files now point readers here for the canonical pictures, and keep their own inline content focused on prose adequacy verdict and modeling-question worksheet respectively.
+These diagrams supersede the inline mermaid diagrams in `docs/_archive/MODELING_ADEQUACY_BRIEF.md` and `docs/_archive/MODELING_QUESTION_MAP.md` for the topics they cover. The two parent files now point readers here for the canonical pictures, and keep their own inline content focused on prose adequacy verdict and modeling-question worksheet respectively.
 
 ## Backtest discipline
 
