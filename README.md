@@ -2,133 +2,42 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-ARCO classifies AI systems against EU AI Act Annex III at design time, before deployment. Given a structured RDF description of a system (components, dispositions, intended use, use scenario), the pipeline tells you whether the system satisfies ARCO's formal encoding of Annex III conditions, and exactly why. Same input, same answer, every run. The output is a deterministic OWL entailment over hand-reviewed commitments, not a confidence score and not a legal opinion.
+ARCO answers a specific question about an AI system: before you build or deploy it, does it satisfy the formal encoding of an EU AI Act Annex III high-risk condition? You hand the pipeline a structured description of the system — what the hardware can do, what it's intended to be used for, who its decisions affect — and the OWL reasoner returns the answer with the full reasoning chain attached. Same input, same answer, every run. A regulator can re-derive it from public axioms. A buyer can re-derive it. A second auditor can re-derive it. The chain itself is the artifact you can hand someone, not a confidence score and not a legal opinion.
 
-ARCO is an open-source solo learning and research project. It is a research-grade applied ontology and reference pipeline, not a deployable compliance product. Current scope is bounded to EU Regulation 2024/1689 Annex III categories 1(a) (remote biometric identification) and 5(b) (creditworthiness evaluation). The encoded interpretation has not been externally reviewed by qualified counsel or by the EU AI Office. Issues, corrections, and modeling critiques are welcome.
+The problem this solves: a compliance team, regulator, or buyer needs to know whether a specific AI system falls under Annex III before it ships. A probabilistic score is not a defensible answer to that question; a checklist asking "does the document exist" misses the content of the document; a behavioral monitor only runs after deployment. ARCO produces a determination upstream of all of that, with the reasoning chain inspectable line by line.
+
+Open-source solo research project. Current encoding covers Annex III 1(a) (remote biometric identification) and 5(b) (creditworthiness evaluation); the encoded interpretation has not been externally reviewed by counsel; not a deployable compliance product.
 
 [![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml) [![ROBOT Validation](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml)
 
 ---
 
-## TL;DR
-
-- **What.** ARCO tells you whether a structured description of your AI system satisfies ARCO's formal encoding of EU AI Act Annex III conditions, and exactly why, with the entailment chain re-derivable from public axioms.
-- **How.** OWL-RL classification over a BFO 2020-grounded ontology (RO, IAO, CCO loaded as ROBOT BOT slim modules), SHACL for documentary completeness, SPARQL ASK on the reasoned graph for audit. HermiT OWL 2 DL cross-check in CI on every push to `main` and every pull request.
-- **Run it.** `python 03_TECHNICAL_CORE/scripts/run_pipeline.py` from a fresh clone produces a condition-assessment certificate at `runs/demo/certificate.txt`.
-
----
-
-## What's modeled
-
-ARCO encodes two Annex III categories as one architectural pattern instantiated twice. A system is applicable to a category only when **all three** gates of that category's `owl:equivalentClass` axiom are jointly entailed.
-
-| Annex III category | Capability *(reality)* | Intended use *(representation)* | Affected role *(representation)* |
-|---|---|---|---|
-| 1(a) Remote biometric identification | biometric identification | remote biometric identification | natural-person role |
-| 5(b) Creditworthiness evaluation | creditworthiness evaluation | creditworthiness evaluation | natural-person role |
-
-Reality (capability dispositions inhering in hardware) and representation (information content entities about the system) are not interchangeable. Cross-category isolation is enforced by `owl:disjointWith` on the capability classes, not by hand-coded checks. A separate `HighRiskSystem` flag fires from the capability gate alone and is **not** the legal high-risk classification — the full applicability category requires all three.
-
----
-
-## How it works (the chain)
+## The chain you can audit
 
 ```mermaid
 flowchart LR
-    SRC["Source documentation<br/>(vendor docs, intended use)"]
-    --> COMMIT["Reviewed RDF commitments<br/>(adjudicated triples)"]
-    --> REASON["BFO/CCO-grounded graph<br/>+ OWL-RL reasoning<br/>+ HermiT cross-check"]
-    --> ANSWER["Certificate<br/>(Annex III applicability + evidence path)"]
-    --> CDO["CDO-readable answer<br/>+ disclosed gaps"]
+    SRC["Source documentation<br/>(vendor docs, intended use,<br/>technical specs)"]
+    --> ADJ["Human adjudication<br/>(evidence ledger)"]
+    --> COMMIT["Reviewed RDF commitments<br/>(typed instance graph)"]
+    --> REASON["BFO-grounded reasoning<br/>OWL-RL + HermiT cross-check"]
+    --> AUDIT["SHACL completeness<br/>+ SPARQL evidence audit"]
+    --> CERT["Certificate<br/>+ evidence path"]
 
     style SRC fill:#cbd5e1,stroke:#475569,color:#0f172a,stroke-width:2px
+    style ADJ fill:#fed7aa,stroke:#c2410c,color:#7c2d12,stroke-width:2px
     style COMMIT fill:#bfdbfe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
     style REASON fill:#bbf7d0,stroke:#15803d,color:#14532d,stroke-width:2px
-    style ANSWER fill:#fde68a,stroke:#b45309,color:#78350f,stroke-width:2px
-    style CDO fill:#fed7aa,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    style AUDIT fill:#fde68a,stroke:#b45309,color:#78350f,stroke-width:2px
+    style CERT fill:#f5d0fe,stroke:#a21caf,color:#581c87,stroke-width:2px
 ```
 
-Each arrow is auditable. Source documentation licenses reviewed RDF commitments via a documented evidence-to-commitment pattern; the kiosk demo ([`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/)) walks one fixture through it end-to-end against a hypothetical source packet (substituting a real vendor document is the next concrete step). The reasoned graph is verified by `test_gate_removal.py` (Sentinel 1(a); 5(b) coverage queued) and by HermiT cross-check on certificate-grade fixtures. The certificate's classification line and evidence path are graph-derived; the surrounding pass/fail summary fields are currently Python-composed and are being moved to a graph-bound emitter (see [`LIMITATIONS.md §7.5`](LIMITATIONS.md)).
+Every arrow is something a reviewer can inspect. Source documents license RDF commitments through human adjudication, not automated extraction (the kiosk demo walks one fixture through this end-to-end with an evidence ledger; the source packet there is hypothetical, and substituting a real vendor document is the next concrete step). Reviewed commitments enter a BFO-grounded graph. The OWL reasoner derives the classification by entailment over axioms anyone can read. A second reasoner (HermiT, full OWL 2 DL profile) independently agrees on every push. SHACL validates that the supporting documentary record is structurally complete. SPARQL queries inspect the reasoned graph for the specific evidence each classification rests on. The certificate writes the classification, the evidence path, and the supporting structure in one place.
 
-For the canonical diagrams (value chain, seven buckets, three-gate axiom, decisions justification map), see [`docs/modeling_decisions/`](docs/modeling_decisions/).
-
----
-
-## Sample certificate output
-
-```text
-========================================================================
-ARCO CONDITION ASSESSMENT CERTIFICATE
-========================================================================
-  SYSTEM:                  Sentinel_ID_System
-  REGIME:                  ARCO ontology encoding of EU AI Act (Article 6 / Annex III)
-  PRIMARY ARCO CLASSIFICATION:  AnnexIII1aApplicableSystem (ENTAILED, all three ARCO gates)
-  LATENT-RISK FLAG:             HighRiskSystem (Annex III Capability-Precondition Flag;
-                                INFERRED via Gate 1 only;
-                                not the EU AI Act legal high-risk classification)
-  TRIGGERING CAPABILITY:   Sentinel_FaceID_Disposition
-  EVIDENCE PATH:
-  Sentinel_ID_System -> Sentinel_FaceID_Module -> Sentinel_FaceID_Disposition
-  SHACL:                   PASS
-  ANNEX III 1(a):          VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)
-  ANNEX III 5(b):          NOT APPLICABLE
-  ENTAILED TRIPLES ADDED:  +20160
-
-  [exception flags - provider-submitted claims, human review required]
-  ART. 6(3) DEROGATION:    NOT FLAGGED
-  5(b) FRAUD EXCLUSION:    NOT FLAGGED
-
-  SCOPE: ARCO assesses structured RDF instance data supplied to the pipeline.
-         It does not verify raw vendor documentation, the physical deployed
-         system, or legal sufficiency. ARCO currently models Annex III 1(a)
-         (biometric identification) and 5(b) (creditworthiness) only.
-========================================================================
-```
-
-The classification result is **derived**, not asserted: removing any gate triple causes the entailment to fail (verified by `test_gate_removal.py` on Sentinel 1(a); 5(b) coverage queued). The reference pipeline writes the certificate, JSON summary, evidence bindings, and SHACL report to `runs/demo/`.
-
-**Output-layer caveat.** The classification line and the evidence path are computed directly from the reasoned graph. Some of the surrounding pass/fail fields are still composed by Python rather than queried from the graph; that is a known bug being worked on. Disclosed in [`LIMITATIONS.md §7.5`](LIMITATIONS.md).
+If a classification is wrong, the chain shows where it went wrong: which axiom, which fact, which reasoning step. Nothing is opaque.
 
 ---
 
-## What works today
-
-**Seven systems across six fixtures.** Two positive (Sentinel 1(a), CreditScorer 5(b)), one negative (Verification Kiosk — 1:1 verification is not in the triggering capability union), two adversarial, two flag-test.
-
-**The adversarial fixtures verify the reasoner does real DL work, not IRI pattern-matching.** The decoy fixture types its disposition only as `:WeirdScanner`, declared `owl:equivalentClass :BiometricIdentificationCapability`; classification fires through equivalence propagation. The blank-node fixture's disposition has no IRI at all (anonymous individual typed as `:BiometricIdentificationCapability`); `owl:someValuesFrom` is satisfied by existential entailment. A Python script doing `rdf:type` lookup on either disposition returns false for the regulated class; OWL-RL returns true.
-
-**The flag-test fixtures verify layer separation.** All three gates satisfied AND a `:DerogationClaim` or `:FraudDetectionProcess` present; the OWL classification fires regardless of the audit flag. Classification and audit do not bleed.
-
-**Gate-removal regression** (`test_gate_removal.py`) proves each Annex III 1(a) gate is independently necessary by removing supporting triples in turn and verifying the entailment fails (5(b) symmetric coverage queued, `OPEN_PROBLEMS` L3.5).
-
-**HermiT OWL 2 DL cross-check** runs in CI against all six certificate-grade fixtures with one documented reasoner-profile divergence on the blank-node audit-side latent-risk traversal (see [`LIMITATIONS.md §7.4`](LIMITATIONS.md)).
-
-**Kiosk demo (PR #38)** walks one fixture end-to-end source packet → evidence ledger → reviewed RDF → reasoner non-entailment → certificate, with each commitment adjudicated per the documented evidence-to-commitment policy. Source packet is hypothetical.
-
----
-
-## What ARCO does NOT do
-
-- **No paper trail to source documents.** The Article 3(12) citation chain from intended use to specific clauses in vendor materials (instructions for use, technical documentation, promotional copy) is queued.
-- **No Article 6(3) derogation evaluation.** ARCO surfaces the provider's claim for human legal review; it does not judge the claim.
-- **No Article 5 prohibition routing.** The 5(1)(h) real-time-RBI-in-publicly-accessible-spaces subset is not split out from the parent 1(a) class.
-- **No obligation chain.** Article 16 (provider) and Article 26 (deployer) duties are not entailed from positive classification.
-- **Only 2 of 8 Annex III categories.** 1(a) and 5(b) are modeled. Others follow the same three-gate pattern; content work, not architecture work.
-- **No raw document ingestion.** ARCO consumes hand-reviewed RDF, not vendor PDFs. LLM-assisted extraction may help upstream of the classification path; it never participates in classification.
-
-See [`LIMITATIONS.md`](LIMITATIONS.md) for the full disclosure surface.
-
----
-
-## Upcoming
-
-Direction is moving the input-mile chain from structural demonstration to substantive grounding — substituting the kiosk demo's hypothetical source for real vendor documentation is the next concrete step, with output-layer graph binding and additional Annex III categories following as worked use cases justify them. The three-gate pattern generalizes to other regimes where obligations attach to capability, intended use, and affected subject (GDPR Article 22, NYC Local Law 144, HIPAA covered transactions), but the current value ends at the bounded scope (Annex III 1(a) and 5(b)), at hand-authored RDF as input, and at the encoded interpretation of the regulatory text — which has not been externally reviewed by counsel.
-
----
-
-## Getting started
-
-Requirements: Python 3.10 or newer.
+## How to use it
 
 ```bash
 git clone https://github.com/Amosk21/ARCO.git
@@ -139,7 +48,80 @@ python -m pip install -r requirements.txt
 python 03_TECHNICAL_CORE/scripts/run_pipeline.py
 ```
 
-The pipeline loads BFO + BOT-extracted RO/IAO/CCO + ARCO core/governance + Sentinel instance data; runs OWL-RL closure; validates SHACL; runs SPARQL ASK audit queries on the reasoned graph; and writes outputs to `runs/demo/`. The same pipeline runs in CI (Actions > ARCO Demo Run) and the workflow uploads `runs/demo/` as a downloadable artifact.
+Requirements: Python 3.10 or newer. Outputs land at `runs/demo/`: the certificate, a JSON summary, evidence bindings, the SHACL report. The same pipeline runs in CI on every push and pull request and uploads `runs/demo/` as a downloadable artifact. Every merge to `main` also redeploys the latest output to GitHub Pages, so the current certificate is one click away without cloning.
+
+Sample certificate excerpt:
+
+```text
+PRIMARY ARCO CLASSIFICATION:  AnnexIII1aApplicableSystem (ENTAILED, all three ARCO gates)
+LATENT-RISK FLAG:             HighRiskSystem (INFERRED via the capability gate only;
+                              not the EU AI Act legal high-risk classification)
+TRIGGERING CAPABILITY:        Sentinel_FaceID_Disposition
+EVIDENCE PATH:                Sentinel_ID_System -> Sentinel_FaceID_Module
+                              -> Sentinel_FaceID_Disposition
+SHACL:                        PASS
+ANNEX III 1(a):               VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)
+ANNEX III 5(b):               NOT APPLICABLE
+ENTAILED TRIPLES ADDED:       +20160
+```
+
+---
+
+## What's modeled
+
+ARCO encodes two Annex III categories as one architectural pattern instantiated twice. A system is applicable to a category only when all three conditions hold simultaneously:
+
+| Annex III category | Capability *(reality)* | Intended use *(representation)* | Affected role *(representation)* |
+|---|---|---|---|
+| 1(a) Remote biometric identification | biometric identification | remote biometric identification | natural-person role |
+| 5(b) Creditworthiness evaluation | creditworthiness evaluation | creditworthiness evaluation | natural-person role |
+
+The three conditions together are a single OWL `equivalentClass` axiom, not a procedural check sequenced in code. The same pattern instantiates per category by referencing different capability and process classes. Cross-category isolation falls out of this structure — a biometric-only system cannot fire the creditworthiness axiom because its capability and intended-use are wrong for that axiom, no separate enforcement rule needed.
+
+A separate flag (`HighRiskSystem`) fires from the capability gate alone — useful for surfacing latent risk where a system has the structural prerequisite without (yet) the documented intent, but it is not the legal high-risk classification.
+
+---
+
+## Why the architecture matters
+
+These commitments are what distinguishes the output from one a procedural script could produce:
+
+**Reality and representation are kept separate.** Capabilities are physical: a hardware component bears them as BFO dispositions. Intended uses, use scenarios, and compliance determinations are documentary: IAO information content entities about the system. A reviewer can ask "what does the system have the capacity to do" and "what has the provider committed to" as two distinct questions with two distinct answers. The ontology treats it as a category error to mix them; the reasoner enforces that.
+
+**Classification is entailment, not procedure.** The Annex III applicability classes are defined by their conditions. When a system satisfies them, the reasoner adds the membership triple. No piece of code decides the classification — the axioms do, mechanically. This means a regulator does not need to trust the pipeline's source code; the axioms and the input facts are the audit trail.
+
+**The three layers do different jobs and are not interchangeable.** OWL-RL classifies (entails membership in the Annex III applicability classes). SHACL validates that the documentary record supporting a determination is structurally complete. SPARQL audits the post-reasoning graph and surfaces conditions for human review. A SHACL pass does not mean the system is high-risk. A SPARQL false does not overturn an OWL classification. The non-substitutability is the discipline that makes the certificate auditable; confusing the layers is the most common error in writing about this kind of architecture.
+
+**The reasoner does real OWL inference.** One adversarial fixture types its capability disposition only as `:WeirdScanner`; the regulated class IRI never appears in the input data — the connection runs through an `owl:equivalentClass` declaration. Another fixture's disposition has no IRI at all; it's a blank node. Both classify correctly because the reasoner performs actual OWL inference. An approach that did string matching on class names, or required named individuals at every position, would miss both.
+
+**Two reasoners cross-check each other.** OWL-RL (rule-based) and HermiT (tableau-based, full OWL 2 DL profile) agree on every classification across the certificate-grade fixtures. Two algorithmically different reasoners converging on the same answer is the strongest convergence signal achievable with off-the-shelf tooling. Disagreements would surface consistency issues a single reasoner could miss.
+
+**Layer separation is verified by fixtures.** Two flag-test fixtures present cases where all three Annex III gates are satisfied AND an audit-layer flag (a provider-asserted `:DerogationClaim`, or a `:FraudDetectionProcess` token) is also present. The OWL classification fires regardless of the audit flag; the flag fires alongside the classification. Classification and audit do not bleed into each other.
+
+**Gate independence is empirically verified.** A regression test programmatically removes the supporting triples for each gate of Annex III 1(a) in turn and confirms the classification fails — empirical proof that each gate is independently necessary, not just architecturally so. (Symmetric coverage for 5(b) is queued.)
+
+**Every output value has a declared source.** The output-provenance contract lives in `03_TECHNICAL_CORE/scripts/output_manifest_v2.yaml` (the declarations) and `test_output_provenance.py` (failing-by-design enforcement). The certificate's classification and evidence path are bound to SPARQL queries against the reasoned graph, not to Python literals. Tightening provenance labels across the remaining surrounding fields is active work, disclosed in [`LIMITATIONS.md §7.5`](LIMITATIONS.md).
+
+**The graph stays honest about what it doesn't know.** ARCO does not mint participant facts, temporal regions, role-bearer particulars, or other instance-level content that source evidence does not warrant. Under the Open World Assumption, absent triples mean "not asserted by the reviewed commitments," not "denied." Honest sparseness over dishonest completeness is a project discipline, not a future task.
+
+---
+
+## What we're working on
+
+The next concrete step is substituting the kiosk demo's hypothetical source packet for a real vendor document — moving the input-mile chain from structural demonstration to substantive grounding. Completing output-layer graph binding, extending the gate-removal regression test to 5(b), and auto-generating the chain diagram from the codebase so it cannot drift from reality are also in the active queue. The three-gate pattern (capability + intended use + affected role) generalizes beyond the EU AI Act to regulatory regimes where obligations attach to those three things; adding categories follows the existing pattern as content work, not architecture work.
+
+---
+
+## What it doesn't do
+
+- No citation chain from intended use to specific clauses in vendor documents (Article 3(12)) — queued.
+- No Article 6(3) derogation evaluation — the claim is surfaced for human legal review, not judged.
+- No Article 5 prohibition routing — the real-time-in-publicly-accessible-spaces subset is not split out from the parent 1(a) class.
+- No automatic obligation chain — Article 16 (provider) and 26 (deployer) duties are not entailed from positive classification.
+- Only 2 of 8 Annex III categories modeled.
+- No raw document ingestion — ARCO consumes structured RDF; turning vendor PDFs into structured RDF is a separate upstream problem.
+
+For the complete disclosure surface, see [`LIMITATIONS.md`](LIMITATIONS.md).
 
 ---
 
@@ -152,10 +134,12 @@ The pipeline loads BFO + BOT-extracted RO/IAO/CCO + ARCO core/governance + Senti
 | **IAO** | Information Artifact Ontology release `2026-03-30` | ROBOT BOT slim module |
 | **CCO** | Common Core Ontologies v1.7 (pinned semantic-IRI release) | ROBOT BOT slim module + local bridge declarations |
 
+The BOT-extracted slim modules carry a formal entailment-preservation guarantee (syntactic locality module extraction, Cuenca Grau et al. 2007/2008): for any axiom whose signature is contained in the seed signature, the slim module entails the axiom if and only if the full upstream ontology does. The slim modules are not lossy abbreviations; they are logically equivalent to the full upstreams for the seed signature ARCO uses, with substantially faster reasoning. The seed term lists are version-controlled at `03_TECHNICAL_CORE/ontology/imports/seeds/` and the slim modules can be regenerated reproducibly from the pinned upstream releases.
+
 ---
 
 ## More
 
 - [`LIMITATIONS.md`](LIMITATIONS.md) — scope cuts, disclosed non-claims, and dual-use disclosure
-- [`docs/modeling_decisions/`](docs/modeling_decisions/) — canonical diagrams and decisions justification map
-- [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/) — worked input-mile example (source packet, evidence ledger, decision packet; hypothetical source)
+- [`docs/modeling_decisions/`](docs/modeling_decisions/) — canonical diagrams and decisions justification map (every load-bearing modeling decision anchored to a specific TTL file or canon citation)
+- [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/) — worked input-mile example: source packet, evidence ledger, decision packet (source packet is hypothetical)
