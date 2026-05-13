@@ -138,7 +138,22 @@ The architecture grounds in BFO 2020 (ISO/IEC 21838-2:2021) and uses the seven-b
 
 ## What we're working on
 
-The next concrete step is substituting the kiosk demo's hypothetical source packet for a real vendor document, which moves the input-mile chain from structural demonstration to substantive grounding. Completing output-layer graph binding, extending the gate-removal regression test to 5(b), and auto-generating the chain diagram from the codebase so it cannot drift from reality are also in the active queue. The three-gate pattern (capability + intended use + affected role) generalizes beyond the EU AI Act to regulatory regimes where obligations attach to those three things; adding categories follows the existing pattern as content work, not architecture work.
+The three-gate pattern (capability + intended use + affected role) generalizes beyond the EU AI Act to regulatory regimes where obligations attach to those three things; adding categories follows the existing pattern as content work, not architecture work. The table below tracks load-bearing modeling decisions and scoped active work.
+
+| What | Stage |
+|---|---|
+| Renaming the main capability class from `:CapabilityDisposition` to `:Capability` so the name represents one concept rather than two glued together | Ready to land |
+| Moving the Gate 3 design rationale out of inline code comments into proper modeling docs so a reviewer can find the reasoning without reading the TTL | Ready to land |
+| Adding the "who has an interest in this capability" relationship to the capability model. Right now ARCO captures what a capability can do but not who its outcomes serve; three approaches being weighed | Decision pending |
+| Specifying what each Annex III rule actually points at inside ARCO. Currently it points at a class; tightening to point at specific systems or sets of things together is under consideration | Decision pending |
+| Tightening Gate 3 to specify HOW the system relates to the natural persons it affects. Today it just says natural persons are involved; it doesn't distinguish between persons being identified by the system, persons operating it, or persons simply nearby | Decision pending |
+| Tightening Gate 2's match to the regulation's actual wording. Today Gate 2 checks that the system is documented to perform a specific process kind; the regulation actually keys on the intended purpose, which is a slightly looser match | Decision pending |
+| Replacing the kiosk demo's hypothetical vendor packet with a real vendor document, so the demo runs on actual source evidence rather than hypothetical content | Active work |
+| Publishing the full reasoning output (around 20,000 derived facts per run) plus the second reasoner's separate result per fixture, so anyone can independently check both the conclusions and that two different reasoners agree | Active work |
+| Labeling every certificate field with where its value came from (a graph query result, the run's metadata, or a scope-disclosure note) and adding a CI check that verifies every field traces back to its declared source | Active work |
+| Extending the test that confirms each Gate is necessary from Annex III 1(a) to also cover 5(b), so both classifications have the same proof that none of the three gates is decorative | Active work |
+
+Each row is tracked in `OPEN_PROBLEMS.md`.
 
 ---
 
@@ -172,4 +187,4 @@ The BOT-extracted slim modules carry a formal entailment-preservation guarantee 
 
 - [`LIMITATIONS.md`](LIMITATIONS.md). Scope cuts, disclosed non-claims, and dual-use disclosure.
 - [`docs/modeling_decisions/`](docs/modeling_decisions/). Canonical diagrams and decisions justification map; every load-bearing modeling decision anchored to a specific TTL file or canon citation.
-- [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/). Narrative input-mile sketch (source packet, evidence ledger, decision packet). Programmatic wiring to the TTL fixture is pending (`OPEN_PROBLEMS.md L1.1`); source packet is hypothetical.
+- [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/). Narrative walkthrough of one fixture from source documentation to certificate. Programmatic wiring to the TTL fixture is pending (`OPEN_PROBLEMS.md L1.1`); source packet is hypothetical.
