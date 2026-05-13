@@ -159,7 +159,7 @@ The vision is the full input-mile-to-honest-certificate chain wired programmatic
 - (\*) **Reasoned-graph and HermiT classification artifact export** — surface the full entailment chain inspectably. `L4.8 parts 1-2`.
 - (\*) **Prose determination narrative emission** — generated from existing SPARQL gate evidence so a non-ARCO-glossary reader can read the conclusion + the reason in one paragraph. `L4.8 part 3`.
 - (\*) **Output provenance tightening** — G/M/D field labels, per-field source-query manifest, name/source mismatches across surrounding cert fields. `L4.4-L4.6`.
-- (\*) **Article 6(3) derogation handling** — currently surfaces `:DerogationClaim` as audit flag; structural completeness via SHACL or guided human review structure are open options. `S5`.
+- (\*) **Article 6(3) derogation handling** — currently surfaces `:DerogationClaim` as audit flag without evaluation; the non-evaluation is disclosed at `OPEN_PROBLEMS.md` D.7 (and `LIMITATIONS.md` §3, §7), and the question of whether derogation could become an OWL consequence is queued at `OPEN_PROBLEMS.md` Q7.
 - (\*) **Software-hardware amalgam modeling** — disclosed at `LIMITATIONS.md §3.5` as a deliberate simplification; deeper amalgam modeling activates when use case demands.
 
 ## What it would look like with all of these landed
@@ -202,4 +202,4 @@ The pipeline shape stays the same. The added pieces are surfacing work, not arch
 - L4.8 parts 1-3 ship: remove the asterisks on Step 4-5 audit chain visibility items.
 - M-Capability-1 / M-Aboutness-Config-1 / M-NameDiscipline-1 land: remove the asterisks on the corresponding downstream items; update the "what it would look like" section to reflect the now-implemented pieces.
 - Gate 3 (L2.9) / Gate 2 (L2.10) tightening lands: remove the asterisks; update the axiom-shape references.
-- Article 6(3) derogation handling tightens (S5): remove the asterisk; update the Step 5 certificate description.
+- Article 6(3) derogation handling tightens (Q7 promotes to a structural row): remove the asterisk; update the Step 5 certificate description.
