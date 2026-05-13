@@ -12,7 +12,7 @@ The fixture (`03_TECHNICAL_CORE/ontology/ARCO_instances_verification.ttl`) is re
 
 A CDO arrives with: "Is my system high-risk under Annex III? If so, why? Can I trust the chain?"
 
-The kiosk fixture answers DSQ-1 (Annex III applicability), DSQ-2 (which gate commitments caused the answer), and DSQ-3 (what ARCO knows vs reports vs refuses) from the CQ spine in `docs/_archive/COMPETENCY_QUESTIONS.md`. The OWL three-gate axiom shape lives at `docs/modeling_decisions/three_gate_classifier.md`.
+The kiosk fixture exercises DSQ-1 (Annex III applicability) fully — implemented today for 1(a) and 5(b) per `docs/_archive/COMPETENCY_QUESTIONS.md`. It exercises DSQ-2 (which gate commitments caused the answer) partially — gate-evidence JSON and HTML view exist today; the full per-field receipts and G/M/D output discipline are queued at `OPEN_PROBLEMS.md` L4.4-L4.6. It exercises DSQ-3 (what ARCO knows vs reports vs refuses) partially — `LIMITATIONS.md` scope cuts and schema 1.3 `applicability_status` are there today; reasoned-graph artifact export, HermiT artifact upload, and a prose determination paragraph are queued at L4.8. The OWL three-gate axiom shape lives at `docs/modeling_decisions/three_gate_classifier.md`.
 
 | Gate | What it tests | Kiosk |
 |---|---|---|
