@@ -142,16 +142,16 @@ The three-gate pattern (capability + intended use + affected role) generalizes b
 
 | What | Stage |
 |---|---|
-| Fixing the compositional naming violation in `:CapabilityDisposition` by renaming to `:Capability` per Smith-Against-Idiosyncrasy Principle 8 (one ontological concept per class name) | Ready to land |
-| Resolving the Gate 3 OWL representation question by moving the defense into canon-citable docs (the `cco:designates owl:hasValue <ClassIRI>` shape; Allemang flags as punning, ARCO's defense uses CCO range admission of universals; defense currently lives in TTL comments) | Ready to land |
-| Closing the Capability + Interest gap from Beverley's canonical capability framing. Currently ARCO models the disposition side; the interest hookup for capability accountability is pending decision across three options (CCO relation only, Quality class extension, hybrid) | Decision pending |
-| Resolving what the Annex III regulatory text is about beyond the universal class. Three options surfaced (universal-only, particular continuant, multiple constituents) | Decision pending |
-| Tightening Gate 3 to pin down the natural-person role-relationship to the system (currently designates the role universal but does not specify subject of identification vs operator vs another role-in-context) | Decision pending |
-| Tightening Gate 2 from a structural process-prescription proxy to a use-purpose mapping (current axiom: `cco:prescribes someValuesFrom :Process`; Article 3(36) wording is "intended to be used for purposes of") | Decision pending |
-| Replacing the kiosk demo's hypothetical vendor packet with a real vendor document, so the chain from source documentation to determination certificate is grounded in real evidence rather than fabricated content | Active work |
-| Publishing reasoner outputs (the full reasoned graph at around 20,000 entailed triples per run, plus the second reasoner's classification output per fixture) so a reviewer can independently verify entailments and cross-reasoner agreement | Active work |
-| Closing the output provenance contract by labeling every certificate field with its source class (graph query, run metadata, or documentary text) and enforcing per-field source-query manifests in CI | Active work |
-| Extending the gate-independence regression test to Annex III 5(b) so both classifications have empirical proof that each gate is independently necessary | Active work |
+| Renaming the main capability class from `:CapabilityDisposition` to `:Capability` so the name represents one concept rather than two glued together | Ready to land |
+| Moving the Gate 3 design rationale out of inline code comments into proper modeling docs so a reviewer can find the reasoning without reading the TTL | Ready to land |
+| Adding the "who has an interest in this capability" relationship to the capability model. Right now ARCO captures what a capability can do but not who its outcomes serve; three approaches being weighed | Decision pending |
+| Specifying what each Annex III rule actually points at inside ARCO. Currently it points at a class; tightening to point at specific systems or sets of things together is under consideration | Decision pending |
+| Tightening Gate 3 to specify HOW the system relates to the natural persons it affects. Today it just says natural persons are involved; it doesn't distinguish between persons being identified by the system, persons operating it, or persons simply nearby | Decision pending |
+| Tightening Gate 2's match to the regulation's actual wording. Today Gate 2 checks that the system is documented to perform a specific process kind; the regulation actually keys on the intended purpose, which is a slightly looser match | Decision pending |
+| Replacing the kiosk demo's hypothetical vendor packet with a real vendor document, so the demo runs on actual source evidence rather than hypothetical content | Active work |
+| Publishing the full reasoning output (around 20,000 derived facts per run) plus the second reasoner's separate result per fixture, so anyone can independently check both the conclusions and that two different reasoners agree | Active work |
+| Labeling every certificate field with where its value came from (a graph query result, the run's metadata, or a scope-disclosure note) and adding a CI check that verifies every field traces back to its declared source | Active work |
+| Extending the test that confirms each Gate is necessary from Annex III 1(a) to also cover 5(b), so both classifications have the same proof that none of the three gates is decorative | Active work |
 
 Each row is tracked in `OPEN_PROBLEMS.md`.
 
