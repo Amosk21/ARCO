@@ -138,21 +138,22 @@ The architecture grounds in BFO 2020 (ISO/IEC 21838-2:2021) and uses the seven-b
 
 ## What we're working on
 
-The three-gate pattern (capability + intended use + affected role) generalizes beyond the EU AI Act to regulatory regimes where obligations attach to those three things; adding categories follows the existing pattern as content work, not architecture work. The table below tracks active changes in the queue.
+The three-gate pattern (capability + intended use + affected role) generalizes beyond the EU AI Act to regulatory regimes where obligations attach to those three things; adding categories follows the existing pattern as content work, not architecture work. The table below tracks load-bearing modeling decisions and scoped active work.
 
 | What | Stage |
 |---|---|
-| Renaming the core capability class so the name follows the canonical convention (one ontological concept per class name) | Ready to land |
-| Moving the design rationale for the Gate 3 role-designation pattern out of code comments into reviewable docs, so a reviewer can find the defense without reading the TTL | Ready to land |
-| Adding a plain-English narrative paragraph alongside the certificate's status fields, so a reader gets conclusion plus reason in one place | Ready to land |
-| Replacing the kiosk demo's hypothetical vendor packet with a real vendor document, so the input-mile chain has actual ground truth | Active work |
-| Publishing the full reasoned graph (around 20,000 entailed triples per run) as a downloadable artifact so a reviewer can inspect every triple, not just the summary | Active work |
-| Publishing the second reasoner's classification output per fixture as a downloadable artifact, so cross-reasoner agreement is independently inspectable | Active work |
-| Tagging every certificate field with where its value came from (graph query, run metadata, or scope-disclosure text), so each output traces back to its source | Active work |
-| Extending the gate-independence regression test from Annex III 1(a) to 5(b), so both classifications have the same coverage | Active work |
-| Auto-generating the reasoning-chain diagram from the codebase so it cannot drift from reality | Active work |
+| Fixing the compositional naming violation in `:CapabilityDisposition` by renaming to `:Capability` per Smith-Against-Idiosyncrasy Principle 8 (one ontological concept per class name) | Ready to land |
+| Resolving the Gate 3 OWL representation question by moving the defense into canon-citable docs (the `cco:designates owl:hasValue <ClassIRI>` shape; Allemang flags as punning, ARCO's defense uses CCO range admission of universals; defense currently lives in TTL comments) | Ready to land |
+| Closing the Capability + Interest gap from Beverley's canonical capability framing. Currently ARCO models the disposition side; the interest hookup for capability accountability is pending decision across three options (CCO relation only, Quality class extension, hybrid) | Decision pending |
+| Resolving what the Annex III regulatory text is about beyond the universal class. Three options surfaced (universal-only, particular continuant, multiple constituents) | Decision pending |
+| Tightening Gate 3 to pin down the natural-person role-relationship to the system (currently designates the role universal but does not specify subject of identification vs operator vs another role-in-context) | Decision pending |
+| Tightening Gate 2 from a structural process-prescription proxy to a use-purpose mapping (current axiom: `cco:prescribes someValuesFrom :Process`; Article 3(36) wording is "intended to be used for purposes of") | Decision pending |
+| Replacing the kiosk demo's hypothetical vendor packet with a real vendor document, so the chain from source documentation to determination certificate is grounded in real evidence rather than fabricated content | Active work |
+| Publishing reasoner outputs (the full reasoned graph at around 20,000 entailed triples per run, plus the second reasoner's classification output per fixture) so a reviewer can independently verify entailments and cross-reasoner agreement | Active work |
+| Closing the output provenance contract by labeling every certificate field with its source class (graph query, run metadata, or documentary text) and enforcing per-field source-query manifests in CI | Active work |
+| Extending the gate-independence regression test to Annex III 5(b) so both classifications have empirical proof that each gate is independently necessary | Active work |
 
-Each row is tracked in `OPEN_PROBLEMS.md`. Decision-pending modeling items (Capability + Interest hookup, what regulatory text is about beyond the universal class, the Gate 3 role-relationship tightening, the Gate 2 use-purpose proxy) are tracked there too and noted under "What ARCO describes" above with asterisks.
+Each row is tracked in `OPEN_PROBLEMS.md`.
 
 ---
 
@@ -186,4 +187,4 @@ The BOT-extracted slim modules carry a formal entailment-preservation guarantee 
 
 - [`LIMITATIONS.md`](LIMITATIONS.md). Scope cuts, disclosed non-claims, and dual-use disclosure.
 - [`docs/modeling_decisions/`](docs/modeling_decisions/). Canonical diagrams and decisions justification map; every load-bearing modeling decision anchored to a specific TTL file or canon citation.
-- [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/). Narrative input-mile sketch (source packet, evidence ledger, decision packet). Programmatic wiring to the TTL fixture is pending (`OPEN_PROBLEMS.md L1.1`); source packet is hypothetical.
+- [`docs/kiosk_demo_v1/`](docs/kiosk_demo_v1/). Narrative walkthrough of one fixture from source documentation to certificate. Programmatic wiring to the TTL fixture is pending (`OPEN_PROBLEMS.md L1.1`); source packet is hypothetical.
