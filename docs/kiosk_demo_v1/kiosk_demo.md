@@ -8,6 +8,20 @@ A worked example showing what ARCO does on a single fixture: a corporate verific
 
 The fixture (`03_TECHNICAL_CORE/ontology/ARCO_instances_verification.ttl`) is real, loaded by the pipeline, and exercised in CI on every push. The narrative source-packet and evidence-ledger sketches in this document show what the input-mile WOULD look like on a real system. Programmatic wiring of the source-to-commitment chain is `OPEN_PROBLEMS.md L1.1`.
 
+## The CDO question this answers
+
+A CDO arrives with: "Is my system high-risk under Annex III? If so, why? Can I trust the chain?"
+
+The kiosk fixture answers DSQ-1 (Annex III applicability), DSQ-2 (which gate commitments caused the answer), and DSQ-3 (what ARCO knows vs reports vs refuses) from the CQ spine in `docs/_archive/COMPETENCY_QUESTIONS.md`. The OWL three-gate axiom shape lives at `docs/modeling_decisions/three_gate_classifier.md`.
+
+| Gate | What it tests | Kiosk |
+|---|---|---|
+| **Gate 1 (capability, reality side)** | System has a part bearing an `:AnnexIIITriggeringCapability` disposition | **FAILS** — `:BiometricVerificationCapability` is not in the triggering union; Annex III 1(a) covers RBI per Article 3(41), not verification per Article 3(36) |
+| **Gate 2 (intended use, representation side)** | An `:IntendedUseSpecification` is_about the system AND prescribes the regulated process | **FAILS** — IUS prescribes `:BiometricVerificationProcess`, not `:RemoteBiometricIdentificationProcess`, so the IUS is not classified as `:RemoteBiometricIdentificationIntendedUseSpec` |
+| **Gate 3 (affected role, representation side)** | A `:UseScenarioSpecification` is_about the system AND designates `:NaturalPersonRole` | **SATISFIED** — natural persons are designated as the affected population |
+
+Annex III 1(a) is NOT entailed because the conjunction requires all three gates. Gate 3 alone does not fire the applicability class. This is the content-sensitivity claim: a kiosk whose hardware looks similar to an identification system but is configured for verification gets the correct negative answer because Gates 1 and 2 don't fit, even though Gate 3 does.
+
 ## Why a negative case
 
 Most demos show positive cases ("yes, this is high-risk"). The negative case is the harder demonstration: a system whose hardware looks similar to a regulated one does NOT trigger Annex III 1(a) when its intended use is 1:1 verification rather than 1:N identification. The classifier's content-sensitivity is what makes that distinction stick.
