@@ -8,10 +8,9 @@
 2. [CLAUDE.md](CLAUDE.md) — project invariants
 3. [README.md](README.md) — outward-facing claim
 4. [docs/agent/ARCO_public_claims.md](docs/agent/ARCO_public_claims.md) — claim discipline
-5. [docs/_archive/COMPETENCY_QUESTIONS.md](docs/_archive/COMPETENCY_QUESTIONS.md) — CQ0-CQ17 modeling spine and human interview flow
-6. [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md) — BFO/CCO alignment state
-7. [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md) — regulatory scope rules
-8. [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) — commitment backtest grading each load-bearing choice
+5. [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md) — BFO/CCO alignment state
+6. [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md) — regulatory scope rules
+7. [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) — commitment backtest grading each load-bearing choice
 
 **Last reviewed:** 2026-05-11
 
@@ -358,6 +357,6 @@ ARCO has no architectural mechanism to prevent this adaptation. The bounded scop
 
 - Update this document **first** when scope changes, before README or commercial copy.
 - A claim in README, EXEC_PITCH, or any outward-facing artifact that exceeds what this document permits is a bug. Correct the outward artifact, not this one.
-- The scope boundary in §2 is coupled to [docs/_archive/COMPETENCY_QUESTIONS.md](docs/_archive/COMPETENCY_QUESTIONS.md) and [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md). All three must be updated together when coverage changes.
+- The scope boundary in §2 is coupled to [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md). Both must be updated together when coverage changes.
 - The ontological commitment status in §3 is coupled to [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md). When a commitment's grade changes (a stretch is resolved, a new stretch is introduced), update the backtest first, then this document.
 - The property-layer status in §4 is coupled to [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md). Import progress updates there first.

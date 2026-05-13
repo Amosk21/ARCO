@@ -165,7 +165,7 @@ Every node above traces to a file. Every edge traces to a BFO/CCO/RO/IAO/ARCO ax
 
 ## What this diagram does NOT show
 
-- The full RO / IAO / BFO / CCO import chain. The slim modules at `03_TECHNICAL_CORE/ontology/imports/*.owl` provide everything the diagram cites. See `docs/_archive/ARCO_imports_rationale.md` for the import-chain discussion.
+- The full RO / IAO / BFO / CCO import chain. The slim modules at `03_TECHNICAL_CORE/ontology/imports/*.owl` provide everything the diagram cites. See `docs/ARCO_imports_rationale.md` for the import-chain discussion.
 - Fixture-specific data. The 6 fixtures (Sentinel, CreditScorer, Verification, flag_tests, adversarial_blanknode, adversarial_decoy) instantiate the reality and information sides for specific systems. See `three_gate_classifier.md` for which fixture exercises which gate combination.
 - The accountability-to-individual extension (canon-grounded in conversation; activates when a specific use case demands named-individual chain).
 - The CCO version provenance hardening (the version pin lives in `ARCO_governance_extension.ttl:15` comment, not in `cco_bot.owl` itself).

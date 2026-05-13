@@ -12,7 +12,7 @@ The fixture (`03_TECHNICAL_CORE/ontology/ARCO_instances_verification.ttl`) is re
 
 A CDO arrives with: "Is my system high-risk under Annex III? If so, why? Can I trust the chain?"
 
-The kiosk fixture exercises DSQ-1 (Annex III applicability) fully — implemented today for 1(a) and 5(b) per `docs/_archive/COMPETENCY_QUESTIONS.md`. It exercises DSQ-2 (which gate commitments caused the answer) partially — gate-evidence JSON and HTML view exist today; the full per-field receipts and G/M/D output discipline are queued at `OPEN_PROBLEMS.md` L4.4-L4.6. It exercises DSQ-3 (what ARCO knows vs reports vs refuses) partially — `LIMITATIONS.md` scope cuts and schema 1.3 `applicability_status` are there today; reasoned-graph artifact export, HermiT artifact upload, and a prose determination paragraph are queued at L4.8. The OWL three-gate axiom shape lives at `docs/modeling_decisions/three_gate_classifier.md`.
+The kiosk fixture exercises DSQ-1 (Annex III applicability) fully — implemented today for 1(a) and 5(b). It exercises DSQ-2 (which gate commitments caused the answer) partially — gate-evidence JSON and HTML view exist today; the full per-field receipts and G/M/D output discipline are queued at `OPEN_PROBLEMS.md` L4.4-L4.6. It exercises DSQ-3 (what ARCO knows vs reports vs refuses) partially — `LIMITATIONS.md` scope cuts and schema 1.3 `applicability_status` are there today; reasoned-graph artifact export, HermiT artifact upload, and a prose determination paragraph are queued at L4.8. The OWL three-gate axiom shape lives at `docs/modeling_decisions/three_gate_classifier.md`.
 
 | Gate | What it tests | Kiosk |
 |---|---|---|
@@ -84,7 +84,7 @@ Per-row mapping from source text to reviewed RDF commitment. Each row records a 
 
 Every reality-side and information-side triple in `ARCO_instances_verification.ttl` traces to a row above. The two OWA scope-cuts at rows 8-9 are explicit refusals to over-commit.
 
-(\*) **Programmatic ledger storage is `OPEN_PROBLEMS.md L1.1`.** Today the ledger is markdown narrative; the structural target is per-triple provenance citations (source document, version, page, adjudicator, adjudication date, evidence tier per `docs/_archive/EVIDENCE_TO_COMMITMENT_POLICY.md`).
+(\*) **Programmatic ledger storage is `OPEN_PROBLEMS.md L1.1`.** Today the ledger is markdown narrative; the structural target is per-triple provenance citations (source document, version, page, adjudicator, adjudication date, evidence tier).
 
 ## Step 3: Reviewed RDF commitments (REAL)
 
@@ -206,7 +206,6 @@ The pipeline shape stays the same. The added pieces are surfacing work, not arch
 - SHACL shapes: `03_TECHNICAL_CORE/validation/`
 - SPARQL audit queries: `03_TECHNICAL_CORE/reasoning/`
 - Certificate output: `runs/demo/certificate.txt` (when run with kiosk fixture)
-- Evidence-to-commitment policy: `docs/_archive/EVIDENCE_TO_COMMITMENT_POLICY.md`
 - Scope cuts and disclosed non-claims: `LIMITATIONS.md`
 - Foundation modeling decisions: `docs/modeling_decisions/decisions_justification_map.md`
 
