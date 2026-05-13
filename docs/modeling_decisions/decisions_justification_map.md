@@ -54,7 +54,7 @@ ARCO is deterministic. LLMs may assist source extraction (out of v1 scope per po
 
 No automated extraction writes to reality-side ARCO instance TTL. Source documents may generate `cco:DescriptiveICE` claim artifacts; promotion of a claim to a reality-side commitment is rare, conditional, and human-adjudicated.
 
-**Anchor**: `docs/_archive/EVIDENCE_TO_COMMITMENT_POLICY.md` (entire file); ARCO commits to no automated extraction writing reality-side instance TTL.
+ARCO commits to no automated extraction writing reality-side instance TTL.
 
 **Why it matters**: The realism conviction. Asserting reality-side commitments from unreviewed source text would be fake-witness creation at scale. The human-adjudication step IS the warrant.
 
