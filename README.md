@@ -138,7 +138,21 @@ The architecture grounds in BFO 2020 (ISO/IEC 21838-2:2021) and uses the seven-b
 
 ## What we're working on
 
-The next concrete step is substituting the kiosk demo's hypothetical source packet for a real vendor document, which moves the input-mile chain from structural demonstration to substantive grounding. Completing output-layer graph binding, extending the gate-removal regression test to 5(b), and auto-generating the chain diagram from the codebase so it cannot drift from reality are also in the active queue. The three-gate pattern (capability + intended use + affected role) generalizes beyond the EU AI Act to regulatory regimes where obligations attach to those three things; adding categories follows the existing pattern as content work, not architecture work.
+The three-gate pattern (capability + intended use + affected role) generalizes beyond the EU AI Act to regulatory regimes where obligations attach to those three things; adding categories follows the existing pattern as content work, not architecture work. The table below tracks active changes in the queue.
+
+| Change | Status | Reference |
+|---|---|---|
+| `:CapabilityDisposition` rename to `:Capability` (Smith-Against-Idiosyncrasy Principle 8) | READY (mechanical PR pending) | `OPEN_PROBLEMS.md L2.8` |
+| Gate 3 `cco:designates owl:hasValue <ClassIRI>` defense moved from TTL `rdfs:comment` to canon-citable `docs/agent/modeling_rules.md` | READY (doc-only PR pending) | `OPEN_PROBLEMS.md X.12` |
+| Prose determination narrative emitted alongside the field-shaped certificate | READY (doc-emission PR pending) | `OPEN_PROBLEMS.md L4.8 part 3` |
+| Real vendor source document substitution for the kiosk demo | OPEN | `OPEN_PROBLEMS.md L1.1` |
+| Reasoned graph TTL exported to `runs/demo/reasoned_graph.ttl` (~20,000 entailed triples per run inspectable) | OPEN | `OPEN_PROBLEMS.md L4.8 part 1` |
+| HermiT classification output uploaded as CI artifact per fixture | OPEN | `OPEN_PROBLEMS.md L4.8 part 2` |
+| Output provenance G/M/D field labels + per-field source-query manifest enforcement | OPEN | `OPEN_PROBLEMS.md L4.4-L4.6` |
+| 5(b) gate-removal regression test symmetry (currently 1(a) only) | OPEN | `OPEN_PROBLEMS.md L3.5` |
+| Auto-generated chain diagram regenerable from the codebase | OPEN | `OPEN_PROBLEMS.md X.1` |
+
+Status: READY = decision made, mechanical or doc-only PR queued. OPEN = scoped, in active work; not blocked on a modeling decision. Decision-pending modeling items (Capability + Interest, Aboutness target, Gate 3 role-relationship, Gate 2 use-purpose) are tracked separately at `OPEN_PROBLEMS.md` L2.6 / L2.7 / L2.9 / L2.10 and noted under "What ARCO describes" above.
 
 ---
 
