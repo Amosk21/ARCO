@@ -7,10 +7,11 @@ name: ARCO Demo Run
 #
 # What this gates (any failure fails the build):
 #   - "ALL CHECKS PASSED" signal in the pipeline output.
-#   - Three regression test scripts return 0:
-#       * test_gate_removal.py (each Annex III 1(a) gate is independently necessary)
+#   - Four regression test scripts return 0:
+#       * test_gate_removal.py (each Annex III 1(a) and 5(b) gate is independently necessary)
 #       * test_scenarios.py (multi-scenario classification correctness)
 #       * test_kiosk_html_no_false_concretization.py (L4.7 regression)
+#       * test_adversarial_mechanism.py (decoy and ghost classification mechanism)
 #   - Five expected artifact files exist in runs/demo/:
 #       certificate.txt, summary.json, evidence.json, shacl_report.txt,
 #       determination_view.html.
@@ -94,6 +95,12 @@ jobs:
         run: |
           set -euo pipefail
           python -u 03_TECHNICAL_CORE/scripts/test_kiosk_html_no_false_concretization.py
+
+      - name: Run adversarial-mechanism regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u 03_TECHNICAL_CORE/scripts/test_adversarial_mechanism.py
 
       - name: Verify artifact files exist
         shell: bash
