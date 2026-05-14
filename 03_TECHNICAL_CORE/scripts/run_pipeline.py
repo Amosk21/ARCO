@@ -65,6 +65,13 @@ SELECT_GATE_1_CAPABILITY_QUERY = REASONING_DIR / "select_gate_1_capability.sparq
 SELECT_GATE_2_PRESCRIBED_PROCESS_QUERY = REASONING_DIR / "select_gate_2_prescribed_process.sparql"
 SELECT_GATE_3_DESIGNATED_ROLE_QUERY = REASONING_DIR / "select_gate_3_designated_role.sparql"
 SELECT_DETERMINATION_NODE_QUERY = REASONING_DIR / "select_determination_node.sparql"
+# Negative-case companions: surface asserted commitments outside the regulated
+# union, so the negative-case output renders what the system DOES assert
+# rather than empty placeholders. Used only for emission-layer display in the
+# Gate 1/2 negative branches and Determination Path graphic.
+SELECT_ASSERTED_COMPONENT_DISPOSITION_QUERY = REASONING_DIR / "select_asserted_component_disposition.sparql"
+SELECT_ASSERTED_PRESCRIBED_PROCESS_QUERY = REASONING_DIR / "select_asserted_prescribed_process.sparql"
+SELECT_SYSTEM_COMMENT_QUERY = REASONING_DIR / "select_system_comment.sparql"
 
 OUTPUT_DIR = REPO_ROOT / "runs" / "demo"
 
@@ -390,6 +397,96 @@ def get_primary_bindings(g: Graph, system_local: str) -> list[tuple[str, str]]:
     return result
 
 
+def get_asserted_dispositions(g: Graph, system_local: str) -> list[dict]:
+    """Return component/disposition rows asserted on the system regardless of
+    triggering-union membership.
+
+    Uses select_asserted_component_disposition.sparql. Used by the negative-
+    case Gate 1 answer and Determination Path graphic to surface what the
+    system DOES assert (e.g., the kiosk's :BiometricVerificationCapability)
+    rather than rendering em-dashes when the regulated-union query returns
+    zero rows. Picks the most specific named class per (component,
+    disposition) pair, prefers the class with a label, and falls back to
+    IRI local name. Returns [] on query failure.
+    """
+    try:
+        rows = run_sparql_select_for_system(
+            g, SELECT_ASSERTED_COMPONENT_DISPOSITION_QUERY, system_local
+        )
+    except Exception:
+        return []
+    # Dedupe per (component, disposition); prefer rows with a label and a
+    # disposition_class that is not the most generic ARCO ancestor.
+    seen: dict[tuple[str, str], dict] = {}
+    for r in rows:
+        comp = r.get("component") or ""
+        disp = r.get("disposition") or ""
+        key = (comp, disp)
+        cls = r.get("disposition_class") or ""
+        # Skip the most generic capability ancestor classes that OWL-RL closure
+        # materializes for any disposition typed under :CapabilityDisposition;
+        # they are uninformative for emission-layer display.
+        if cls.endswith("#CapabilityDisposition"):
+            if key in seen:
+                continue
+        seen[key] = {
+            "component_iri": comp,
+            "disposition_iri": disp,
+            "class_iri": cls,
+            "class_label": r.get("cls_label") or _short(cls),
+        }
+    return list(seen.values())
+
+
+def get_system_comment(g: Graph, system_local: str) -> str:
+    """Return rdfs:comment of the system instance, or empty string.
+
+    Used by the negative-case Provider Obligations panel to surface fixture-
+    authored regulatory reasoning (e.g., the kiosk fixture's note on Recital
+    22 / Article 3(41)) as a documentary scope text rather than a Python
+    literal in the emitter. Returns "" on query failure or empty result;
+    emitter is responsible for skipping the panel when empty.
+    """
+    try:
+        rows = run_sparql_select_for_system(g, SELECT_SYSTEM_COMMENT_QUERY, system_local)
+    except Exception:
+        return ""
+    if not rows:
+        return ""
+    return rows[0].get("comment") or ""
+
+
+def get_asserted_prescribed_processes(g: Graph, system_local: str) -> list[dict]:
+    """Return IUS / process / process_class rows asserted on the system,
+    regardless of regulated-category union membership.
+
+    Uses select_asserted_prescribed_process.sparql. Used by the negative-
+    case Gate 2 answer to surface what the system's IUS DOES prescribe
+    (e.g., the kiosk's :BiometricVerificationProcess) rather than asserting
+    flat absence. Returns [] on query failure.
+    """
+    try:
+        rows = run_sparql_select_for_system(
+            g, SELECT_ASSERTED_PRESCRIBED_PROCESS_QUERY, system_local
+        )
+    except Exception:
+        return []
+    seen: dict[tuple[str, str], dict] = {}
+    for r in rows:
+        ius = r.get("ius") or ""
+        proc = r.get("process") or ""
+        key = (ius, proc)
+        if key in seen:
+            continue
+        seen[key] = {
+            "ius_iri": ius,
+            "process_iri": proc,
+            "class_iri": r.get("process_class") or "",
+            "class_label": r.get("process_label") or _short(r.get("process_class") or ""),
+        }
+    return list(seen.values())
+
+
 # ---------------------------
 # determination packet
 # ---------------------------
@@ -551,6 +648,9 @@ def write_html_view(
     gate_evidence: dict | None = None,
     derogation_flagged: bool = False,
     fraud_flagged: bool = False,
+    asserted_dispositions: list[dict] | None = None,
+    asserted_prescribed_processes: list[dict] | None = None,
+    system_comment: str = "",
 ) -> None:
     """Write a self-contained static HTML determination view to output_dir.
 
@@ -569,13 +669,43 @@ def write_html_view(
                          "gate2": {"ius_uri": "", "process_uri": "", "process_type_uri": "", "process_type_label": ""},
                          "gate3": {"uss_uri": "", "role_uri": "", "role_label": ""}}
 
+    if asserted_dispositions is None:
+        asserted_dispositions = []
+    if asserted_prescribed_processes is None:
+        asserted_prescribed_processes = []
+
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
     # ── strip node labels ──────────────────────────────────────────
-    comp_label = _short(bindings[0][0]) if bindings else "\u2014"
-    disp_label = _short(bindings[0][1]) if bindings else "\u2014"
-    comp_iri   = bindings[0][0] if bindings else ""
-    disp_iri   = bindings[0][1] if bindings else ""
+    # When the regulated-union bindings (Gate 1) are empty but the system
+    # DOES assert a component-borne disposition, surface the asserted
+    # commitments rather than rendering em-dashes that look like missing
+    # data. The disposition class label is added separately (disp_class_label)
+    # so the determination path can show the asserted type and flag that it
+    # is outside the regulated union (per
+    # runs/audits/2026-05-14_output_audit_AGENT1_technical_trace.md C3).
+    if bindings:
+        comp_label = _short(bindings[0][0])
+        disp_label = _short(bindings[0][1])
+        comp_iri = bindings[0][0]
+        disp_iri = bindings[0][1]
+        disp_class_label = ""
+        disp_outside_union = False
+    elif asserted_dispositions:
+        first = asserted_dispositions[0]
+        comp_label = _short(first["component_iri"])
+        disp_label = _short(first["disposition_iri"])
+        comp_iri = first["component_iri"]
+        disp_iri = first["disposition_iri"]
+        disp_class_label = first["class_label"]
+        disp_outside_union = True
+    else:
+        comp_label = "\u2014"
+        disp_label = "\u2014"
+        comp_iri = ""
+        disp_iri = ""
+        disp_class_label = ""
+        disp_outside_union = False
 
     # ── classification labels ──────────────────────────────────────
     is_high_risk = classification_mode in ("INFERRED", "ASSERTED")
@@ -666,20 +796,23 @@ def write_html_view(
         plain_english_summary = (
             f"In plain language: this system has been assessed against ARCO's encoding "
             f"of Annex III items 1(a) (biometric identification) and 5(b) "
-            f"(creditworthiness). No triggering capability or matching intended use was "
-            f"found in the provided structured description. Other Annex III items are "
-            f"not currently modeled, so absence here is not a determination about them."
+            f"(creditworthiness). No triggering capability or matching intended use is "
+            f"asserted in the loaded graph for this system. Under the Open World "
+            f"Assumption, this is not a closed-world denial of what the system can do; "
+            f"it is the absence of the commitments required to entail Annex III "
+            f"applicability. Other Annex III items are not currently modeled, so "
+            f"absence here is not a determination about them."
         )
 
     if all_pass is None:
         # Non-applicable run (no in-scope Annex III category triggered):
         # the audit constituents do not semantically apply, so aggregator
-        # all_pass is null rather than True/False. Closes the v1.x lie where
-        # this case was force-set to True (OPEN_PROBLEMS L4.1).
-        summary_text += (
-            " Audit checks are not applicable for this run (no in-scope "
-            "Annex III category triggered)."
-        )
+        # all_pass is null rather than True/False. Per-row state is
+        # communicated by the ternary audit-table badges below; an exec-
+        # summary aggregate sentence here would contradict the populated
+        # rows it sits above (Wave 3 W3-4 / adversarial M-A6 / M-W2-4).
+        # No suffix appended.
+        pass
     elif all_pass:
         summary_text += (
             " All structural validation (SHACL) and audit checks (SPARQL) pass."
@@ -703,6 +836,24 @@ def write_html_view(
         if val is None:
             return '<span class="badge bn">N/A</span>'
         return f'<span class="badge {"bp" if val else "bf"}">{t if val else f}</span>'
+
+    def _status_badge(val, present_label, absent_label, *, absence_is_normal=False):
+        """Three-state badge helper for rows whose semantics are ternary
+        (present / not_present / not_run) per output_manifest_v2.yaml.
+
+        When absence_is_normal=True, the False case renders as gray (.bn)
+        rather than red (.bf). Used for the HighRiskSystem latent-risk flag,
+        Obligation linked, and Regulatory alignment rows on non-applicable
+        runs, where False is a correct-and-expected outcome — not a defect.
+        Closes the misleading red-FAIL polarity for negative-control fixtures
+        (see runs/audits/2026-05-14_output_audit_AGENT1_technical_trace.md C1).
+        """
+        if val is None:
+            return '<span class="badge bn">N/A</span>'
+        if val:
+            return f'<span class="badge bp">{present_label}</span>'
+        cls = "bn" if absence_is_normal else "bf"
+        return f'<span class="badge {cls}">{absent_label}</span>'
 
     def _annex(val):
         if val is None:
@@ -745,26 +896,51 @@ def write_html_view(
               else "NO ARCO CATEGORY (1(a) OR 5(b))")
     )
 
+    # Drop the aggregate audit badge on non-applicable runs. The badge said
+    # "AUDIT N/A" while the audit table below it rendered with populated
+    # rows, producing an internal contradiction (per
+    # runs/audits/2026-05-14_output_audit_AGENT1_technical_trace.md C2 and
+    # AGENT3 §4.4). The table itself is informational and now uses the
+    # ternary _status_badge helper so each row honestly reports its own
+    # state — no aggregate-level badge is needed on negative cases.
     if all_pass is None:
-        overall_badge = '<span class="badge bn">AUDIT N/A</span>'
+        overall_badge = ""
     elif all_pass:
         overall_badge = '<span class="badge bp">ALL PASS</span>'
     else:
         overall_badge = '<span class="badge bf">SOME FAIL</span>'
 
     # ── audit rows ─────────────────────────────────────────────────
+    # Three rows have ternary semantics per output_manifest_v2.yaml:
+    #   - HighRiskSystem latent-risk flag: present / not_present (always
+    #     informational — absence is not a defect; matches the manifest enum
+    #     [present, not_present]).
+    #   - Obligation linked / Regulatory alignment: pass / fail / not_run.
+    #     When the system has no applicable Annex III category, no obligation
+    #     or alignment audit semantically applies, so absence renders neutral
+    #     rather than red. When a category IS triggered, absence is a real
+    #     defect and renders red. Matches the manifest enum [pass, fail, not_run].
+    # Detection-style rows (Latent risk SPARQL traversal) preserve their
+    # gray-on-not-detected behavior because not-detected is the correct,
+    # expected outcome for a non-applicable system.
     audit_rows = [
         ("SHACL conformance",        "classification / structure", _b(shacl_ok)),
-        ("HighRiskSystem latent-risk flag", "classification / OWL-RL",   _b(inference_ok)),
+        ("HighRiskSystem latent-risk flag", "classification / OWL-RL",
+         _status_badge(inference_ok, "PRESENT", "NOT PRESENT", absence_is_normal=True)),
         ("Annex III 1(a)",           "classification / OWL-RL",   _annex(annex_iii_1a_ok)),
         ("Annex III 5(b)",           "classification / OWL-RL",   _annex(annex_iii_5b_ok)),
         ("Traceability",             "audit / SPARQL",            _b(traceability_ok)),
         ("Latent risk",              "audit / SPARQL",
-         _b(latent_ok, "DETECTED", "NOT DETECTED") if latent_ok is not None
+         _status_badge(latent_ok, "DETECTED", "NOT DETECTED", absence_is_normal=True)
+         if latent_ok is not None
          else '<span class="badge bn">N/A</span>'),
         ("Intended use modelled",    "audit / SPARQL",            _b(intended_use_ok)),
-        ("Obligation linked",        "audit / SPARQL",            _b(obligation_ok)),
-        ("Regulatory alignment",     "audit / SPARQL",            _b(reg_alignment_ok)),
+        ("Obligation linked",        "audit / SPARQL",
+         _status_badge(obligation_ok, "LINKED", "NOT LINKED",
+                       absence_is_normal=not has_applicable_category)),
+        ("Regulatory alignment",     "audit / SPARQL",
+         _status_badge(reg_alignment_ok, "ALIGNED", "NOT ALIGNED",
+                       absence_is_normal=not has_applicable_category)),
     ]
     audit_html = "\n".join(
         f'          <tr><td>{chk}</td><td class="layer">{layer}</td><td>{badge}</td></tr>'
@@ -785,14 +961,27 @@ def write_html_view(
 
     result_node_cls = "nr-high" if has_applicable_category or is_high_risk else "nr-none"
 
+    # Disposition node label: when surfacing an asserted-but-not-in-union
+    # disposition (negative-control case), include the asserted class label
+    # so a reader sees what the disposition IS typed as, not just the
+    # individual IRI. The bridge edge to AnnexIIITriggeringCapability is
+    # then labeled "outside regulated union" instead of em-dash, so the
+    # entailment break is visible (per audit C3).
+    if disp_outside_union and disp_class_label:
+        disp_node_label = f"{disp_label} \u2014 typed {disp_class_label}"
+        bridge_node_label = "outside regulated union"
+    else:
+        disp_node_label = disp_label
+        bridge_node_label = "(bridge axiom) \u2021"
+
     strip_html = (
         node("ns", "System", system_local)
         + edge_el("has_part", "bfo:0000051")
         + node("nc", "SystemComponent", comp_label, comp_iri)
         + edge_el("has_disposition", "ro:0000091")
-        + node("nd", "Disposition", disp_label, disp_iri)
+        + node("nd", "Disposition", disp_node_label, disp_iri)
         + edge_el("rdf:type \u2286")
-        + node("nt", "AnnexIIITriggeringCapability", "(bridge axiom) \u2021")
+        + node("nt", "AnnexIIITriggeringCapability", bridge_node_label)
         + edge_el("OWL-RL \u22a2")
         + node(result_node_cls, "Primary Result", primary_result_label if has_applicable_category else result_label)
     )
@@ -829,6 +1018,73 @@ def write_html_view(
     _role_label     = gate_evidence["gate3"]["role_label"] or "(no role designated for this run)"
     _role_local     = _short(gate_evidence["gate3"]["role_uri"]) if gate_evidence["gate3"]["role_uri"] else "(no role local)"
 
+    # Negative-branch text for Gates 1 and 2: when the regulated-union queries
+    # return zero rows but the system DOES assert a disposition / prescribed
+    # process outside the regulated union, surface that asserted commitment
+    # using OWA-bounded language. Prevents the pre-fix output from saying
+    # "no triggering capability detected" when the kiosk fixture asserts
+    # :BiometricVerificationCapability (per CLAUDE.md Forbidden prose patterns
+    # and runs/audits/2026-05-14_output_audit_AGENT1_technical_trace.md H1).
+    if asserted_dispositions:
+        first_d = asserted_dispositions[0]
+        _gate1_negative_html = (
+            f"<strong>No <code>:AnnexIIITriggeringCapability</code>-typed disposition "
+            f"is asserted on any component of this system in the loaded graph.</strong> "
+            f"The asserted disposition <em>{_short(first_d['disposition_iri'])}</em> "
+            f"on <em>{_short(first_d['component_iri'])}</em> is typed as "
+            f"<em>{first_d['class_label']}</em>, which is not a member of the "
+            f"<code>:AnnexIIITriggeringCapability</code> <code>owl:unionOf</code>. "
+            f"Under the Open World Assumption, this is not a closed-world denial of "
+            f"the underlying hardware's capabilities."
+        )
+    else:
+        _gate1_negative_html = (
+            "<strong>No <code>:AnnexIIITriggeringCapability</code>-typed disposition "
+            "is asserted on any component of this system in the loaded graph.</strong> "
+            "Under the Open World Assumption, absence in the graph is not a "
+            "closed-world denial."
+        )
+
+    if asserted_prescribed_processes:
+        first_p = asserted_prescribed_processes[0]
+        _gate2_negative_html = (
+            f"<strong>No process token prescribed by an Intended Use Specification of "
+            f"this system is typed as a regulated process class in the loaded graph.</strong> "
+            f"The asserted prescribed process <em>{_short(first_p['process_iri'])}</em> is "
+            f"typed as <em>{first_p['class_label']}</em>, which is not a member of the "
+            f"regulated process union "
+            f"(<code>:RemoteBiometricIdentificationProcess</code> for Annex III 1(a); "
+            f"<code>:CreditworthinessEvaluationProcess</code> for 5(b))."
+        )
+    else:
+        _gate2_negative_html = (
+            "<strong>No process token prescribed by an Intended Use Specification of "
+            "this system is typed as a regulated process class in the loaded graph.</strong> "
+            "Under the Open World Assumption, absence in the graph is not a "
+            "closed-world denial."
+        )
+
+    # Gate 2 evidence-line prefix mirrors the Gate 1 conditional shape
+    # (commit 82979a0 / adversarial M-A1). Three outcomes:
+    #   - regulated-union bound (gate2_ok): "Matched" with the IUS and process token
+    #   - asserted process outside regulated union: "Asserted (not matched in
+    #     regulated union)" with the IUS and asserted process token
+    #   - neither bound nor asserted: "No asserted process path"
+    if gate2_ok:
+        _gate2_evidence_prefix = "Matched"
+        _g2_ius = _short(gate_evidence["gate2"]["ius_uri"]) or "(IntendedUseSpecification)"
+        _g2_proc = _short(gate_evidence["gate2"]["process_uri"]) or "(process token)"
+        _gate2_evidence_text = f"{_g2_ius} &rarr; {_g2_proc} (typed as {_process_label})"
+    elif asserted_prescribed_processes:
+        first_p_ev = asserted_prescribed_processes[0]
+        _gate2_evidence_prefix = "Asserted (not matched in regulated union)"
+        _g2_ius_a = _short(first_p_ev["ius_iri"]) or "(IntendedUseSpecification)"
+        _g2_proc_a = _short(first_p_ev["process_iri"])
+        _gate2_evidence_text = f"{_g2_ius_a} &rarr; {_g2_proc_a} (typed as {first_p_ev['class_label']})"
+    else:
+        _gate2_evidence_prefix = "No asserted process path"
+        _gate2_evidence_text = "—"
+
     gate_cards_html = f"""
         <div class="gate-card {_gate_status_class(gate1_ok)}">
           <div class="gate-header">
@@ -838,13 +1094,13 @@ def write_html_view(
           </div>
           <div class="gate-question">Does the system contain a component with a regulated capability?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> The system contains <em>" + comp_label + "</em>, which has a disposition typed as <em>" + _cap_label + "</em> (<em>" + disp_label + "</em>). This disposition falls within the regulated capability scope of Annex III." if gate1_ok and bindings else "<strong>No triggering capability detected</strong> in the current system assertions."}
+            {"<strong>Yes.</strong> The system contains <em>" + comp_label + "</em>, which has a disposition typed as <em>" + _cap_label + "</em> (<em>" + disp_label + "</em>). This disposition falls within the regulated capability scope of Annex III." if gate1_ok and bindings else _gate1_negative_html}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
               <p><strong>Axiom pattern:</strong> System <code>bfo:0000051</code> <span class="prop-label">(has part)</span> some (SystemComponent and <code>ro:0000091</code> <span class="prop-label">(has disposition)</span> some {_cap_label})</p>
-              <p><strong>Matched:</strong> {system_local} &rarr; {comp_label} &rarr; {disp_label}</p>
+              <p><strong>{"Matched" if bindings else ("Asserted (not matched in regulated union)" if disp_outside_union else "No asserted disposition path")}:</strong> {system_local} &rarr; {comp_label} &rarr; {disp_label}</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
           </details>
@@ -858,12 +1114,13 @@ def write_html_view(
           </div>
           <div class="gate-question">Is the system prescribed for a regulated process type?</div>
           <div class="gate-answer">
-            {"<strong>Yes.</strong> An Intended Use Specification prescribes the system for <em>" + _process_label + "</em>. This is not merely any use &mdash; the process token must be typed as the regulated process class for this gate to be satisfied." if gate2_ok else "<strong>No matching prescribed process type</strong> found in the intended use documentation."}
+            {"<strong>Yes.</strong> An Intended Use Specification prescribes the system for <em>" + _process_label + "</em>. This is not merely any use &mdash; the process token must be typed as the regulated process class for this gate to be satisfied." if gate2_ok else _gate2_negative_html}
           </div>
           <details class="gate-evidence">
             <summary>Technical evidence</summary>
             <div class="gate-tech">
               <p><strong>Axiom pattern:</strong> IntendedUseSpecification <code>iao:0000136</code> <span class="prop-label">(is about)</span> System and <code>cco:prescribes</code> <span class="prop-label">(prescribes)</span> some {_process_label}</p>
+              <p><strong>{_gate2_evidence_prefix}:</strong> {_gate2_evidence_text}</p>
               <p><strong>Gate mechanism:</strong> <code>owl:someValuesFrom</code> performs genuine type-checking &mdash; the prescribed process token must be an instance of the regulated process class, not a bare IRI reference</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
@@ -974,9 +1231,30 @@ def write_html_view(
           </div>
         </div>"""
     else:
-        obligations_html = """
+        # Negative-case Provider Obligations panel.
+        # The previous version emitted a Python-literal scope qualifier
+        # ("Standard transparency obligations under Title IV may still apply
+        # ...") that did not trace to any modeling decision, SHACL shape,
+        # SPARQL query, or LIMITATIONS disclosure (per
+        # runs/audits/2026-05-14_output_audit_AGENT2_modeling_competency.md H2 —
+        # ARCO does not model Title IV obligations; see LIMITATIONS §2). It
+        # is dropped here.
+        # When the loaded fixture provides a system-level rdfs:comment with
+        # regulatory framing (e.g., the kiosk fixture's note on Recital 22
+        # / Art. 3(41)), surface it via the documentary scope text path
+        # declared in output_manifest_v2.yaml. Otherwise the panel reports
+        # the OWA-bounded non-entailment note alone.
+        if system_comment:
+            _comment_safe = system_comment.replace("<", "&lt;").replace(">", "&gt;")
+            obligations_html = f"""
         <div class="obl-note">
-          <p>No category-specific Annex III applicability class is currently entailed. Standard transparency obligations under Title IV may still apply depending on the system's interaction with natural persons.</p>
+          <p>No category-specific Annex III applicability class is currently entailed under ARCO's encoding of Annex III 1(a) and 5(b). ARCO does not model other regulatory obligations; absence here is not a determination about other regulatory regimes.</p>
+          <p style="margin-top:0.75rem;border-left:3px solid #888;padding-left:0.75rem;color:#444"><strong>Fixture note (rdfs:comment on the system):</strong> {_comment_safe}</p>
+        </div>"""
+        else:
+            obligations_html = """
+        <div class="obl-note">
+          <p>No category-specific Annex III applicability class is currently entailed under ARCO's encoding of Annex III 1(a) and 5(b). ARCO does not model other regulatory obligations; absence here is not a determination about other regulatory regimes.</p>
         </div>"""
 
     # ── assemble full HTML ─────────────────────────────────────────
@@ -1315,8 +1593,8 @@ footer .disclaimer {{
   .gate-card.gate-pass {{ border-left-color: #28a745 }}
   .gate-card.gate-fail {{ border-left-color: #dc3545 }}
   .gate-tech code {{ background: #e9ecef; color: #495057 }}
-  .exec-banner .classification {{ color: #dc3545 }}
-  .exec-text strong {{ color: #dc3545 }}
+  .exec-banner .classification {{ color: {"#dc3545" if is_high_risk else "#155724"} }}
+  .exec-text strong {{ color: {"#dc3545" if is_high_risk else "#155724"} }}
   .gate-answer em {{ color: #0056b3 }}
   .cf-item li strong {{ color: #0056b3 }}
   .obl-ref {{ color: #0056b3 }}
@@ -1549,6 +1827,51 @@ section {{ scroll-margin-top: 1rem }}
 
 def _pf(ok: bool) -> str:
     return "PASS" if ok else "FAIL"
+
+
+def _status_label(
+    val,
+    present_label: str,
+    absent_label: str,
+    *,
+    not_applicable_label: str | None = None,
+    not_run_label: str = "NOT_RUN",
+) -> str:
+    """Three-state label helper for JSON / certificate fields whose semantics
+    are ternary per output_manifest_v2.yaml.
+
+    Mirrors _status_badge() in write_html_view but emits ENUM LABELS rather
+    than HTML classes:
+      - val is None  -> not_run_label (the query did not run)
+      - val is True  -> present_label (the query returned true on this run)
+      - val is False AND not_applicable_label is not None -> not_applicable_label
+        (used when False is the legitimate outcome of a query that doesn't
+        logically apply to this run, e.g. obligation/regulatory ASKs on a
+        non-applicable kiosk)
+      - val is False AND not_applicable_label is None     -> absent_label
+        (used when False is a real audit failure OR a domain-specific
+        negative outcome, e.g. latent_risk_flag's NOT_PRESENT on a
+        non-high-risk system)
+
+    Closes the kiosk HTML/JSON same-document contradiction flagged by
+    PR #68 adversarial audit H-A2 (visible audit table showed gray
+    "NOT LINKED" / "NOT ALIGNED" while embedded summary.json showed
+    "FAIL"). Manifest enums:
+      - latent_risk_flag (line 124): [present, not_present, not_run]
+      - obligation_check (line 201): [pass, fail, not_run]
+      - regulatory_alignment_check (line 208): [pass, fail, not_run]
+    On non_applicable runs, obligation/regulatory pass not_applicable_label
+    so the False outcome reads as "field is not in scope for this run"
+    rather than "field reports a real audit failure."
+    """
+    if val is None:
+        return not_run_label
+    if val:
+        return present_label
+    if not_applicable_label is not None:
+        return not_applicable_label
+    return absent_label
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="ARCO Compliance Verification Pipeline")
@@ -1840,15 +2163,61 @@ def main() -> None:
     latent_risk_flag = format_latent_risk_flag(classification_mode)
     primary_classification_mode = "ENTAILED" if primary_arco_classes else "NOT_ENTAILED"
 
-    # Derive triggering capability class from bindings
+    # Negative-case companion reads — bound here so the certificate-text
+    # block below can surface asserted-but-outside-regulated-union evidence
+    # alongside the HTML view and evidence.json (Wave 3 W3-2; adversarial
+    # M-W2-1). The same three values are passed to write_html_view further
+    # down and re-used in evidence.json emission. All three come from named
+    # SPARQL queries on the reasoned graph.
+    asserted_dispositions = get_asserted_dispositions(g, SYSTEM_LOCAL)
+    asserted_prescribed_processes = get_asserted_prescribed_processes(g, SYSTEM_LOCAL)
+    system_comment = get_system_comment(g, SYSTEM_LOCAL)
+
+    # Derive triggering capability class. Three outcomes:
+    #   - regulated-union bound (bindings non-empty): name the matched class
+    #   - asserted but outside regulated union: name the asserted class with
+    #     an "(asserted, not in regulated union)" qualifier so the certificate
+    #     does not silently drop the asserted commitment (matches HTML view's
+    #     "Asserted (not matched in regulated union)" prefix, Wave 2 #8).
+    #   - neither: keep "N/A"
     trigger_display = "N/A"
     if bindings:
         trigger_display = _short(bindings[0][1])
+    elif asserted_dispositions:
+        _ad0 = asserted_dispositions[0]
+        trigger_display = f"{_ad0['class_label']} (asserted, not in regulated union)"
 
-    # Build evidence path strings (up to 3)
+    # Build evidence path strings. Three outcomes mirror trigger_display:
+    #   - regulated-union bound: emit one line per binding (system -> comp -> disp)
+    #   - asserted but outside regulated union: emit the asserted path with the
+    #     "asserted" qualifier so the consumer sees the OWA-bounded data
+    #   - neither: leave empty (caller renders "(none detected)")
     evidence_lines = []
-    for comp, disp in bindings[:3]:
-        evidence_lines.append(f"  {SYSTEM_LOCAL} -> {_short(comp)} -> {_short(disp)}")
+    if bindings:
+        for comp, disp in bindings[:3]:
+            evidence_lines.append(f"  {SYSTEM_LOCAL} -> {_short(comp)} -> {_short(disp)}")
+    elif asserted_dispositions:
+        for ad in asserted_dispositions[:3]:
+            evidence_lines.append(
+                f"  {SYSTEM_LOCAL} -> {_short(ad['component_iri'])} "
+                f"-> {_short(ad['disposition_iri'])} "
+                f"(asserted, typed {ad['class_label']}; not in regulated union)"
+            )
+
+    # EVIDENCE PATH header label distinguishes the three outcomes computed
+    # above (Wave 3 W3-2): regulated-union match, asserted-but-not-in-union,
+    # or neither. The "(none detected)" closed-world phrasing is preserved
+    # only for the case where no asserted-disposition data exists at all,
+    # so a reader sees the same line in the same situation as before.
+    if bindings:
+        _evidence_path_header = "EVIDENCE PATH:"
+        _evidence_path_absent_text = ""
+    elif asserted_dispositions:
+        _evidence_path_header = "EVIDENCE PATH (asserted, not in regulated union):"
+        _evidence_path_absent_text = ""
+    else:
+        _evidence_path_header = "EVIDENCE PATH:"
+        _evidence_path_absent_text = "(no asserted disposition path)"
 
     hr("ARCO CONDITION ASSESSMENT CERTIFICATE")
     print(f"  SYSTEM:                  {SYSTEM_LOCAL}")
@@ -1858,15 +2227,43 @@ def main() -> None:
     print(f"  LATENT-RISK FLAG:             {latent_risk_flag}")
     print(f"  TRIGGERING CAPABILITY:   {trigger_display}")
     if evidence_lines:
-        print(f"  EVIDENCE PATH:")
+        print(f"  {_evidence_path_header}")
         for line in evidence_lines:
             print(line)
     else:
-        print(f"  EVIDENCE PATH:           (none detected)")
+        print(f"  {_evidence_path_header:<25}{_evidence_path_absent_text}")
+    # LATENT-RISK FLAG, OBLIGATION, and REGULATORY ALIGNMENT use ternary
+    # _status_label() so the certificate matches the HTML view's neutral
+    # rendering on non-applicable runs (closes PR #68 adversarial audit
+    # H-A2). On non-applicable runs, obligation and regulatory alignment
+    # pass not_applicable_label so the False outcome reads as "out of
+    # scope for this run" rather than as a real audit failure (parallel
+    # to the gray HTML badge). LATENT_RISK uses domain labels DETECTED /
+    # NOT_DETECTED — NOT_DETECTED is a substantive answer for a non-
+    # high-risk system, not a "not applicable" outcome.
+    _cert_latent_risk_label = _status_label(
+        latent_ok, "DETECTED", "NOT_DETECTED",
+    )
+    _cert_obligation_label = _status_label(
+        obligation_ok, "PASS", "FAIL",
+        not_applicable_label="NOT_APPLICABLE" if non_applicable_run else None,
+    )
+    _cert_reg_alignment_label = _status_label(
+        reg_alignment_ok, "PASS", "FAIL",
+        not_applicable_label="NOT_APPLICABLE" if non_applicable_run else None,
+    )
+
     print(f"  SHACL:                   {_pf(shacl_ok)}")
     print(f"  TRACEABILITY:            {_pf(traceability_ok)}")
-    if latent_ok is not None:
-        print(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
+    # The standalone "LATENT RISK:" row (from detect_latent_risk.sparql) was
+    # removed here because the "LATENT-RISK FLAG: HighRiskSystem (PRESENT |
+    # NOT PRESENT)" head-block row above already names the same fact in the
+    # same vocabulary the HTML view uses. Two semantically-overlapping rows
+    # in certificate.txt were N-1 in the PR #68 counter-adversarial review.
+    # The underlying SPARQL ASK result remains in summary.json under
+    # "latent_risk" so consumers that need the audit-layer evidence still
+    # see it; the certificate is the human-readable summary, not the full
+    # audit record.
     if intended_use_ok is not None:
         print(f"  INTENDED USE:            {_pf(intended_use_ok)}")
     # Article 6(3) derogation scope qualifier: ARCO does not evaluate the
@@ -1890,7 +2287,9 @@ def main() -> None:
             _line_5b = "NOT APPLICABLE"
         print(f"  ANNEX III 5(b):          {_line_5b}")
     if obligation_ok is not None:
-        print(f"  OBLIGATION:              {_pf(obligation_ok)}")
+        print(f"  OBLIGATION:              {_cert_obligation_label}")
+    if reg_alignment_ok is not None:
+        print(f"  REGULATORY ALIGNMENT:    {_cert_reg_alignment_label}")
     print(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     print(f"                           Most are upper-ontology subclass and inverse-property")
     print(f"                           closure across BFO/RO/IAO/CCO. The load-bearing")
@@ -1921,15 +2320,17 @@ def main() -> None:
     cert_lines.append(f"  LATENT-RISK FLAG:             {latent_risk_flag}")
     cert_lines.append(f"  TRIGGERING CAPABILITY:   {trigger_display}")
     if evidence_lines:
-        cert_lines.append(f"  EVIDENCE PATH:")
+        cert_lines.append(f"  {_evidence_path_header}")
         for line in evidence_lines:
             cert_lines.append(line)
     else:
-        cert_lines.append(f"  EVIDENCE PATH:           (none detected)")
+        cert_lines.append(f"  {_evidence_path_header:<25}{_evidence_path_absent_text}")
     cert_lines.append(f"  SHACL:                   {_pf(shacl_ok)}")
     cert_lines.append(f"  TRACEABILITY:            {_pf(traceability_ok)}")
-    if latent_ok is not None:
-        cert_lines.append(f"  LATENT RISK:             {'DETECTED' if latent_ok else 'NOT DETECTED'}")
+    # See operator-view comment above: the "LATENT RISK:" row is dropped
+    # from certificate.txt to remove the semantic duplication with
+    # "LATENT-RISK FLAG:". The underlying SPARQL ASK result stays in
+    # summary.json["latent_risk"] for audit consumers.
     if intended_use_ok is not None:
         cert_lines.append(f"  INTENDED USE:            {_pf(intended_use_ok)}")
     if annex_iii_1a_ok is not None:
@@ -1945,7 +2346,9 @@ def main() -> None:
             _cert_line_5b = "NOT APPLICABLE"
         cert_lines.append(f"  ANNEX III 5(b):          {_cert_line_5b}")
     if obligation_ok is not None:
-        cert_lines.append(f"  OBLIGATION:              {_pf(obligation_ok)}")
+        cert_lines.append(f"  OBLIGATION:              {_cert_obligation_label}")
+    if reg_alignment_ok is not None:
+        cert_lines.append(f"  REGULATORY ALIGNMENT:    {_cert_reg_alignment_label}")
     cert_lines.append(f"  ENTAILED TRIPLES ADDED:  +{inferred_added}")
     cert_lines.append(f"                           Most are upper-ontology subclass and inverse-property")
     cert_lines.append(f"                           closure across BFO/RO/IAO/CCO. The load-bearing")
@@ -1980,10 +2383,23 @@ def main() -> None:
         determination_rows = []
     determination_node_uri: str | None = determination_rows[0].get("det") if determination_rows else None
 
-    # summary.json — schema 1.3 adds applicability_status and bumps for
-    # honest non-applicable aggregator semantics (closes L4.1).
+    # summary.json — schema 1.4 applies ternary semantics to latent_risk_flag
+    # (entailment), obligation, and regulatory_alignment so the JSON contract
+    # matches the HTML view's ternary rendering on non-applicable runs.
+    # Closes the same-document HTML/JSON contradiction flagged by the PR #68
+    # adversarial audit (HIGH H-A2): the kiosk HTML embeds summary.json in a
+    # <details> block, and a reader expanding it previously saw "FAIL" for
+    # the same fields the visible audit table now renders as gray neutral.
+    #
+    # Manifest enum mapping (output_manifest_v2.yaml):
+    #   - latent_risk_flag (manifest line 124) emits [present, not_present, not_run]
+    #   - obligation_check (line 201) emits [pass, fail, not_run]
+    #   - regulatory_alignment_check (line 208) emits [pass, fail, not_run]
+    # Schema 1.4 adds the regulatory_alignment field (was computed but not
+    # emitted at schema 1.3) and replaces binary _pf() with the ternary
+    # _status_label() for the three negative-control-relevant fields.
     summary = {
-        "schema_version": "1.3",
+        "schema_version": "1.4",
         "system": SYSTEM_LOCAL,
         "regime": "ARCO ontology encoding of EU AI Act (Article 6 / Annex III)",
         "instance_file_name": INSTANCES.name,
@@ -1996,12 +2412,23 @@ def main() -> None:
         "latent_risk_mode": classification_mode,
         "shacl": _pf(shacl_ok),
         "traceability": _pf(traceability_ok),
-        "latent_risk": (_pf(latent_ok) if latent_ok is not None else "N/A"),
-        "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "N/A"),
+        "latent_risk": _status_label(
+            latent_ok, "DETECTED", "NOT_DETECTED",
+        ),
+        "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "NOT_RUN"),
         "annex_iii_1a": (("VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" if not derogation_flagged else "VERIFIED (ENTAILED)") if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
         "annex_iii_5b": (("VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" if not derogation_flagged else "VERIFIED (ENTAILED)") if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
-        "obligation": (_pf(obligation_ok) if obligation_ok is not None else "N/A"),
-        "entailment": _pf(inference_ok),
+        "obligation": _status_label(
+            obligation_ok, "PASS", "FAIL",
+            not_applicable_label="NOT_APPLICABLE" if non_applicable_run else None,
+        ),
+        "regulatory_alignment": _status_label(
+            reg_alignment_ok, "PASS", "FAIL",
+            not_applicable_label="NOT_APPLICABLE" if non_applicable_run else None,
+        ),
+        "entailment": _status_label(
+            inference_ok, "PRESENT", "NOT_PRESENT",
+        ),
         "entailed_triples_added": inferred_added,
         "applicability_status": applicability_status,
         "all_checks_passed": all_pass,
@@ -2011,20 +2438,66 @@ def main() -> None:
     }
     (OUTPUT_DIR / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
 
-    # evidence.json
-    evidence = [
-        {"component": _short(comp), "disposition": _short(disp), "component_iri": comp, "disposition_iri": disp}
-        for comp, disp in bindings
-    ]
+    # asserted_dispositions / asserted_prescribed_processes / system_comment
+    # were read in the certificate section above (Wave 3 W3-2) so the same
+    # bindings back the certificate-text EVIDENCE PATH, the evidence.json
+    # asserted-disposition fields, and the HTML view's negative-case panels
+    # from one set of SPARQL reads.
+
+    # evidence.json — schema-versioned object so negative-control runs
+    # carry the asserted-but-not-in-regulated-union evidence rather than
+    # an empty list. On positive runs the regulated-union bindings list
+    # carries the matched evidence; on negative runs the asserted-but-
+    # outside-union list carries the asserted commitments instead.
+    # Schema 1.4 (paired with summary.json 1.4) wraps the prior bare list
+    # in an object so future evidence kinds can be added without breaking
+    # consumers.
+    evidence = {
+        "schema_version": "1.4",
+        "system": SYSTEM_LOCAL,
+        "regulated_capability_bindings": [
+            {
+                "component": _short(comp),
+                "disposition": _short(disp),
+                "component_iri": comp,
+                "disposition_iri": disp,
+            }
+            for comp, disp in bindings
+        ],
+        "asserted_dispositions_outside_regulated_union": [
+            {
+                "component": _short(d["component_iri"]),
+                "component_iri": d["component_iri"],
+                "disposition": _short(d["disposition_iri"]),
+                "disposition_iri": d["disposition_iri"],
+                "asserted_class_iri": d["class_iri"],
+                "asserted_class_label": d["class_label"],
+            }
+            for d in (asserted_dispositions if not bindings else [])
+        ],
+        "asserted_prescribed_processes_outside_regulated_union": [
+            {
+                "ius_iri": p["ius_iri"],
+                "process": _short(p["process_iri"]),
+                "process_iri": p["process_iri"],
+                "asserted_class_iri": p["class_iri"],
+                "asserted_class_label": p["class_label"],
+            }
+            for p in (asserted_prescribed_processes if not gate_evidence["gate2"]["process_type_uri"] else [])
+        ],
+    }
     (OUTPUT_DIR / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
 
     # determination_packet.json — compact intermediate representation;
     # the HTML view is rendered from this, not from scattered Python logic.
     # Schema 1.3 adds applicability_status (closes L4.1) and binds the
     # determination_node_uri from a SPARQL SELECT instead of a hardcoded IRI
-    # (closes L4.2).
+    # (closes L4.2). Schema 1.4 mirrors the asserted-but-outside-regulated-
+    # union bindings from evidence.json and certificate.txt EVIDENCE PATH so
+    # the packet, certificate, evidence ledger, and HTML view communicate the
+    # same epistemic state for negative-case runs (same-document consistency).
     determination_packet = {
-        "schema_version": "1.3",
+        "schema_version": "1.4",
         "applicability_status": applicability_status,
         "system_uri": SYSTEM_IRI,
         "system_label": SYSTEM_LOCAL.replace("_", " "),
@@ -2087,12 +2560,42 @@ def main() -> None:
         "inferred_triples_added": inferred_added,
         "flag_derogation_candidate": derogation_flagged,
         "flag_fraud_exclusion_candidate": fraud_flagged,
+        # Mirror the asserted-but-outside-the-regulated-union bindings already
+        # emitted into evidence.json and the certificate-text EVIDENCE PATH.
+        # On positive runs (gate-1 / gate-2 match the regulated union) these
+        # lists are empty; on the kiosk negative the lists carry the asserted
+        # commitments the regulated-union bindings did not. Same-document
+        # consistency with certificate.txt and evidence.json.
+        "asserted_dispositions_outside_regulated_union": [
+            {
+                "component": _short(d["component_iri"]),
+                "component_iri": d["component_iri"],
+                "disposition": _short(d["disposition_iri"]),
+                "disposition_iri": d["disposition_iri"],
+                "asserted_class_iri": d["class_iri"],
+                "asserted_class_label": d["class_label"],
+            }
+            for d in (asserted_dispositions if not bindings else [])
+        ],
+        "asserted_prescribed_processes_outside_regulated_union": [
+            {
+                "ius_iri": p["ius_iri"],
+                "process": _short(p["process_iri"]),
+                "process_iri": p["process_iri"],
+                "asserted_class_iri": p["class_iri"],
+                "asserted_class_label": p["class_label"],
+            }
+            for p in (asserted_prescribed_processes if not gate_evidence["gate2"]["process_type_uri"] else [])
+        ],
     }
     (OUTPUT_DIR / "determination_packet.json").write_text(
         json.dumps(determination_packet, indent=2) + "\n", encoding="utf-8"
     )
 
     # determination_view.html
+    # Negative-case companion bindings (asserted_dispositions /
+    # asserted_prescribed_processes / system_comment) were read above so
+    # the same data backs both evidence.json and the HTML view.
     write_html_view(
         output_dir=OUTPUT_DIR,
         system_local=SYSTEM_LOCAL,
@@ -2115,6 +2618,9 @@ def main() -> None:
         gate_evidence=gate_evidence,
         derogation_flagged=derogation_flagged,
         fraud_flagged=fraud_flagged,
+        asserted_dispositions=asserted_dispositions,
+        asserted_prescribed_processes=asserted_prescribed_processes,
+        system_comment=system_comment,
     )
 
     # shacl_report.txt

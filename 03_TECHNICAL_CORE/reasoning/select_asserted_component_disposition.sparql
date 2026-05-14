@@ -1,0 +1,45 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+# EMISSION LAYER — binds asserted component/disposition rows regardless of
+# triggering-union membership.
+#
+# Counterpart to select_gate_1_capability.sparql, which filters to dispositions
+# typed under :AnnexIIITriggeringCapability subclasses. This query returns the
+# asserted component/disposition path WITHOUT that filter, so the negative-
+# case output can surface what the system DOES assert (e.g., the kiosk's
+# :BiometricVerificationCapability) rather than rendering em-dashes when the
+# regulated-union query returns zero rows.
+#
+# Returns one row per (component, disposition, disposition_class) tuple,
+# excluding owl:NamedIndividual / owl:Thing / blank-node restriction parents
+# so the displayed type is the most specific named class the disposition is
+# typed as. ORDER BY ?component ?disposition for determinism.
+#
+# CALLER CONTRACT:
+#   - ?system is bound by the caller to the system IRI under evaluation.
+#   - cls_label is OPTIONAL.
+#   - The emitter is expected to pick the first row when surfacing a single
+#     "asserted disposition" for the gate-card / determination path, and
+#     callers can list all rows for a richer evidence panel.
+
+SELECT ?component ?disposition ?disposition_class ?cls_label WHERE {
+  ?system bfo:0000051 ?component .
+  ?component ro:0000091 ?disposition .
+  ?disposition rdf:type ?disposition_class .
+  FILTER(!isBlank(?disposition_class))
+  # Restrict to ARCO-namespace classes so OWL-RL closure ancestors
+  # (bfo:0000001 entity, bfo:0000002 continuant, bfo:0000017 realizable,
+  # bfo:0000020 SDC, owl:NamedIndividual, owl:Thing) do not surface as
+  # the displayed disposition type. Mirrors the namespace filter on
+  # select_asserted_prescribed_process.sparql so the two emission-layer
+  # queries share filter discipline; closes the alphabetical-sort
+  # dedup fragility flagged by the PR #68 adversarial audit (M-A2/M-A4).
+  FILTER(STRSTARTS(STR(?disposition_class), "https://arco.ai/ontology/core#"))
+  OPTIONAL { ?disposition_class rdfs:label ?cls_label }
+}
+ORDER BY ?component ?disposition ?disposition_class
