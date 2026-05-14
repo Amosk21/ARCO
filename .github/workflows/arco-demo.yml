@@ -1,5 +1,30 @@
-# .github/workflows/arco-demo.yml
 name: ARCO Demo Run
+
+# Production pipeline run. Executes the full ARCO classification chain
+# (load ontology -> reason -> SHACL -> SPARQL -> emit certificate) on
+# every push and pull request to main, and publishes the latest output
+# to GitHub Pages on merge to main.
+#
+# What this gates (any failure fails the build):
+#   - "ALL CHECKS PASSED" signal in the pipeline output.
+#   - Three regression test scripts return 0:
+#       * test_gate_removal.py (each Annex III 1(a) gate is independently necessary)
+#       * test_scenarios.py (multi-scenario classification correctness)
+#       * test_kiosk_html_no_false_concretization.py (L4.7 regression)
+#   - Five expected artifact files exist in runs/demo/:
+#       certificate.txt, summary.json, evidence.json, shacl_report.txt,
+#       determination_view.html.
+#
+# What this publishes:
+#   - runs/demo/ uploaded as a downloadable workflow artifact on every run.
+#   - On main branch only: the contents of runs/demo/ also deploy to
+#     GitHub Pages, so the latest certificate is one click away without
+#     cloning the repo.
+#     Pages URL: https://amosk21.github.io/ARCO/determination_view.html
+#
+# Independent OWL 2 DL cross-check runs in robot-validate.yml (HermiT
+# under the OWL 2 DL profile, separate workflow). Both must pass for a
+# clean CI.
 
 on:
   workflow_dispatch:
