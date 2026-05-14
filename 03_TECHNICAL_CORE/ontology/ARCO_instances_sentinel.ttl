@@ -13,19 +13,11 @@
   owl:imports <https://arco.ai/ontology/governance> .
 
 #################################################################
-# 1) REGULATORY LAYER (ICE grounded to reality)
+# 1) ANNEX III REGULATORY LAYER (mereological backbone)
+#
+# Annex III conditions moved to ARCO_governance_extension.ttl on 2026-05-14
+# as universal regulatory content; references via iao:0000136 stay below.
 #################################################################
-
-:AnnexIII_List rdf:type :RegulatoryContent ;
-  rdfs:label "Annex III List" ;
-  bfo:0000051 :AnnexIII_Condition_1a .  # has part
-
-:AnnexIII_Condition_1a rdf:type :RegulatoryContent ;
-  rdfs:label "Annex III 1(a) (Biometric Rule)" ;
-  cco:prescribes :RemoteBiometricIdentificationProcess ;      # directive: prescribes the regulated process type (Three D's — DirectiveICE → Process)
-  iao:0000136 :BiometricIdentificationCapability ;            # is_about the capability universal
-  iao:0000136 :RemoteBiometricIdentificationProcess ;         # is_about the regulated process type
-  iao:0000136 :NaturalPersonRole .                            # is_about the affected role
 
 #################################################################
 # 2) SYSTEM LAYER (reality-side particulars) - UPDATED

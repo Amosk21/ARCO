@@ -150,6 +150,44 @@ cco:Organization rdf:type owl:Class ;
   rdfs:subClassOf bfo:0000027 . # Object Aggregate
 
 #################################################################
+# 3a) REGULATORY CONTENT — Annex III conditions (universal)
+#
+# These ICE instances describe what EU AI Act Regulation (EU) 2024/1689
+# Annex III prescribes for the modeled categories. They are universal
+# regulatory content (one ICE per Annex III condition modeled), not
+# per-fixture data. Every fixture references them via iao:0000136
+# from its :AssessmentDocumentation.
+#
+# Pattern: a regulatory condition ICE has type :RegulatoryContent,
+# prescribes the regulated process type via cco:prescribes, and is_about
+# the capability / process / role universals via iao:0000136.
+#
+# Moved from per-fixture files (Sentinel, CreditScoring) on 2026-05-14
+# to close regulatory_alignment FAIL on Adversarial and FlagTest fixtures.
+#################################################################
+
+:AnnexIII_List rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III List" ;
+  bfo:0000051 :AnnexIII_Condition_1a ;
+  bfo:0000051 :AnnexIII_Condition_5b .
+
+:AnnexIII_Condition_1a rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III 1(a) (Biometric Rule)" ;
+  rdfs:comment "Annex III item 1(a): biometric identification of natural persons. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning) — the regulation prescribes process types, not deployment-specific tokens." ;
+  cco:prescribes :RemoteBiometricIdentificationProcess ;
+  iao:0000136 :BiometricIdentificationCapability ;
+  iao:0000136 :RemoteBiometricIdentificationProcess ;
+  iao:0000136 :NaturalPersonRole .
+
+:AnnexIII_Condition_5b rdf:type :RegulatoryContent ;
+  rdfs:label "Annex III 5(b) (Creditworthiness Rule)" ;
+  rdfs:comment "Annex III item 5(b): AI systems intended to evaluate the creditworthiness of natural persons or establish their credit score, with the exception of AI systems used for the purpose of detecting financial fraud. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning)." ;
+  cco:prescribes :CreditworthinessEvaluationProcess ;
+  iao:0000136 :CreditworthinessEvaluationCapability ;
+  iao:0000136 :CreditworthinessEvaluationProcess ;
+  iao:0000136 :NaturalPersonRole .
+
+#################################################################
 # 3b) REGULATORY BRIDGE AXIOMS
 #
 # AnnexIIITriggeringCapability is a REGULATORY GROUPING CLASS,
