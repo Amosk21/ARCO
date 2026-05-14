@@ -11,11 +11,31 @@
   rdfs:label "ARCO Flag Test Instances" ;
   rdfs:comment """Two test cases for the audit-layer exception flags.
 
-  NOTE: Running the full pipeline on these instances will show classification PASS
-  but audit FAIL (traceability and regulatory alignment). This is expected and correct —
-  these are minimal instances for flag testing only, without full regulatory content
-  linkage. The same pattern applies to ARCO_instances_adversarial_*.ttl.
-  The classification layer and flag behavior are the only results under test here.
+  TEST TARGET: simultaneous OWL classification + audit-layer flag detection
+  on the same system, demonstrating that classification and audit do not
+  bleed into each other.
+
+  Expected audit-row outcomes (post 2026-05-14 migration of regulatory content
+  to ARCO_governance_extension.ttl):
+    - classification:        PASS (all three Annex III gates satisfied)
+    - exception flag:        FLAGGED (derogation or fraud, per fixture)
+    - traceability:          FAIL
+    - regulatory_alignment:  FAIL
+  The traceability and regulatory_alignment FAILs are NOT the test target.
+  They persist because the :AssessmentDocumentation instances below do not
+  carry an iao:0000136 link to :AnnexIII_Condition_1a or :AnnexIII_Condition_5b,
+  so the audit queries (which require ?doc iao:0000136 ?condition) return false.
+  This is a fixture-authoring gap, not a defect in the classification or flag
+  behavior under test. Adding those links would close the audit FAILs without
+  affecting the classification or flag entailments — separate change.
+
+  Prior to the 2026-05-14 migration, the audit FAILs also covered fixture-
+  distribution effects (regulatory condition declarations were per-fixture
+  inside ARCO_instances_sentinel.ttl and ARCO_instances_creditscoring.ttl, so
+  the universal regulatory content was invisible to this fixture). The
+  migration moved those declarations to the governance extension, removing
+  the distribution issue; what remains is the local AssessmentDoc->condition
+  linkage gap described above.
 
   Test A — FlagTest_BiometricSystem_WithDerogationClaim:
     A system that IS classified as AnnexIII1aApplicableSystem (all three gates satisfied)
