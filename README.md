@@ -153,7 +153,7 @@ The three-gate pattern (capability + intended use + affected role) generalizes b
 | Labeling every certificate field with where its value came from (a graph query result, the run's metadata, or a scope-disclosure note) and adding a CI check that verifies every field traces back to its declared source | Active work |
 | Extending the test that confirms each Gate is necessary from Annex III 1(a) to also cover 5(b), so both classifications have the same proof that none of the three gates is decorative | Active work |
 
-Each row is tracked in `OPEN_PROBLEMS.md`.
+Day-to-day rows live in `OPEN_PROBLEMS.md` (internal); the public roadmap with verified core, resolved modeling decisions, and execution sequence is at [`docs/MODELING_ROADMAP.md`](docs/MODELING_ROADMAP.md).
 
 ---
 
