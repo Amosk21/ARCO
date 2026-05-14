@@ -1,0 +1,22 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# EMISSION LAYER — binds rdfs:comment of the system under evaluation.
+#
+# Used by the negative-case output to surface fixture-supplied regulatory
+# reasoning (e.g., the kiosk fixture's comment naming Recital 22 / Article
+# 3(41) and the verification-vs-identification distinction). The comment
+# is fixture-authored ground truth and ships with the TTL; this query
+# avoids embedding fixture-specific legal text as Python literals in the
+# emitter (per CLAUDE.md Output discipline).
+#
+# CALLER CONTRACT:
+#   - ?system is bound by the caller to the system IRI under evaluation.
+#   - Returns at most one row; emitter renders the comment string verbatim.
+#   - Empty result is legitimate for fixtures without a system-level comment;
+#     emitter MUST NOT synthesize a regulatory note in that case.
+
+SELECT ?comment WHERE {
+  ?system rdfs:comment ?comment .
+}
+ORDER BY ?comment
+LIMIT 1

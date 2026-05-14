@@ -204,8 +204,11 @@ def arco_run_pipeline(
     # summary.json is the contract; rebuilding here matches the pipeline's
     # internal computation exactly for non-applicable, applicable, and failed
     # runs.
+    # summary.json entailment field uses the ternary enum {"PRESENT",
+    # "NOT_PRESENT", "NOT_RUN"} per output_manifest_v2.yaml line 124. Strict
+    # manifest conformance: read the declared enum, no legacy bridge.
     shacl_pass = summary.get("shacl") == "PASS"
-    entail_pass = summary.get("entailment") == "PASS"
+    entail_pass = summary.get("entailment") == "PRESENT"
     annex_1a = summary.get("annex_iii_1a", "N/A")
     annex_5b = summary.get("annex_iii_5b", "N/A")
     no_category = annex_1a == "NOT APPLICABLE" and annex_5b == "NOT APPLICABLE"

@@ -1,0 +1,37 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+
+# EMISSION LAYER — binds asserted IUS-prescribed process rows regardless of
+# whether the process class is in the regulated category union.
+#
+# Counterpart to select_gate_2_prescribed_process.sparql, which filters to
+# :RemoteBiometricIdentificationProcess and :CreditworthinessEvaluationProcess.
+# This query returns the IUS / process / process_class triples WITHOUT that
+# filter, so the negative-case output can surface what the system's IUS DOES
+# prescribe (e.g., the kiosk's :BiometricVerificationProcess) rather than
+# rendering "no matching prescribed process type found" when the regulated-
+# union query returns zero rows.
+#
+# Excludes owl:NamedIndividual, owl:Thing, and bfo:Process so the displayed
+# type is the most specific named class the process token is typed as.
+# ORDER BY ?ius ?process for determinism.
+#
+# CALLER CONTRACT:
+#   - ?system is bound by the caller to the system IRI under evaluation.
+#   - process_label is OPTIONAL.
+
+SELECT ?ius ?process ?process_class ?process_label WHERE {
+  ?ius rdf:type :IntendedUseSpecification ;
+       iao:0000136 ?system ;
+       cco:prescribes ?process .
+  ?process rdf:type ?process_class .
+  FILTER(!isBlank(?process_class))
+  FILTER(STRSTARTS(STR(?process_class), "https://arco.ai/ontology/core#"))
+  OPTIONAL { ?process_class rdfs:label ?process_label }
+}
+ORDER BY ?ius ?process ?process_class

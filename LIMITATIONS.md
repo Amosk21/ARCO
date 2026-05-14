@@ -12,7 +12,7 @@
 6. [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md) — regulatory scope rules
 7. [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) — commitment backtest grading each load-bearing choice
 
-**Last reviewed:** 2026-05-11
+**Last reviewed:** 2026-05-14
 
 **Refresh trigger:** any change to ontology class hierarchy, three-gate axioms, imported upstream ontology, Annex III category coverage, or instance-file design conventions.
 
