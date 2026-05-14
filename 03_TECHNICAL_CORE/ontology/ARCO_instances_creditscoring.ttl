@@ -21,24 +21,11 @@
   owl:imports <https://arco.ai/ontology/governance> .
 
 #################################################################
-# 1) REGULATORY LAYER — Annex III 5(b)
+# 1) ANNEX III REGULATORY LAYER
+#
+# Annex III conditions moved to ARCO_governance_extension.ttl on 2026-05-14;
+# references via iao:0000136 stay below.
 #################################################################
-
-# Mereological backbone (CLAUDE.md invariant 8): every modeled Annex III condition
-# is `bfo:0000051` of `:AnnexIII_List`. The list is also re-asserted here with its
-# rdf:type so this fixture is self-contained when loaded standalone (test_scenarios.py
-# loads each fixture independently). Duplicate triples across fixtures are deduped
-# at union time. See runs/loop/2026-05-09_beverley-research/audit_C_regulatory.md T2.
-:AnnexIII_List rdf:type :RegulatoryContent ;
-  bfo:0000051 :AnnexIII_Condition_5b .
-
-:AnnexIII_Condition_5b rdf:type :RegulatoryContent ;
-  rdfs:label "Annex III 5(b) (Creditworthiness Rule)" ;
-  rdfs:comment "Annex III item 5(b): AI systems intended to be used to evaluate the creditworthiness of natural persons or establish their credit score, with the exception of AI systems used for the purpose of detecting financial fraud. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning) — the regulation prescribes process types, not deployment-specific tokens. This matches the Sentinel pattern and generalizes across multiple 5(b) assessments sharing this single regulatory ICE." ;
-  cco:prescribes :CreditworthinessEvaluationProcess ;
-  iao:0000136 :CreditworthinessEvaluationCapability ;
-  iao:0000136 :CreditworthinessEvaluationProcess ;
-  iao:0000136 :NaturalPersonRole .
 
 #################################################################
 # 2) SYSTEM LAYER (reality-side particulars)

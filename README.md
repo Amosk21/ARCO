@@ -128,7 +128,7 @@ The architecture grounds in BFO 2020 (ISO/IEC 21838-2:2021) and uses the seven-b
 
 **Layer separation is verified by fixtures.** Two flag-test fixtures present cases where all three Annex III gates are satisfied AND an audit-layer flag (a provider-asserted `:DerogationClaim`, or a `:FraudDetectionProcess` token) is also present. The OWL classification fires regardless of the audit flag; the flag fires alongside the classification. Classification and audit do not bleed into each other.
 
-**Gate independence is empirically verified.** A regression test removes the supporting triples for each Annex III 1(a) gate in turn and confirms the classification fails. Each gate is independently necessary; removing any one breaks the entailment. (Symmetric coverage for 5(b) is queued.)
+**Gate independence is empirically verified.** A regression test removes the supporting triples for each Annex III 1(a) and 5(b) gate in turn and confirms the classification fails. Each gate is independently necessary in both categories; removing any one breaks the entailment. Content-mutation variants (wrong process type, wrong designation target) verify that the gates check content, not just existence.
 
 **The certificate's classification binds to graph queries.** Classification field and evidence path are bound to SPARQL queries against the reasoned graph; the contract lives in `03_TECHNICAL_CORE/scripts/output_manifest_v2.yaml`, enforced by `test_output_provenance.py` (failing-by-design). Tightening provenance labels across surrounding fields is active work ([`OPEN_PROBLEMS.md L4.4-L4.6`](OPEN_PROBLEMS.md), [`LIMITATIONS.md §7.5`](LIMITATIONS.md)).
 
@@ -151,7 +151,7 @@ The three-gate pattern (capability + intended use + affected role) generalizes b
 | Replacing the kiosk demo's hypothetical vendor packet with a real vendor document, so the demo runs on actual source evidence rather than hypothetical content | Active work |
 | Publishing the full reasoning output (around 20,000 derived facts per run) plus the second reasoner's separate result per fixture, so anyone can independently check both the conclusions and that two different reasoners agree | Active work |
 | Labeling every certificate field with where its value came from (a graph query result, the run's metadata, or a scope-disclosure note) and adding a CI check that verifies every field traces back to its declared source | Active work |
-| Extending the test that confirms each Gate is necessary from Annex III 1(a) to also cover 5(b), so both classifications have the same proof that none of the three gates is decorative | Active work |
+| Extending the test that confirms each Gate is necessary from Annex III 1(a) to also cover 5(b), so both classifications have the same proof that none of the three gates is decorative | Landed 2026-05-14 |
 
 Day-to-day rows live in `OPEN_PROBLEMS.md` (internal); the public roadmap with verified core, resolved modeling decisions, and execution sequence is at [`docs/MODELING_ROADMAP.md`](docs/MODELING_ROADMAP.md).
 

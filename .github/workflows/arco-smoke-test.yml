@@ -46,3 +46,6 @@ jobs:
 
       - name: Run kiosk HTML no-false-concretization regression test (L4.7)
         run: python 03_TECHNICAL_CORE/scripts/test_kiosk_html_no_false_concretization.py
+
+      - name: Run adversarial-mechanism regression tests
+        run: python 03_TECHNICAL_CORE/scripts/test_adversarial_mechanism.py
