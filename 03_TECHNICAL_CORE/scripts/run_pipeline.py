@@ -1638,6 +1638,15 @@ def main() -> None:
 
     g, initial_count, inferred_added = run_reasoning(g)
 
+    # L4.8: serialize the reasoned graph so reviewers can re-derive the
+    # classification with their own OWL-RL reasoner. The graph contains
+    # the original RDF commitments plus all entailed triples.
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    reasoned_graph_path = OUTPUT_DIR / "reasoned_graph.ttl"
+    g.serialize(destination=str(reasoned_graph_path), format="turtle")
+    print(f"Reasoned graph written: {reasoned_graph_path.name} "
+          f"({len(g)} triples; {inferred_added} inferred)")
+
     shacl_ok, shacl_report_text = run_shacl(g)
 
     sub("AUDIT QUERIES (SPARQL ASK)")
