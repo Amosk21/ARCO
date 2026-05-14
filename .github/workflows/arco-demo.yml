@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for f in certificate.txt summary.json evidence.json shacl_report.txt determination_view.html; do
+          for f in certificate.txt summary.json evidence.json shacl_report.txt determination_view.html reasoned_graph.ttl; do
             if [ ! -f "runs/demo/$f" ]; then
               echo "FAIL: runs/demo/$f not found."
               exit 1
