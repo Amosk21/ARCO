@@ -62,7 +62,7 @@ The source explicitly refuses two closed-world claims:
 - It does NOT claim the underlying hardware is structurally incapable of identification (the hardware is software-configurable).
 - It does NOT claim what the hardware could be configured to in some other deployment.
 
-Article 3(36) of EU Regulation 2024/1689 keys Annex III 1(a) on intended use, not on raw hardware capability. The source packet describes THIS deployment under THIS configuration.
+Annex III item 1(a) of EU Regulation 2024/1689 keys high-risk RBI classification on intended use ("intended to be used for biometric verification" carve-out per Recital 15, Recital 17, and the Annex III 1(a) operative clause), not on raw hardware capability. Article 3(36) supplies the technical 1:1 verification definition. The source packet describes THIS deployment under THIS configuration.
 
 (\*) **Real vendor document substitution is `OPEN_PROBLEMS.md L1.1`.** The next concrete move replaces this hypothetical with a real vendor packet (datasheet, conformity declaration, or equivalent), with each claim cited.
 
@@ -169,7 +169,7 @@ The vision is the full input-mile-to-honest-certificate chain wired programmatic
 - (\*) **Configuration-level aboutness for regulatory ICEs** — `:AnnexIII_Condition_*` ICEs need explicit `iao:is_about` targets; canonical options surfaced (universal-only / particular continuant / multiple constituents). `M-Aboutness-Config-1 / L2.7`.
 - (\*) **`:CapabilityDisposition` rename to `:Capability`** — Smith-Against-Idiosyncrasy Principle 8 compositional naming fix; mechanical PR. `M-NameDiscipline-1 / L2.8`.
 - (\*) **Gate 3 role-relationship tightening** — current axiom designates the natural-person role universal but does not pin down whether natural persons are subjects of identification, operators, or another role-in-context. `L2.9`.
-- (\*) **Gate 2 use-purpose proxy tightening** — current axiom maps Article 3(36) "intended to be used for" to `cco:prescribes someValuesFrom :Process`; defensible structural proxy but loose. `L2.10`.
+- (\*) **Gate 2 use-purpose proxy tightening** — current axiom maps the "intended to be used for" framing (from Recital 15, Recital 17, and Annex III 1(a)) to `cco:prescribes someValuesFrom :Process`; Article 3(36) supplies the technical 1:1 verification definition the axiom presupposes. Defensible structural proxy but loose. `L2.10`.
 - (\*) **Reasoned-graph and HermiT classification artifact export** — surface the full entailment chain inspectably. `L4.8 parts 1-2`.
 - (\*) **Prose determination narrative emission** — generated from existing SPARQL gate evidence so a non-ARCO-glossary reader can read the conclusion + the reason in one paragraph. `L4.8 part 3`.
 - (\*) **Output provenance tightening** — G/M/D field labels, per-field source-query manifest, name/source mismatches across surrounding cert fields. `L4.4-L4.6`.
