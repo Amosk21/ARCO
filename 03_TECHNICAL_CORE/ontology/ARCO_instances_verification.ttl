@@ -15,7 +15,7 @@
 
   Non-entailment claim: AnnexIII1aApplicableSystem is not entailed for VerificationKiosk_001 under current assertions (OWA — no closed-world guarantee).
 
-  Legal basis: Recital 22 and Art. 3(41) EU AI Act — 1:1 biometric verification is excluded from Annex III 1(a); only 1:N remote biometric identification triggers classification.""" ;
+  Legal basis: Recital 15, Recital 17, and Annex III item 1(a) of EU AI Act 2024/1689 — the verification carve-out ("intended to be used for biometric verification, which includes authentication, whose sole purpose is to confirm that a specific natural person is the person he or she claims to be") excludes 1:1 biometric verification from biometric identification (Recital 15) and from remote biometric identification systems specifically (Recital 17, rationale: minor impact on fundamental rights), and is reaffirmed in the Annex III 1(a) operative text. Article 3(36) defines biometric verification as the automated 1:1 modality; Article 3(41) defines the RBI system. Only 1:N remote biometric identification triggers Annex III 1(a) classification.""" ;
   owl:imports <https://arco.ai/ontology/governance> .
 
 #################################################################
@@ -24,7 +24,7 @@
 
 :AnnexIII_Condition_1a_Exclusion rdf:type :RegulatoryContent ;
   rdfs:label "Annex III 1(a) — Verification Exclusion Note" ;
-  rdfs:comment "Documents the 1:1 verification exclusion from Annex III 1(a). Recital 22 and Art. 3(41): only 1:N remote biometric identification triggers the Annex III classification." ;
+  rdfs:comment "Documents the 1:1 verification exclusion from Annex III 1(a). Recital 15, Recital 17, and Annex III 1(a) operative carve-out: only 1:N remote biometric identification triggers the Annex III classification. Article 3(36) defines 1:1 verification; Article 3(41) defines the RBI system." ;
   iao:0000136 :BiometricVerificationCapability ;
   iao:0000136 :BiometricIdentificationCapability .
 

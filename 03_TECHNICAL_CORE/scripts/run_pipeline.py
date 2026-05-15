@@ -442,9 +442,10 @@ def get_system_comment(g: Graph, system_local: str) -> str:
     """Return rdfs:comment of the system instance, or empty string.
 
     Used by the negative-case Provider Obligations panel to surface fixture-
-    authored regulatory reasoning (e.g., the kiosk fixture's note on Recital
-    22 / Article 3(41)) as a documentary scope text rather than a Python
-    literal in the emitter. Returns "" on query failure or empty result;
+    authored regulatory reasoning (e.g., the kiosk fixture's note on
+    Recital 15 + Recital 17 + Annex III 1(a) carve-out) as a documentary
+    scope text rather than a Python literal in the emitter. Returns "" on
+    query failure or empty result;
     emitter is responsible for skipping the panel when empty.
     """
     try:
@@ -1240,8 +1241,9 @@ def write_html_view(
         # ARCO does not model Title IV obligations; see LIMITATIONS §2). It
         # is dropped here.
         # When the loaded fixture provides a system-level rdfs:comment with
-        # regulatory framing (e.g., the kiosk fixture's note on Recital 22
-        # / Art. 3(41)), surface it via the documentary scope text path
+        # regulatory framing (e.g., the kiosk fixture's note on Recital 15 +
+        # Recital 17 + Annex III 1(a) carve-out), surface it via the
+        # documentary scope text path
         # declared in output_manifest_v2.yaml. Otherwise the panel reports
         # the OWA-bounded non-entailment note alone.
         if system_comment:
