@@ -442,9 +442,10 @@ def get_system_comment(g: Graph, system_local: str) -> str:
     """Return rdfs:comment of the system instance, or empty string.
 
     Used by the negative-case Provider Obligations panel to surface fixture-
-    authored regulatory reasoning (e.g., the kiosk fixture's note on Recital
-    22 / Article 3(41)) as a documentary scope text rather than a Python
-    literal in the emitter. Returns "" on query failure or empty result;
+    authored regulatory reasoning (e.g., the kiosk fixture's note on
+    Recital 15 + Recital 17 + Annex III 1(a) carve-out) as a documentary
+    scope text rather than a Python literal in the emitter. Returns "" on
+    query failure or empty result;
     emitter is responsible for skipping the panel when empty.
     """
     try:
@@ -562,6 +563,20 @@ def select_gate_evidence(g: Graph, system_local: str) -> dict:
         packet["gate3"]["role_label"] = r.get("role_label") or _short(role_uri)
 
     return packet
+
+
+def gate3_designates_expected_role(gate_evidence: dict) -> bool:
+    """Return whether Gate 3 satisfies ARCO's current role-designation axiom.
+
+    Current modeled Annex III branches both require the USS to designate the
+    NaturalPersonRole universal. OPEN_PROBLEMS L3.2 tracks future
+    category-parameterized role expectations.
+    """
+    return (
+        bool(gate_evidence["gate3"]["uss_uri"])
+        and gate_evidence["gate3"]["role_uri"] == f"{ARCO_NS}NaturalPersonRole"
+    )
+
 
 def verify_high_risk_inference(reasoned: Graph, source: Graph) -> tuple[bool, bool, bool, list[tuple[str, str]]]:
     """Returns (inference_ok, asserted_pre, entailed_post, bindings)."""
@@ -859,9 +874,13 @@ def write_html_view(
         if val is None:
             return '<span class="badge bn">N/A</span>'
         if val:
-            if not derogation_flagged:
-                return ('<span class="badge bp">VERIFIED (ENTAILED, '
-                        'Article 6(3) derogation not evaluated)</span>')
+            # Pure graph-backed entailment value. The Article 6(3) derogation
+            # scope qualifier (when no DerogationClaim is asserted) is
+            # surfaced as the separate `derogation_scope_badge` rendered
+            # alongside the conclusion banner, per
+            # output_manifest_v2.yaml field `derogation_evaluation_scope`
+            # (forbidden_pattern: embedding the qualifier into a
+            # graph_backed value).
             return '<span class="badge bp">VERIFIED (ENTAILED)</span>'
         return '<span class="badge bn">NOT APPLICABLE</span>'
 
@@ -1004,8 +1023,14 @@ def write_html_view(
     # typed-content satisfaction by itself — its own header at
     # reasoning/check_intended_use.sparql:5-12 declares it documentary.
     gate2_ok = bool(gate_evidence["gate2"]["process_type_uri"])
-    # Gate 3: USS designation is asserted (already evidence-coupled).
-    gate3_ok = bool(gate_evidence["gate3"]["uss_uri"])
+    # Gate 3: USS designation is asserted AND designates the expected role
+    # universal. The OWL Gate 3 axiom uses
+    # `cco:designates owl:hasValue :NaturalPersonRole`; a fixture asserting
+    # a USS that designates a different role would otherwise display as
+    # Gate 3 OK while OWL correctly does not entail Gate 3 satisfaction.
+    # (L3.4 truth-surface fix; per-category role parameterization tracked
+    # at L3.2.)
+    gate3_ok = gate3_designates_expected_role(gate_evidence)
 
     # Pre-compute gate display labels from the determination packet.
     # These are used in axiom pattern text, gate answers, and counterfactuals.
@@ -1240,8 +1265,9 @@ def write_html_view(
         # ARCO does not model Title IV obligations; see LIMITATIONS §2). It
         # is dropped here.
         # When the loaded fixture provides a system-level rdfs:comment with
-        # regulatory framing (e.g., the kiosk fixture's note on Recital 22
-        # / Art. 3(41)), surface it via the documentary scope text path
+        # regulatory framing (e.g., the kiosk fixture's note on Recital 15 +
+        # Recital 17 + Annex III 1(a) carve-out), surface it via the
+        # documentary scope text path
         # declared in output_manifest_v2.yaml. Otherwise the panel reports
         # the OWA-bounded non-entailment note alone.
         if system_comment:
@@ -2053,11 +2079,20 @@ def main() -> None:
     print("  [classification layer — OWL-RL entailment]")
     print(f"SHACL:         {_pf(shacl_ok)}")
     print(f"Entailment:    {_pf(inference_ok)}")
-    _summary_qualifier = ", Article 6(3) derogation not evaluated" if not derogation_flagged else ""
+    # Pure graph-backed entailment values. Article 6(3) derogation scope
+    # is reported as a separate run-metadata line below, not embedded in
+    # the graph_backed VERIFIED literal (per output_manifest_v2.yaml
+    # field `derogation_evaluation_scope` forbidden_pattern).
     if annex_iii_1a_ok is not None:
-        print(f"Annex III 1a:  {'VERIFIED (ENTAILED' + _summary_qualifier + ')' if annex_iii_1a_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 1a:  {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'} (OWL-entailed)")
     if annex_iii_5b_ok is not None:
-        print(f"Annex III 5b:  {'VERIFIED (ENTAILED' + _summary_qualifier + ')' if annex_iii_5b_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 5b:  {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+    # Separate run-scope disclosure for derogation evaluation. Surfaces
+    # only when a category is entailed and no DerogationClaim is asserted
+    # (when a claim IS asserted, the existing FLAG row signals the
+    # unevaluated derogation; do not double-disclose).
+    if (annex_iii_1a_ok or annex_iii_5b_ok) and not derogation_flagged:
+        print("  [run scope]    Article 6(3) derogation: NOT EVALUATED")
     print()
     print("  [audit documentation layer — SPARQL ASK on reasoned graph]")
     print(f"Traceability:  {_pf(traceability_ok)}")
@@ -2266,26 +2301,29 @@ def main() -> None:
     # audit record.
     if intended_use_ok is not None:
         print(f"  INTENDED USE:            {_pf(intended_use_ok)}")
-    # Article 6(3) derogation scope qualifier: ARCO does not evaluate the
+    # Article 6(3) derogation scope: ARCO does not evaluate the
     # Article 6(3) carve-out conditions; it only detects whether a provider-
-    # supplied :DerogationClaim artifact is asserted. When such a claim is
-    # asserted, the FLAG line below signals the unevaluated derogation. When
-    # no claim is asserted, an Annex III ENTAILED conclusion otherwise reads
-    # as "high-risk classification confirmed" — append a same-line scope
-    # qualifier so the disclosure rides with the conclusion.
-    _annex_iii_entailed_qualifier = "VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)"
+    # supplied :DerogationClaim artifact is asserted. The Annex III ENTAILED
+    # conclusion below is a pure graph_backed value; the derogation scope
+    # disclosure rides on its own line (see "ARTICLE 6(3) DEROGATION" below)
+    # per output_manifest_v2.yaml field `derogation_evaluation_scope`
+    # forbidden_pattern (Python concatenation that embeds the qualifier
+    # into a graph_backed value).
     if annex_iii_1a_ok is not None:
-        if annex_iii_1a_ok:
-            _line_1a = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
-        else:
-            _line_1a = "NOT APPLICABLE"
+        _line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT APPLICABLE"
         print(f"  ANNEX III 1(a):          {_line_1a}")
     if annex_iii_5b_ok is not None:
         if annex_iii_5b_ok:
-            _line_5b = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
+            _line_5b = "VERIFIED (ENTAILED)"
         else:
             _line_5b = "NOT APPLICABLE"
         print(f"  ANNEX III 5(b):          {_line_5b}")
+    # Separate run-scope disclosure for derogation evaluation. Surfaces
+    # only when a category is entailed and no DerogationClaim is asserted
+    # (when a claim IS asserted, the existing FLAG line below already
+    # signals the unevaluated derogation; do not double-disclose).
+    if (annex_iii_1a_ok or annex_iii_5b_ok) and not derogation_flagged:
+        print("  ARTICLE 6(3) DEROGATION: NOT EVALUATED (run scope)")
     if obligation_ok is not None:
         print(f"  OBLIGATION:              {_cert_obligation_label}")
     if reg_alignment_ok is not None:
@@ -2333,18 +2371,20 @@ def main() -> None:
     # summary.json["latent_risk"] for audit consumers.
     if intended_use_ok is not None:
         cert_lines.append(f"  INTENDED USE:            {_pf(intended_use_ok)}")
+    # Pure graph-backed entailment values. The Article 6(3) derogation
+    # scope rides on the separate "ARTICLE 6(3) DEROGATION" line below
+    # (per output_manifest_v2.yaml field `derogation_evaluation_scope`
+    # forbidden_pattern).
     if annex_iii_1a_ok is not None:
-        if annex_iii_1a_ok:
-            _cert_line_1a = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
-        else:
-            _cert_line_1a = "NOT APPLICABLE"
+        _cert_line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT APPLICABLE"
         cert_lines.append(f"  ANNEX III 1(a):          {_cert_line_1a}")
     if annex_iii_5b_ok is not None:
-        if annex_iii_5b_ok:
-            _cert_line_5b = _annex_iii_entailed_qualifier if not derogation_flagged else "VERIFIED (ENTAILED)"
-        else:
-            _cert_line_5b = "NOT APPLICABLE"
+        _cert_line_5b = "VERIFIED (ENTAILED)" if annex_iii_5b_ok else "NOT APPLICABLE"
         cert_lines.append(f"  ANNEX III 5(b):          {_cert_line_5b}")
+    # Separate run-scope disclosure for derogation evaluation. Surfaces
+    # only when a category is entailed and no DerogationClaim is asserted.
+    if (annex_iii_1a_ok or annex_iii_5b_ok) and not derogation_flagged:
+        cert_lines.append("  ARTICLE 6(3) DEROGATION: NOT EVALUATED (run scope)")
     if obligation_ok is not None:
         cert_lines.append(f"  OBLIGATION:              {_cert_obligation_label}")
     if reg_alignment_ok is not None:
@@ -2416,8 +2456,17 @@ def main() -> None:
             latent_ok, "DETECTED", "NOT_DETECTED",
         ),
         "intended_use": (_pf(intended_use_ok) if intended_use_ok is not None else "NOT_RUN"),
-        "annex_iii_1a": (("VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" if not derogation_flagged else "VERIFIED (ENTAILED)") if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
-        "annex_iii_5b": (("VERIFIED (ENTAILED, Article 6(3) derogation not evaluated)" if not derogation_flagged else "VERIFIED (ENTAILED)") if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
+        # Pure graph-backed entailment values. Article 6(3) derogation
+        # scope rides on the separate `derogation_evaluation_scope`
+        # field below, not embedded in these graph_backed literals
+        # (per output_manifest_v2.yaml field `derogation_evaluation_scope`
+        # forbidden_pattern).
+        "annex_iii_1a": ("VERIFIED (ENTAILED)" if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
+        "annex_iii_5b": ("VERIFIED (ENTAILED)" if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
+        "derogation_evaluation_scope": {
+            "evaluated": False,
+            "reason": "Article 6(3) derogation evaluation not modeled in current ARCO release; see LIMITATIONS.md §3.7",
+        },
         "obligation": _status_label(
             obligation_ok, "PASS", "FAIL",
             not_applicable_label="NOT_APPLICABLE" if non_applicable_run else None,
@@ -2536,7 +2585,6 @@ def main() -> None:
                 # (run_pipeline.py:806): typed-evidence presence, not the
                 # documentary ASK `intended_use_ok`. Closes the schema-incoherent
                 # SATISFIED-with-empty-evidence state on non-applicable runs.
-                # Parallel to gate_3 below which is already evidence-coupled.
                 "status": "SATISFIED" if bool(gate_evidence["gate2"]["process_type_uri"]) else "NOT_SATISFIED",
                 "evidence": {
                     "ius_uri": gate_evidence["gate2"]["ius_uri"],
@@ -2548,7 +2596,10 @@ def main() -> None:
             {
                 "id": "gate_3",
                 "label": "Affected Role Category",
-                "status": "SATISFIED" if bool(gate_evidence["gate3"]["uss_uri"]) else "NOT_SATISFIED",
+                # Packet-side Gate 3 status mirrors HTML-side `gate3_ok`:
+                # USS existence is not enough; the designated role must match
+                # the current OWL Gate 3 target.
+                "status": "SATISFIED" if gate3_designates_expected_role(gate_evidence) else "NOT_SATISFIED",
                 "evidence": {
                     "uss_uri": gate_evidence["gate3"]["uss_uri"],
                     "role_uri": gate_evidence["gate3"]["role_uri"],

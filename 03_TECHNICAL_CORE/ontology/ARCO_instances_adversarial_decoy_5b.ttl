@@ -1,0 +1,77 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://arco.ai/ontology/instances/adversarial_decoy_5b> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Adversarial Test: Equivalency Decoy (5(b) parity)" ;
+  rdfs:comment """Tests that OWL-RL performs real equivalence reasoning on the Annex III 5(b) branch, mirroring the 1(a) decoy at ARCO_instances_adversarial_decoy.ttl.
+
+  :WeirdCalculator is declared owl:equivalentClass to :CreditworthinessEvaluationCapability.
+  The disposition is typed ONLY as :WeirdCalculator — no Credit/Evaluation/Score/Assessment
+  vocabulary appears in the alias class, disposition, module, or system IRIs.
+
+  If the reasoner is real, it infers CreditworthinessEvaluationCapability membership
+  via owl:equivalentClass propagation; the three-gate intersection then entails
+  :AnnexIII5bApplicableSystem.
+
+  Cross-category isolation is also under test here: post-reasoning the system
+  must NOT entail :AnnexIII1aApplicableSystem (no biometric identification
+  capability is bound to any component).
+
+  Adversarial-purity discipline (parallel to the 1(a) decoy):
+   - no provider organisation, no provider role
+   - no assessment documentation process, no assessment documentation artifact
+   - no compliance obligation
+   - no determination ICE asserted
+  Only the reality-side path the three-gate axiom needs to fire is asserted.
+  Closes OPEN_PROBLEMS L3.7 (5(b) adversarial equivalentClass parity).""" ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# ADVERSARIAL SETUP: equivalence decoy class
+#################################################################
+
+:WeirdCalculator rdf:type owl:Class ;
+  rdfs:label "Weird Calculator (decoy name)" ;
+  skos:prefLabel "Weird Calculator (decoy name)"@en ;
+  skos:definition "An adversarial test class declared owl:equivalentClass to :CreditworthinessEvaluationCapability. Used by the 5(b) equivalence-decoy fixture to verify that the OWL reasoner performs real semantic inference via equivalentClass propagation on the credit branch, rather than IRI pattern matching or class-name string matching." ;
+  rdfs:comment "Equivalent to CreditworthinessEvaluationCapability but with an unrelated name. Tests that the reasoner uses equivalence, not string matching, on the 5(b) branch." ;
+  owl:equivalentClass :CreditworthinessEvaluationCapability .
+
+#################################################################
+# SYSTEM — typed using ONLY the decoy class name
+#################################################################
+
+:WeirdCalc_Disposition rdf:type :WeirdCalculator ;
+  rdfs:label "Weird Calculator Disposition (typed as WeirdCalculator only)" .
+
+:WeirdCalc_Module rdf:type :HardwareComponent ;
+  rdfs:label "Weird Calculator Hardware Module" ;
+  ro:0000091 :WeirdCalc_Disposition .
+
+:WeirdCalcSystem_001 rdf:type :System ;
+  rdfs:label "Weird Calculator System 001" ;
+  bfo:0000051 :WeirdCalc_Module .
+
+#################################################################
+# DOCUMENTARY MINIMUM (gates 2 + 3)
+#################################################################
+
+:WeirdCalc_Process rdf:type :CreditworthinessEvaluationProcess ;
+  rdfs:label "Weird Calculator Process Token" .
+
+:WeirdCalc_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "Weird Calculator Intended Use" ;
+  cco:prescribes :WeirdCalc_Process ;
+  iao:0000136 :WeirdCalcSystem_001 .
+
+:WeirdCalc_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "Weird Calculator Use Scenario" ;
+  iao:0000136 :WeirdCalcSystem_001 ;
+  cco:designates :NaturalPersonRole .

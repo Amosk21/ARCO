@@ -7,7 +7,7 @@ fires, not just that it fires. Each assertion catches a failure mode that
 would let a pattern-matching pipeline pass test_scenarios.py with the wrong
 mechanism in place.
 
-  Decoy fixture (ARCO_instances_adversarial_decoy.ttl):
+  Decoy fixture (ARCO_instances_adversarial_decoy.ttl) — Annex III 1(a):
     The disposition is typed only as :WeirdScanner. :WeirdScanner is declared
     owl:equivalentClass :BiometricIdentificationCapability in the same fixture.
     Pre-reasoning, no asserted triple types the disposition as
@@ -17,6 +17,16 @@ mechanism in place.
     If a pipeline did IRI-name pattern matching, it would see no
     :BiometricIdentificationCapability triple in the input and miss the
     classification. The OWL reasoner does not.
+
+  Decoy 5(b) fixture (ARCO_instances_adversarial_decoy_5b.ttl) — Annex III 5(b):
+    Same shape as the 1(a) decoy, branch-swapped. :WeirdCalculator is declared
+    owl:equivalentClass :CreditworthinessEvaluationCapability. Disposition is
+    typed only as :WeirdCalculator. Post-reasoning the disposition entails as
+    :CreditworthinessEvaluationCapability and the three-gate intersection
+    entails :AnnexIII5bApplicableSystem. Cross-category isolation is also
+    under test: post-reasoning the system MUST NOT entail
+    :AnnexIII1aApplicableSystem (no biometric capability bound). Closes
+    OPEN_PROBLEMS L3.7.
 
   Ghost fixture (ARCO_instances_adversarial_blanknode.ttl):
     The disposition is an anonymous individual (blank node) typed as
@@ -137,6 +147,80 @@ def test_decoy_classifies_via_equivalent_class() -> bool:
     return ok
 
 
+def test_credit_decoy_classifies_via_equivalent_class() -> bool:
+    """
+    Verify that WeirdCalcSystem_001's Gate 1 entailment fires via
+    owl:equivalentClass propagation on the Annex III 5(b) branch, not via
+    direct IRI assertion. Mirrors test_decoy_classifies_via_equivalent_class
+    for the credit branch. Closes OPEN_PROBLEMS L3.7.
+
+    Five assertions:
+      1. Pre-reasoning: disposition rdf:type :WeirdCalculator (alias only).
+      2. Pre-reasoning: disposition rdf:type :CreditworthinessEvaluationCapability
+         is ABSENT (proves alias-only routing).
+      3. Post-reasoning: disposition rdf:type :CreditworthinessEvaluationCapability
+         is present (equivalentClass propagation fired).
+      4. Post-reasoning: system rdf:type :AnnexIII5bApplicableSystem
+         (three-gate intersection entails).
+      5. Post-reasoning: system rdf:type :AnnexIII1aApplicableSystem
+         is ABSENT (cross-category isolation; no biometric capability bound).
+    """
+    print("\n--- DECOY 5(b): classification via owl:equivalentClass (credit branch) ---")
+    fixture = ONTOLOGY_DIR / "ARCO_instances_adversarial_decoy_5b.ttl"
+    g_pre = parse_fixture(fixture)
+
+    calc_disp = ARCO["WeirdCalc_Disposition"]
+    weird_calculator = ARCO["WeirdCalculator"]
+    credit_cap = ARCO["CreditworthinessEvaluationCapability"]
+    calc_system = ARCO["WeirdCalcSystem_001"]
+    annex_5b = ARCO["AnnexIII5bApplicableSystem"]
+    annex_1a = ARCO["AnnexIII1aApplicableSystem"]
+
+    # Precondition 1: disposition is typed as :WeirdCalculator (the decoy class)
+    has_alias_pre = (calc_disp, RDF["type"], weird_calculator) in g_pre
+    # Precondition 2: disposition is NOT directly typed as
+    # :CreditworthinessEvaluationCapability before reasoning
+    has_credit_pre = (calc_disp, RDF["type"], credit_cap) in g_pre
+    # Precondition 3: System is NOT yet classified as 5(b) applicable
+    is_5b_pre = (calc_system, RDF["type"], annex_5b) in g_pre
+
+    ok = True
+    print(f"  pre-reasoning :WeirdCalc_Disposition rdf:type :WeirdCalculator: {has_alias_pre} (expected True)")
+    if not has_alias_pre:
+        ok = False
+    print(f"  pre-reasoning :WeirdCalc_Disposition rdf:type :CreditworthinessEvaluationCapability: {has_credit_pre} (expected False)")
+    if has_credit_pre:
+        print("    FAIL: decoy disposition asserted directly as CreditworthinessEvaluationCapability; "
+              "test premise (equivalence-only routing) is invalid.")
+        ok = False
+    print(f"  pre-reasoning :WeirdCalcSystem_001 rdf:type :AnnexIII5bApplicableSystem: {is_5b_pre} (expected False)")
+    if is_5b_pre:
+        ok = False
+
+    # Reason and re-check
+    g_post = reason(g_pre)
+    has_credit_post = (calc_disp, RDF["type"], credit_cap) in g_post
+    is_5b_post = (calc_system, RDF["type"], annex_5b) in g_post
+    is_1a_post = (calc_system, RDF["type"], annex_1a) in g_post
+
+    print(f"  post-reasoning :WeirdCalc_Disposition rdf:type :CreditworthinessEvaluationCapability: {has_credit_post} (expected True)")
+    if not has_credit_post:
+        ok = False
+    print(f"  post-reasoning :WeirdCalcSystem_001 rdf:type :AnnexIII5bApplicableSystem: {is_5b_post} (expected True)")
+    if not is_5b_post:
+        ok = False
+    # Cross-category isolation check.
+    print(f"  post-reasoning :WeirdCalcSystem_001 rdf:type :AnnexIII1aApplicableSystem: {is_1a_post} (expected False)")
+    if is_1a_post:
+        print("    FAIL: cross-category isolation broken; 5(b) decoy entailed into 1(a) class.")
+        ok = False
+
+    if ok:
+        print("  RESULT: 5(b) classification routed via owl:equivalentClass, not via direct IRI.")
+        print("          Cross-category isolation preserved (no 1(a) entailment).")
+    return ok
+
+
 def test_ghost_classifies_via_blank_node_disposition() -> bool:
     """
     Verify that GhostSystem_001's Gate 1 entailment fires via a blank-node
@@ -215,6 +299,8 @@ def main() -> int:
     all_pass = True
     if not test_decoy_classifies_via_equivalent_class():
         all_pass = False
+    if not test_credit_decoy_classifies_via_equivalent_class():
+        all_pass = False
     if not test_ghost_classifies_via_blank_node_disposition():
         all_pass = False
 
@@ -222,7 +308,8 @@ def main() -> int:
     print("=" * 72)
     if all_pass:
         print("ALL ADVERSARIAL-MECHANISM TESTS PASSED")
-        print("Decoy classification routes via owl:equivalentClass.")
+        print("Decoy 1(a) classification routes via owl:equivalentClass.")
+        print("Decoy 5(b) classification routes via owl:equivalentClass; cross-category isolated.")
         print("Ghost classification routes via blank-node owl:someValuesFrom witness.")
         print("Neither relies on a direct IRI assertion or a named individual.")
     else:

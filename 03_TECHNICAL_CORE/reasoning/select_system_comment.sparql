@@ -3,8 +3,9 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 # EMISSION LAYER — binds rdfs:comment of the system under evaluation.
 #
 # Used by the negative-case output to surface fixture-supplied regulatory
-# reasoning (e.g., the kiosk fixture's comment naming Recital 22 / Article
-# 3(41) and the verification-vs-identification distinction). The comment
+# reasoning (e.g., the kiosk fixture's comment naming Recital 15 + Recital
+# 17 + Annex III 1(a) carve-out and the verification-vs-identification
+# distinction). The comment
 # is fixture-authored ground truth and ships with the TTL; this query
 # avoids embedding fixture-specific legal text as Python literals in the
 # emitter (per CLAUDE.md Output discipline).
