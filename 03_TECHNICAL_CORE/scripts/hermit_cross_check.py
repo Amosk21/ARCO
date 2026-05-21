@@ -69,6 +69,7 @@ CERTIFICATE_GRADE_SCENARIOS: list[tuple[str, list[str]]] = [
     ("ARCO_instances_creditscoring.ttl",         ["CreditScorer_001"]),
     ("ARCO_instances_verification.ttl",          ["VerificationKiosk_001"]),
     ("ARCO_instances_adversarial_decoy.ttl",     ["DecoySystem_001"]),
+    ("ARCO_instances_adversarial_decoy_5b.ttl",  ["WeirdCalcSystem_001"]),
     ("ARCO_instances_flag_tests.ttl",            ["FlagTest_BiometricSystem_WithDerogationClaim",
                                                   "FlagTest_CreditSystem_WithFraudProcess"]),
 ]

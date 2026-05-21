@@ -202,6 +202,7 @@ jobs:
           - ARCO_instances_creditscoring.ttl
           - ARCO_instances_verification.ttl
           - ARCO_instances_adversarial_decoy.ttl
+          - ARCO_instances_adversarial_decoy_5b.ttl
           - ARCO_instances_flag_tests.ttl
 
     steps:
