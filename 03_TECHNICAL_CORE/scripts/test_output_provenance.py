@@ -282,8 +282,8 @@ def main() -> int:
     print(f"Pipeline: {PIPELINE_PATH.relative_to(REPO_ROOT)}")
     print(f"Manifest version: {manifest.get('manifest_version')}")
     print()
-    print("This test fails today by design. Each failure names a v1.2 emitter")
-    print("violation. PR2-PR6 each move at least one failure to passing.")
+    print("This test names output-provenance emitter violations when present.")
+    print("Current acceptance target: zero failures.")
     print()
 
     hr("Check 1 — forbidden source patterns")

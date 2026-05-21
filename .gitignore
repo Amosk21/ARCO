@@ -4,6 +4,8 @@
 
 # Obsidian knowledge base (local only, not versioned)
 KB/
+# Defensive: even if KB/ rule changes, never commit vendor node_modules trees
+KB/**/node_modules/
 
 # Git metadata (huge)
 .git/
