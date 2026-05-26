@@ -6,6 +6,8 @@
 @prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix skos:<http://www.w3.org/2004/02/skos/core#> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://arco.ai/ontology/core> rdf:type owl:Ontology ;
   rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned"@en ;
@@ -41,6 +43,44 @@
 #   extension, not here. Core contains only reality-side universals.
 #   AnnexIII1aApplicableSystem: full three-gate (capability + intent +
 #   scenario). Defined in governance extension.
+
+#################################################################
+# 0) REGULATORY-PROVENANCE ANNOTATION PROPERTY
+#
+# Declared in core (not governance) because annotation properties are
+# inert under classification and benefit from being importable across
+# files. Consumers of the governance extension inherit it automatically.
+#
+# :hasRegulatoryBasis is a narrow annotation-only exception to CLAUDE.md
+# Invariant 6 (no custom properties). It is a subproperty of canonical
+# CCO doctrinal_source and definition_source. Full CCO v1.7 declares
+# doctrinal_source as a subproperty of definition_source; ARCO's BOT slim
+# does not currently preserve that annotation-property hierarchy, so both
+# parent links are stated here on the ARCO-local annotation property. This
+# keeps the typed regulatory citations transparently visible to CCO consumers
+# querying either doctrinal source or the broader definition-source predicate.
+# The exception is documented at
+# OPEN_PROBLEMS.md X.13 and docs/modeling_decisions/decisions_justification_map.md S3a.
+#
+# Constraints (do not relax without re-litigating S3a):
+#   - Annotation-only; never used in classification, object-property
+#     reasoning, or BFO relation modeling.
+#   - Subproperty of cco:doctrinal_source preserves the sharper doctrinal
+#     signal; subproperty of cco:definition_source preserves broader
+#     canonical-consumer compatibility despite BOT dropping the upstream
+#     annotation-property hierarchy.
+#   - Applied to regulatory universals (the fiat-grouping classes) and
+#     to OWL Axiom reifications on regulatory disjointness axioms.
+#     NOT applied to leaf capability kinds — those are treated as bona
+#     fide capability kinds (real participant-structure / cardinality
+#     distinctions); the Smith-Varzi pattern is applied analogically
+#     only at regulatory-extension partitions — see S3a.
+#################################################################
+
+:hasRegulatoryBasis a owl:AnnotationProperty ;
+  rdfs:subPropertyOf cco:doctrinal_source , cco:definition_source ;
+  rdfs:label "has regulatory basis"@en ;
+  skos:definition "Annotation property pointing the annotated class or axiom at the regulatory text that determines its extension. Subproperty of cco:doctrinal_source, narrowed to legal-authority citations for regulatory fiat partitions and regulatory disjointness consequences. Also asserted as a subproperty of cco:definition_source because ARCO's BOT slim does not preserve the upstream CCO annotation-property hierarchy from cco:doctrinal_source to cco:definition_source; this keeps regulatory citations visible to consumers querying the broader CCO definition-source predicate while carrying the sharper doctrinal-source signal. Documented narrow exception to ARCO Invariant 6 (no custom properties); annotation-only, semantically inert under OWL-RL classification and HermiT DL reasoning. See docs/modeling_decisions/decisions_justification_map.md S3a and OPEN_PROBLEMS.md X.13."@en .
 
 #################################################################
 # 1) REALITY-SIDE UNIVERSALS (BFO)
@@ -110,6 +150,21 @@
 :BiometricIdentificationCapability owl:disjointWith :BiometricVerificationCapability .
 :BiometricIdentificationCapability owl:disjointWith :CreditworthinessEvaluationCapability .
 :BiometricVerificationCapability owl:disjointWith :CreditworthinessEvaluationCapability .
+
+# Regulatory-fiat annotation on the identification-vs-verification disjointness.
+# The underlying 1:N identification vs 1:1 verification cardinality is a real
+# capability-kind distinction (different participant structures, different
+# realizable process kinds). The regulatory CONSEQUENCE — that verification is
+# carved out of Annex III 1(a) — is a fiat cut grounded in Regulation (EU)
+# 2024/1689. See OPEN_PROBLEMS.md X.13 and decisions_justification_map.md S3a.
+[ a owl:Axiom ;
+  owl:annotatedSource :BiometricIdentificationCapability ;
+  owl:annotatedProperty owl:disjointWith ;
+  owl:annotatedTarget :BiometricVerificationCapability ;
+  :hasRegulatoryBasis "Regulation (EU) 2024/1689, Article 3(35) (biometric identification definition), Article 3(36) (biometric verification definition, 1:1), Article 3(41) (remote biometric identification system definition), Annex III item 1(a), Recitals 15 and 17"@en ;
+  :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
+  skos:scopeNote "The 1:N identification and 1:1 verification process kinds have real technical content: different required participants, different realizable process kinds, different evaluability metrics (FAR/FRR for verification; rank-N accuracy for identification). The REGULATORY CONSEQUENCE of this disjointness — that biometric verification is excluded from Annex III 1(a) per Recital 15 / Recital 17 / Annex III 1(a) operative carve-out — is a fiat legal cut grounded in Regulation (EU) 2024/1689 Articles 3(35), 3(36), and 3(41). Smith-Varzi fiat/bona-fide distinction used analogically per S3a: the capability kinds are bona fide; the regulatory exclusion that rides on this disjointness is fiat."@en
+] .
 
 :OperationalProcess rdf:type owl:Class ;
   rdfs:label "Operational Process"@en ;
