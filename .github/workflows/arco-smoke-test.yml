@@ -49,3 +49,6 @@ jobs:
 
       - name: Run adversarial-mechanism regression tests
         run: python 03_TECHNICAL_CORE/scripts/test_adversarial_mechanism.py
+
+      - name: Run canonical-IRI version-pin conformance test
+        run: python 03_TECHNICAL_CORE/scripts/test_canonical_iris.py

@@ -102,6 +102,12 @@ jobs:
           set -euo pipefail
           python -u 03_TECHNICAL_CORE/scripts/test_adversarial_mechanism.py
 
+      - name: Run canonical-IRI version-pin conformance test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u 03_TECHNICAL_CORE/scripts/test_canonical_iris.py
+
       - name: Verify artifact files exist
         shell: bash
         run: |

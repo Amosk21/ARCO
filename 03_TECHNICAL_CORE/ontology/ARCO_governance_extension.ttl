@@ -7,6 +7,7 @@
 @prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix skos:<http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://arco.ai/ontology/governance>
 a owl:Ontology ;
@@ -173,7 +174,7 @@ cco:Organization rdf:type owl:Class ;
 
 :AnnexIII_Condition_1a rdf:type :RegulatoryContent ;
   rdfs:label "Annex III 1(a) (Biometric Rule)" ;
-  rdfs:comment "Annex III item 1(a): biometric identification of natural persons. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning) — the regulation prescribes process types, not deployment-specific tokens." ;
+  rdfs:comment "Annex III item 1(a): remote biometric identification systems (Article 3(41)), with the biometric-verification carve-out. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning) — the regulation prescribes process types, not deployment-specific tokens." ;
   cco:prescribes :RemoteBiometricIdentificationProcess ;
   iao:0000136 :BiometricIdentificationCapability ;
   iao:0000136 :RemoteBiometricIdentificationProcess ;
@@ -181,7 +182,7 @@ cco:Organization rdf:type owl:Class ;
 
 :AnnexIII_Condition_5b rdf:type :RegulatoryContent ;
   rdfs:label "Annex III 5(b) (Creditworthiness Rule)" ;
-  rdfs:comment "Annex III item 5(b): AI systems intended to evaluate the creditworthiness of natural persons or establish their credit score, with the exception of AI systems used for the purpose of detecting financial fraud. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning)." ;
+  rdfs:comment "Annex III item 5(b): AI systems intended to be used to evaluate the creditworthiness of natural persons or establish their credit score, with the exception of AI systems used for the purpose of detecting financial fraud. cco:prescribes targets the regulated process TYPE (class IRI as concept-individual via OWL 2 punning)." ;
   cco:prescribes :CreditworthinessEvaluationProcess ;
   iao:0000136 :CreditworthinessEvaluationCapability ;
   iao:0000136 :CreditworthinessEvaluationProcess ;
@@ -219,6 +220,9 @@ cco:Organization rdf:type owl:Class ;
   rdfs:label "Annex III Triggering Capability"@en ;
   skos:definition "A capability whose presence in an AI system component triggers Annex III applicability under Regulation (EU) 2024/1689. Membership is the union of capability classes named by Annex III, fixed by the regulation rather than by any single shared physical property."@en ;
   rdfs:comment "Defined class. Membership is the union of capability classes named by Annex III of Regulation (EU) 2024/1689, fixed by regulation rather than by primitive subsumption. Each member is a real BFO capability disposition; the grouping is by extrinsic regulatory criterion under Article 6. The rdfs:subClassOf :CapabilityDisposition relationship is entailed by the union (each member is a CapabilityDisposition); not stated explicitly to avoid redundancy. Adding a new Annex III capability category requires (a) adding the new class to the owl:unionOf list and (b) asserting rdfs:subClassOf :AnnexIIITriggeringCapability for in-file readability." ;
+  :hasRegulatoryBasis "Regulation (EU) 2024/1689, Article 6(2) and Annex III"@en ;
+  :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
+  skos:scopeNote "Universal whose instances are real BFO capability dispositions; the GROUPING (owl:unionOf over member capability classes) is determined by Regulation (EU) 2024/1689 Annex III as named under Article 6(2), not by a single shared physical property in reality. Smith-Varzi fiat/bona-fide distinction used analogically per docs/modeling_decisions/decisions_justification_map.md S3a: members are bona-fide capability kinds; the regulatory grouping is a fiat partition by extrinsic criterion under Article 6, not a natural joint."@en ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:unionOf (
@@ -238,6 +242,9 @@ cco:Organization rdf:type owl:Class ;
   rdfs:label "Annex III Capability-Precondition Flag"@en ;
   skos:definition "An AI system flagged as carrying a capability that triggers Annex III. This is a latent-risk indicator that fires from Gate 1 alone (capability precondition); the full Annex III applicability classification requires all three gates and is recorded by the category-specific applicable-system classes."@en ;
   rdfs:comment "Latent-risk flag. Membership is satisfied by Gate 1 alone: the system has a SystemComponent that bears a disposition belonging to AnnexIIITriggeringCapability. This class is INFERRED by the reasoner and presented in the certificate as LATENT-RISK FLAG. It is NOT the full legal high-risk category — that requires all three gates (capability + intended use + use scenario) and is captured by the category-specific classes (AnnexIII1aApplicableSystem, AnnexIII5bApplicableSystem). The IRI is retained as :HighRiskSystem for backward compatibility with downstream consumers; the rdfs:label and this comment reflect what the axiom actually entails." ;
+  :hasRegulatoryBasis "Regulation (EU) 2024/1689, Article 6 and Annex III"@en ;
+  :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
+  skos:scopeNote "Universal whose instances are AI systems bearing a triggering-capability disposition via a SystemComponent; extension fixed by the latent-flag Gate-1-only axiom. The class denotes systems bearing the triggering capability, not the act of flagging them. This is the LATENT-FLAG layer, NOT the EU AI Act legal high-risk classification — the full Annex III applicability requires three gates per :AnnexIII1aApplicableSystem / :AnnexIII5bApplicableSystem. Smith-Varzi fiat/bona-fide distinction used analogically per S3a: instances are real systems; the partition criterion is regulatory under Article 6, not a natural joint."@en ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:intersectionOf (
@@ -325,11 +332,19 @@ cco:Organization rdf:type owl:Class ;
     owl:someValuesFrom :System
   ] .
 
+# GENUS (Art 3(35)): general biometric identification process (1:N). Its subkinds are
+# distinguished by the differentia of the subject's active involvement (Art 3(41)).
+:BiometricIdentificationProcess rdf:type owl:Class ;
+  rdfs:label "Biometric Identification Process"@en ;
+  skos:definition "A process that establishes the identity of a natural person by comparing their biometric data against a set of stored reference data (one-to-many matching), per Regulation (EU) 2024/1689 Article 3(35). Genus whose regulated subkind is the remote process (Annex III 1(a), Article 3(41)); no non-remote subkind is minted because the Act defines none, and the bare genus does not trigger Annex III 1(a)."@en ;
+  rdfs:comment "ARCO mints this genus so the non-remote (active-involvement) case is expressible as a positive non-triggering process type rather than only by absence. Gate 2 of AnnexIII1aApplicableSystem keys on the :RemoteBiometricIdentificationProcess subkind via owl:someValuesFrom, so the bare genus does NOT entail Annex III 1(a)." ;
+  rdfs:subClassOf bfo:0000015 . # Process
+
 :RemoteBiometricIdentificationProcess rdf:type owl:Class ;
   rdfs:label "Remote Biometric Identification Process"@en ;
-  skos:definition "A biometric identification process operating remotely against a stored reference set. The regulated process type for Annex III 1(a)."@en ;
-  rdfs:comment "1:N biometric identification process regulated under Annex III 1(a). Has a real causal core (biometric feature extraction + matching at distance) but its type-boundary is partly constituted by regulatory fiat. Modeled as a BFO Process subclass; used as the Gate 2 type-check target for AnnexIII1aApplicableSystem. DISCLOSURE: Regulation (EU) 2024/1689 distinguishes real-time remote biometric identification in publicly accessible spaces for law enforcement (Article 5 prohibition with conditional derogations) from post remote biometric identification subject to Annex III high-risk duties. ARCO does NOT currently model the real-time/post distinction or law-enforcement deployer context; this rdfs:comment is disclosure only and does not change Gate 2 evaluation." ;
-  rdfs:subClassOf bfo:0000015 . # Process
+  skos:definition "A biometric identification process performed without the subject's active involvement, typically at a distance, by comparison against a stored reference set, per Regulation (EU) 2024/1689 Article 3(41). The regulated process type for Annex III 1(a)."@en ;
+  rdfs:comment "1:N biometric identification process regulated under Annex III 1(a). Has a real causal core (biometric feature extraction + matching without the subject's active involvement) but its type-boundary is partly constituted by regulatory fiat. Modeled as a subclass of :BiometricIdentificationProcess; used as the Gate 2 type-check target for AnnexIII1aApplicableSystem. DISCLOSURE: Regulation (EU) 2024/1689 distinguishes real-time remote biometric identification in publicly accessible spaces for law enforcement (Article 5 prohibition with conditional derogations) from post remote biometric identification subject to Annex III high-risk duties. ARCO does NOT currently model the real-time/post distinction or law-enforcement deployer context; this rdfs:comment is disclosure only and does not change Gate 2 evaluation." ;
+  rdfs:subClassOf :BiometricIdentificationProcess .
 
 :PostRemoteBiometricIdentificationProcess rdf:type owl:Class ;
   rdfs:label "Post Remote Biometric Identification Process"@en ;
@@ -346,16 +361,48 @@ cco:Organization rdf:type owl:Class ;
 :PostRemoteBiometricIdentificationProcess
   owl:disjointWith :RealTimeRemoteBiometricIdentificationProcess .
 
+# Regulatory-fiat annotation on the post-vs-real-time disjointness.
+# Article 3(42) defines real-time RBI (capture/comparison/identification without
+# significant delay); Article 3(43) defines post RBI (everything else). The
+# temporal-delay boundary is regulatory — there is a continuum of capture-to-
+# identification latencies in real systems; the cut at "significant delay" is a
+# fiat line drawn by the regulation. The regulatory CONSEQUENCE (real-time RBI
+# routing toward Article 5(1)(h) prohibited-practice analysis) is fiat-shaped.
+# See OPEN_PROBLEMS.md X.13 and decisions_justification_map.md S3a.
+[ a owl:Axiom ;
+  owl:annotatedSource :PostRemoteBiometricIdentificationProcess ;
+  owl:annotatedProperty owl:disjointWith ;
+  owl:annotatedTarget :RealTimeRemoteBiometricIdentificationProcess ;
+  :hasRegulatoryBasis "Regulation (EU) 2024/1689, Article 3(42) (real-time RBI definition), Article 3(43) (post RBI definition)"@en ;
+  :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
+  skos:scopeNote "Real-time vs post temporal-delay distinction. The underlying latency continuum is real (capture-to-identification timing is a continuous parameter of system behavior); the cut at 'significant delay' that distinguishes the two regulatory subkinds is drawn by Articles 3(42) and 3(43). The downstream regulatory consequence — real-time RBI routing toward Article 5(1)(h) prohibited-practice analysis (scoped future work; see :RealTimeRemoteBiometricIdentificationProcess rdfs:comment) — is fiat-shaped. Smith-Varzi fiat/bona-fide distinction used analogically per S3a: the latency parameter is bona fide; the partition by 'significant delay' is fiat under Articles 3(42), 3(43)."@en
+] .
+
+# NON-REMOTE / non-regulated cases are deliberately NOT minted as a positive class. Per
+# Regulation (EU) 2024/1689 there is no "cooperative identification" category: the at-the-door /
+# premises-access case is biometric VERIFICATION (1:1), excluded by Recital 15 and Recital 17
+# (both name "security access to premises"), modeled by :BiometricVerificationProcess below; and
+# 1:N identification not asserted to be remote is the bare genus :BiometricIdentificationProcess,
+# which does not satisfy Gate 2 (keyed on :RemoteBiometricIdentificationProcess). Whether a given
+# walk-up 1:N deployment is "remote" (without active involvement, Art 3(41)) is a deployer-
+# elicitation question, not a baked-in class. (An earlier draft minted a :Cooperative... subkind;
+# removed as an invented regulatory category after verbatim source audit of Recitals 15 and 17.)
+
 :BiometricVerificationProcess rdf:type owl:Class ;
   rdfs:label "Biometric Verification Process"@en ;
   skos:definition "A biometric verification process operating one-to-one against a claimed identity. Out of scope of Annex III 1(a)."@en ;
-  rdfs:comment "1:1 biometric verification process. Confirms a claimed identity against a single reference. NOT RemoteBiometricIdentificationProcess — verification is not a subtype of identification. NOT regulated under Annex III 1(a)." ;
+  rdfs:comment "1:1 biometric verification process. Confirms a claimed identity against a single reference. NOT a subtype of :BiometricIdentificationProcess; verification is not identification (Art 3(36) vs Art 3(35)). NOT regulated under Annex III 1(a)." ;
   rdfs:subClassOf bfo:0000015 . # Process
+
+# Mirror the capability-layer disjointness (:BiometricIdentificationCapability owl:disjointWith
+# :BiometricVerificationCapability, ARCO_core.ttl) at the process layer: verification is not
+# identification, so the new :BiometricIdentificationProcess genus does not subsume it.
+:BiometricVerificationProcess owl:disjointWith :BiometricIdentificationProcess .
 
 :CreditworthinessEvaluationProcess rdf:type owl:Class ;
   rdfs:label "Creditworthiness Evaluation Process"@en ;
   skos:definition "A process that evaluates a person's creditworthiness or assigns a credit score. The regulated process type for Annex III 5(b)."@en ;
-  rdfs:comment "Process of evaluating the creditworthiness of natural persons or establishing their credit score for access to financial or public services. Regulated under Annex III 5(b). Used as the Gate 2 type-check target for AnnexIII5bApplicableSystem." ;
+  rdfs:comment "Process of evaluating the creditworthiness of natural persons or establishing their credit score — the Annex III 5(b) operative text. Benefits-eligibility scoring for public assistance (Annex III 5(a) territory, unmodeled) is NOT this class. Used as the Gate 2 type-check target for AnnexIII5bApplicableSystem." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
 :NaturalPersonRole rdf:type owl:Class ;
@@ -443,12 +490,15 @@ cco:Organization rdf:type owl:Class ;
 :AnnexIII1aApplicableSystem rdf:type owl:Class ;
   rdfs:label "Annex III 1(a) Applicable System"@en ;
   skos:definition "An AI system that satisfies all three gates for Annex III 1(a) (biometric identification): a component bearing a triggering capability, an intended use prescribing a remote biometric identification process, and a use scenario designating natural persons as the affected role."@en ;
-  rdfs:comment """System that meets Annex III 1(a) conditions via three independently necessary gates:
+  rdfs:comment """System that satisfies ARCO's three-gate encoding of Annex III 1(a) via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :RemoteBiometricIdentificationProcess. Uses owl:someValuesFrom for genuine type-checking; any correctly typed process token satisfies the gate.
     Gate 3 (representation-side): affected role — a UseScenarioSpecification (a Designative ICE) is_about the system AND cco:designates :NaturalPersonRole. Uses cco:designates with owl:hasValue at the universal level: the designation property's range admits universals, so the gate references the role category by its class IRI without requiring a role-bearer (BFO Roles are bearer-dependent specifically dependent continuants; designation by inscription is the canonical CCO pattern for naming a category).
   Classification is OWL-entailed under owlrl; gate independence verified by regression test (test_gate_removal.py).
-  SPARQL ASK queries (check_intended_use, check_regulatory_alignment) are downstream audit-layer checks that inspect declared documentary content on the reasoned graph; they do not contribute to this entailment and cannot affect it.""" ;
+  SPARQL ASK queries (check_intended_use, check_regulatory_alignment) are downstream audit-layer checks that inspect declared documentary content on the reasoned graph; they do not contribute to this entailment and cannot affect it. Encoding note: Gates 2 and 3 carry the Act's intended-use and affected-population conditions; Gate 1 (capability) is ARCO's design-time evidential addition, stricter than the Annex III text — absence of a capability assertion blocks entailment even when regulated intent is documented (under-classification direction; see LIMITATIONS §3.9).""" ;
+  :hasRegulatoryBasis "Regulation (EU) 2024/1689, Annex III item 1(a); Article 6(2); Article 3(41) (remote biometric identification system definition); Article 3(36) (verification carve-out); Recitals 15 and 17"@en ;
+  :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
+  skos:scopeNote "Universal whose instances are AI systems satisfying the three-gate defined-class axiom for Annex III 1(a); ARCO reports membership only as entailed under reviewed commitments. The partition criterion is the conjunction of the intended-use and use-scenario gates carried by Annex III item 1(a) with ARCO's added capability gate (LIMITATIONS §3.9) — a regulatory fiat boundary plus an ARCO-added capability condition (not part of the Annex III text; evidential in effect, since entailment requires a reviewed capability commitment), not a natural joint in the system space. Smith-Varzi fiat/bona-fide distinction used analogically per S3a: instances are real systems; the boundary that picks them out is determined by Regulation (EU) 2024/1689, not by a shared physical property."@en ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
     rdf:type owl:Class ;
@@ -522,20 +572,23 @@ cco:Organization rdf:type owl:Class ;
 #         — genuine type-check, same pattern as 1(a) Gate 3.
 #
 # Conservative claim: demonstrates category extension for
-# creditworthiness evaluation. Micro-enterprise exclusions and
-# other 5(b) legal nuances are not modeled at this stage.
+# creditworthiness evaluation. The 5(b) fraud-detection carve-out
+# and other 5(b) legal nuances are not modeled at this stage.
 #################################################################
 
 :AnnexIII5bApplicableSystem rdf:type owl:Class ;
   rdfs:label "Annex III 5(b) Applicable System"@en ;
   skos:definition "An AI system that satisfies all three gates for Annex III 5(b) (creditworthiness): a component bearing a triggering capability, an intended use prescribing a creditworthiness evaluation process, and a use scenario designating natural persons as the affected role."@en ;
-  rdfs:comment """System meeting Annex III 5(b) conditions via three independently necessary gates:
+  rdfs:comment """System satisfying ARCO's three-gate encoding of Annex III 5(b) via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition CreditworthinessEvaluationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :CreditworthinessEvaluationProcess. Same pattern as 1(a); any correctly typed process token satisfies the gate.
     Gate 3 (representation-side): affected role — a UseScenarioSpecification (a Designative ICE) is_about the system AND cco:designates :NaturalPersonRole. Same pattern as 1(a) Gate 3: cco:designates with owl:hasValue references the role universal at the class-IRI level via a typed designation property whose range admits universals; no role tokens required.
   Classification is OWL-entailed under owlrl.
-  Conservative scope: demonstrates category extension; micro-enterprise exclusions and other 5(b) nuances remain deferred.
-  Cross-category non-entailment: a system bearing only CreditworthinessEvaluationCapability is NOT entailed as AnnexIII1aApplicableSystem; a system bearing only BiometricIdentificationCapability is NOT entailed as AnnexIII5bApplicableSystem. (OWA — both claims hold under current assertions.)""" ;
+  Conservative scope: demonstrates category extension; the fraud-detection carve-out and other 5(b) nuances remain deferred (audit-layer flag only, not a classification gate).
+  Cross-category non-entailment: a system bearing only CreditworthinessEvaluationCapability is NOT entailed as AnnexIII1aApplicableSystem; a system bearing only BiometricIdentificationCapability is NOT entailed as AnnexIII5bApplicableSystem. (OWA — both claims hold under current assertions.) Encoding note: Gates 2 and 3 carry the Act's intended-use and affected-population conditions; Gate 1 (capability) is ARCO's design-time evidential addition, stricter than the Annex III text (under-classification direction; see LIMITATIONS §3.9).""" ;
+  :hasRegulatoryBasis "Regulation (EU) 2024/1689, Annex III item 5(b); Article 6(2)"@en ;
+  :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
+  skos:scopeNote "Universal whose instances are AI systems satisfying the three-gate defined-class axiom for Annex III 5(b); ARCO reports membership only as entailed under reviewed commitments. The partition criterion is the conjunction of the intended-use and use-scenario gates carried by Annex III item 5(b) with ARCO's added capability gate (LIMITATIONS §3.9) — a regulatory fiat boundary plus an ARCO-added capability condition (not part of the Annex III text; evidential in effect, since entailment requires a reviewed capability commitment), not a natural joint in the system space. Smith-Varzi fiat/bona-fide distinction used analogically per S3a: instances are real systems; the boundary that picks them out is determined by Regulation (EU) 2024/1689, not by a shared physical property. Conservative scope: the fraud-detection carve-out (the single exception clause in Annex III 5(b)) is not modeled as a classification gate; it is disclosed at LIMITATIONS §2 and surfaced by the audit-layer flag query, and carve-out-as-OWL-consequence is deliberately held closed pending firm legal interpretation. Fiat-boundary annotation for the carve-out class is queued as X.14."@en ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
     rdf:type owl:Class ;

@@ -4,7 +4,7 @@
 
 Every modeling decision in ARCO is open to challenge with traceable evidence (the Fallibilism conviction). A reader who wants to challenge a decision should be able to walk to the file, line, or canon citation that defends it. This map is that walk: each load-bearing decision, the plain-English rationale, and the canonical anchor it rests on.
 
-The map is tested against the same accuracy bar as the three diagram files in this folder. Where a decision rests on multiple anchors, all are listed.
+The map is tested against the same accuracy bar as the three diagram files in this folder. Where a decision rests on multiple anchors, all are listed. TTL line anchors were re-verified 2026-05-26 against the working tree after the X.13 annotation pass; `LIMITATIONS.md` section anchors were not re-checked in that pass, and the governance anchors below line 385 (S5, S7, I3, I4) will shift again when the queued X.14 pass lands.
 
 ## How to use this map
 
@@ -30,7 +30,7 @@ The hardware bears a capability disposition whether or not the disposition is cu
 
 ARCO targets the latent capability the bearer's physical make-up grounds, regardless of whether the make-up was designed for that purpose. Function is a disposition-subkind whose physical make-up exists *for that purpose*; typing capability as Function would narrow ARCO out of the latent case (a hardware that physically grounds biometric capacity without being designed-for-it would not bear a Function but does bear a Disposition).
 
-**Anchor**: `ARCO_core.ttl:26-38` (rationale comment, post-X.11 fix); BFO 2020 [064-001] Function elucidation at `bfo-2020.owl:1326-1327`.
+**Anchor**: `ARCO_core.ttl:124-127` (`:CapabilityDisposition ⊑ bfo:0000016` declaration; rationale comment at `:28`); BFO 2020 [064-001] Function elucidation at `bfo-2020.owl:1326-1327`.
 
 **Why it matters**: Disposition admits both latent-only capacities AND designed-for functions as subkinds. Function would exclude the latent case. Terminal choice, not deferred upgrade.
 
@@ -70,7 +70,7 @@ Adding participant facts, temporal regions, sites, or role-bearer particulars to
 
 ARCO uses readable v1.7 IRIs (`cco:Person`, `cco:InformationBearingEntity`, `cco:designates`). The post-v1.7 release line (CCO v2.0-2024-11-06 introduced the namespace migration; current upstream is v2.1-2026-04-04) switched to ont-numbered IRIs (`cco:ont00000016`, `cco:ont00000253`, `cco:ont00001017`, etc.) under the new canonical namespace `https://www.commoncoreontologies.org/`. ARCO does NOT import this v2.x line. Canon-checks against the wrong version's IRIs are a canon hallucination of the same shape as wrong-direction BFO predicates.
 
-**Anchor**: `ARCO_governance_extension.ttl:15` (CCO version pin in `owl:versionInfo` comment); the CCO v1.7-2024-11-03 readable-IRI pin governs all CCO references in ARCO TTL.
+**Anchor**: `ARCO_governance_extension.ttl:16` (CCO version pin in `owl:versionInfo`); the CCO v1.7-2024-11-03 readable-IRI pin governs all CCO references in ARCO TTL.
 
 **Why it matters**: Cross-references between ARCO and external work (abi, Tradecraft, both of which track the v2.x line) fail silently if the version isn't pinned and tracked explicitly. The pin is deliberate (stay-on-v1.7 preserves namespace stability across ARCO instance fixtures); migration to v2.x is future work that activates only on an external constraint (real source document references v2.x classes, partner standardizes on v2.x, or v1.7 falls out of upstream tooling support).
 
@@ -111,15 +111,33 @@ The capability disposition is located on a `SystemComponent`, not on the `System
 
 There is no mind-independent property shared by all "triggering capabilities" in reality. What makes a capability "triggering" is the legal text of Annex III. ARCO models this as a defined class whose extension is fixed by `owl:unionOf` over the listed member capability classes. Each member IS a real BFO disposition (subclass of `:CapabilityDisposition`); the grouping is by extrinsic regulatory criterion under Article 6.
 
-**Anchor**: `ARCO_governance_extension.ttl:180-190` (class declaration + rdfs:comment); `LIMITATIONS.md §3.2` (regulatory grouping disclosure).
+**Anchor**: `ARCO_governance_extension.ttl:219-232` (class declaration + rdfs:comment + owl:unionOf); `LIMITATIONS.md §3.2` (regulatory grouping disclosure).
 
 **Why it matters**: Treating the grouping as a primitive subsumption would be Realism conviction failure: there is no real shared property to subsume by. The fiat partition model (cut + bearer + consequence per Smith/Varzi) is the BFO-defensible move when membership is institutional, not natural.
+
+### S3a. Regulatory fiat-boundary annotation pattern (machine-readable provenance)
+
+Building on S3's fiat-partition framing, ARCO marks regulatory fiat boundaries with machine-readable annotations rather than only prose. Each regulatory universal carries `:hasRegulatoryBasis` (a subproperty of both `cco:doctrinal_source` and `cco:definition_source`) with two values per class: a human-readable citation as `@en` literal and the EUR-Lex CELEX URI as `xsd:anyURI`. Full CCO v1.7 declares `cco:doctrinal_source` as a subproperty of `cco:definition_source`; ARCO states both parent links locally because the BOT slim extraction does not preserve that annotation-property hierarchy. Each class also carries `skos:scopeNote` with the fiat-extension prose. The same pattern applies via OWL Axiom reification to two disjointness axioms: capability identification vs verification (`ARCO_core.ttl`) and real-time vs post remote biometric identification process (`ARCO_governance_extension.ttl`).
+
+Smith-Varzi (2000) is used analogically. The original distinction targets spatial boundaries (the line between Kansas and Colorado, the surface of an organism). ARCO borrows the methodological pattern (partition by extrinsic regulatory criterion rather than natural joint; cut + bearer + consequence) and applies it to regulatory extension partitions over universals. The analogy is disclosed explicitly here so a reader does not assume ARCO is literally minting BFO `Continuant Fiat Boundary` instances.
+
+Working-precedent note (2026-05-24): no direct working-code precedent was found in the CCO-aligned reference implementations surveyed or in IOF Core for this exact regulatory-fiat-universal annotation pattern. IOF Core verifies the broader documentary-ICE pattern for specifications, agreements, plans, and objectives; it does not verify this specific regulatory-fiat labeling move. ARCO therefore defends S3a on Smith-Varzi theoretical grounding, canonical CCO citation predicates, and the four-conviction check, not on a claim that existing reference implementations already use the exact pattern.
+
+`:hasRegulatoryBasis` is minted as a narrow annotation-only exception to Invariant 6 (no custom properties), documented at the property declaration in `ARCO_core.ttl`. The property does not participate in classification, object-property reasoning, or BFO relation modeling. It propagates only via OWL-RL subproperty closure as inferred `cco:doctrinal_source` triples and inferred `cco:definition_source` triples — CCO consumers querying either the sharper doctrinal-source predicate or the broader definition-source predicate find the regulatory citations transparently.
+
+Enforcement is review-based in this patch. SHACL shape requiring `:hasRegulatoryBasis` on every regulatory universal is deferred; a future contributor adding a new Annex III applicable-system class and forgetting the annotation will be caught only by code review until the SHACL gate lands.
+
+**Anchor**: `ARCO_core.ttl` (property mint + capability disjointness axiom annotation); `ARCO_governance_extension.ttl` (four-class annotations + process disjointness axiom annotation); `OPEN_PROBLEMS.md` X.13 (fix tracking row); `OPEN_PROBLEMS.md` X.14 (second-pass extension to `:NaturalPersonRole`, `:DerogationClaim`, `:FraudDetectionProcess`); Smith & Varzi, "Fiat and Bona Fide Boundaries" (2000), used analogically; "Against Idiosyncrasy in Ontology Development" Principle 1 (defer to canonical vocabulary — `cco:doctrinal_source` parent with upward closure to `cco:definition_source`) and Principle 5 (terminological moderation — only one custom annotation property, narrowly scoped).
+
+**Cross-references**: extends S3 (regulatory fiat partition); applies to S4 (`:HighRiskSystem` latent-flag annotation includes the pin-back scope-note "The class denotes systems bearing the triggering capability, not the act of flagging them"); applies to S7 (three-gate applicable-system classes); compatible with S5 (`cco:designates owl:hasValue` Gate 3 pattern — also a CCO-canonical annotation usage). Does NOT close L2.3 (file-header `dc:source` citation hygiene is a different shape).
+
+**Why it matters**: makes fiat-boundary status machine-queryable rather than buried in `rdfs:comment` prose. A reviewer querying for "what regulatory text grounds this class" gets a typed answer via the canonical CCO predicates. The pattern is reproducible across other regulatory domains (FDA SaMD, GDPR Article 22, NIST 800-53) without renegotiating the canonical vocabulary. Empirically verified: in-memory simulation across all seven fixtures showed `classification_same = True`; after the `cco:doctrinal_source` tightening, each fixture gains 12 inferred `cco:doctrinal_source` triples plus 12 inferred `cco:definition_source` triples via subproperty closure, with no classification class memberships changed.
 
 ### S4. `:HighRiskSystem` as Gate-1-only latent flag, NOT the legal high-risk category
 
 Membership fires from Gate 1 alone (capability precondition): the system has a SystemComponent bearing a disposition belonging to `:AnnexIIITriggeringCapability`. This is a latent-risk indicator, not the EU AI Act legal high-risk classification. The full Annex III applicability requires all three gates and is captured by category-specific applicable-system classes (`:AnnexIII1aApplicableSystem`, `:AnnexIII5bApplicableSystem`).
 
-**Anchor**: `ARCO_governance_extension.ttl:199-221` (skos:definition + rdfs:comment); `LIMITATIONS.md §3.3` (latent-flag disclosure); `ARCO_core.ttl:148-152` `:HighRiskDetermination` skos:definition (which records either kind of entailment).
+**Anchor**: `ARCO_governance_extension.ttl:241-266` (skos:definition + rdfs:comment + equivalentClass); `LIMITATIONS.md §3.3` (latent-flag disclosure); `ARCO_core.ttl:203-207` `:HighRiskDetermination` skos:definition (which records either kind of entailment).
 
 **Why it matters**: The IRI `:HighRiskSystem` is retained for backward compatibility with downstream consumers, but the rdfs:label is "Annex III Capability-Precondition Flag" to reflect what the axiom actually entails. The certificate's PRIMARY (three-gate) vs LATENT-RISK FLAG (Gate-1 only) split is what makes this honest at the output layer.
 
@@ -127,7 +145,7 @@ Membership fires from Gate 1 alone (capability precondition): the system has a S
 
 Gate 3 references the role universal at the class-IRI level via `cco:designates owl:hasValue`. BFO Roles are bearer-dependent specifically dependent continuants requiring `ro:0000052` to an independent continuant. ARCO does not mint role-bearer particulars without source warrant; the designation pattern lets the gate reference the role category by its class IRI without inventing a bearer-less role token.
 
-**Anchor**: `ARCO_governance_extension.ttl:446-466` (inline rationale block within the Gate 3 axiom); `LIMITATIONS.md §3.1` (Gate 3 role-category encoding via universal-designation, not bearer-less role token).
+**Anchor**: `ARCO_governance_extension.ttl:534-554` (inline rationale block within the 1(a) Gate 3 axiom restriction); `LIMITATIONS.md §3.1` (Gate 3 role-category encoding via universal-designation, not bearer-less role token).
 
 **Why it matters**: `cco:designates` is a typed designation property whose range admits universals (`bfo:0000001 Entity`). Using it with `owl:hasValue` references the role universal directly. This is the canonical CCO usage for designation by inscription (a URL designates a Web Page; a name designates a person), not informal class-as-individual punning, and avoids fake-witness role tokens.
 
@@ -135,7 +153,7 @@ Gate 3 references the role universal at the class-IRI level via `cco:designates 
 
 ARCO commits RO's `characteristic_of` as a specialization of BFO 2020's `inheres_in` so the reasoner inherits BFO's IndependentContinuant range on the inferred inherence triple. RO removed the range to support qualities-of-processes and inherence in ICE; ARCO doesn't model those cases. Bounded enforcement: catches wrong-typed bearer only when typed as a disjoint sibling of IC.
 
-**Anchor**: `ARCO_core.ttl:193-194` (the binding + rdfs:comment); `LIMITATIONS.md §3.8` (line 149+).
+**Anchor**: `ARCO_core.ttl:248-249` (the binding + rdfs:comment); `LIMITATIONS.md §3.8` (line 149+).
 
 **Why it matters**: The binding is hub-and-spoke discipline applied at the property level: using RO's relation for assertions while inheriting BFO's stricter range for reasoning. The mirror direction (`ro:0000053 → bfo:0000196`, the bearer-of side) is NOT yet bound; the parallel-binding work is the next bridging step.
 
@@ -143,9 +161,19 @@ ARCO commits RO's `characteristic_of` as a specialization of BFO 2020's `inheres
 
 `:AnnexIII1aApplicableSystem` and `:AnnexIII5bApplicableSystem` are defined classes via `owl:equivalentClass owl:intersectionOf`. Three gates: Gate 1 (reality, capability disposition via component), Gate 2 (representation, IUS prescribes regulated process via subkind), Gate 3 (representation, USS designates affected role universal). Each gate is independently necessary; classification is OWL-entailed, not pattern-matched.
 
-**Anchor**: `ARCO_governance_extension.ttl:405-468` (1(a) full axiom); `ARCO_governance_extension.ttl:491-550` (5(b) parallel axiom); regression test `test_gate_removal.py` verifies gate independence; `docs/modeling_decisions/three_gate_classifier.md` (visual artifact).
+**Anchor**: `ARCO_governance_extension.ttl:490-556` (1(a) full axiom); `ARCO_governance_extension.ttl:579-641` (5(b) parallel axiom); regression test `test_gate_removal.py` verifies gate independence; `docs/modeling_decisions/three_gate_classifier.md` (visual artifact).
 
 **Why it matters**: The three-gate factoring is what makes ARCO answer "does this system satisfy Annex III?" as a formal entailment. The IUS subkind factoring (Gate 2 via defined-class type-check rather than ad-hoc process-token typing) mirrors the CCO Specification family pattern. The Gate 3 universal-designation pattern (S5) is the bearer-less role move.
+
+### S8. ARCO ICEs are typed to the CCO three-D subtypes (Directive / Descriptive / Designative), not bare ICE
+
+Every ARCO information artifact is refined from `iao:0000030` (Information Content Entity) to one of CCO's three speech-act subtypes, rather than left as a bare ICE. The regulation and the vendor's intended-use spec are **Directive** ICEs (they prescribe: world-to-word fit, a rule or guide for behavior): `:RegulatoryContent` and `:IntendedUseSpecification`. ARCO's own entailment records and the provider's claims are **Descriptive** ICEs (they report a state of affairs: word-to-world fit): `:InformationOutput`, `:ComplianceDetermination`, `:HighRiskDetermination` (via `:ComplianceDetermination`), `:DerogationClaim`. The use-scenario spec is a **Designative** ICE (it denotes the affected-role universal): `:UseScenarioSpecification`.
+
+Bare ICE would be correct but mute. The subtype does three things bare ICE cannot. (1) It states what the artifact actually is: a regulation is a rule that prescribes, not a description of how the world is. (2) It licenses `cco:prescribes` (domain `DirectiveICE`), the property carrying "the regulation prescribes the regulated process kind" and "the IUS prescribes the intended process"; using `cco:prescribes` entails the `DirectiveICE` type via the domain under OWL-RL regardless. (3) The three subtypes are pairwise disjoint, so the reasoner rejects any graph that types the regulation (a directive) as a determination (a descriptive), or vice versa. That makes F3's reality/representation cut enforceable at the finer grain of rule-vs-finding-vs-name, all within representation.
+
+**Anchor**: `ARCO_governance_extension.ttl:114-131` (three-D bridge declarations + the `:RegulatoryContent` / `:InformationOutput` / `:ComplianceDetermination` subtype mapping at 129-131); `:282` (`:IntendedUseSpecification ⊑ DirectiveICE`), `:328` (`:UseScenarioSpecification ⊑ DesignativeICE`), `:401` (`:DerogationClaim ⊑ DescriptiveICE`); `ARCO_core.ttl:187-207` (the ICE class declarations refined in governance); `cco_bot.owl:827-855` (three-D pairwise disjointness); `cco_bot.owl:437` (`cco:prescribes` domain `DirectiveICE`). The three-D taxonomy traces to Searle's illocutionary acts (directive = world-to-word; descriptive/assertive = word-to-world).
+
+**Why it matters**: bare ICE would let the rule and the finding be the same kind of thing, and would not support `cco:prescribes`. This typing keeps "the regulation that sets the rule" formally distinct from "the determination ARCO produced about a system," and it is what the Gate 2 `prescribes` mechanism (S7) rests on. Extends F3 (Reality ≠ Representation) with the within-representation cut; the same regulatory classes also carry the S3a `:hasRegulatoryBasis` provenance annotation.
 
 ---
 
@@ -163,7 +191,7 @@ ARCO's fixtures mint typed process individuals to satisfy Gate 2's `owl:someValu
 
 ARCO declares `:PostRemoteBiometricIdentificationProcess` and `:RealTimeRemoteBiometricIdentificationProcess` as subclasses of `:RemoteBiometricIdentificationProcess` for forward extensibility, but no fixture types into these subclasses. Article 5(1)(h) routing for real-time RBI (prohibited-practice classification) is not modeled. Under the current parent-class Gate 2, an IUS prescribing a real-time RBI particular would entail Annex III 1(a) applicability WITHOUT an Article 5 prohibition flag.
 
-**Anchor**: `ARCO_governance_extension.ttl:296-309` (subclass declarations); `LIMITATIONS.md §3.7.c` (real-time routing scoped future); rdfs:comment on `:RemoteBiometricIdentificationProcess` at line 293 carries the DISCLOSURE inline.
+**Anchor**: `ARCO_governance_extension.ttl:349-362` (subclass declarations); `LIMITATIONS.md §3.7.c` (real-time routing scoped future); rdfs:comment on `:RemoteBiometricIdentificationProcess` at line 338 carries the DISCLOSURE inline.
 
 **Why it matters**: This is a deliberate scope-narrowing. The classifier produces correct Annex III 1(a) entailment for current scope; future deployer-context modeling (law-enforcement deployer, publicly-accessible-space deployment) would activate Article 5 routing as a separate layer.
 
@@ -171,7 +199,7 @@ ARCO declares `:PostRemoteBiometricIdentificationProcess` and `:RealTimeRemoteBi
 
 `:DerogationClaim` is a Descriptive ICE representing a provider's claim that their system qualifies for the Article 6(3) derogation ("shall not be considered to be high-risk where it does not pose a significant risk of harm"). ARCO surfaces the claim in the audit layer (SPARQL flag) but does NOT evaluate validity. The ontology cannot evaluate whether a derogation claim is valid; that requires human legal judgment.
 
-**Anchor**: `ARCO_governance_extension.ttl:335-339` `:DerogationClaim` rdfs:comment; explicit "PROVIDER-ASSERTED ARTIFACT" warning; "NEVER use this class as a gate condition or in an equivalentClass axiom."
+**Anchor**: `ARCO_governance_extension.ttl:420-423` `:DerogationClaim` rdfs:comment; explicit "PROVIDER-ASSERTED ARTIFACT" warning; "NEVER use this class as a gate condition or in an equivalentClass axiom."
 
 **Why it matters**: The derogation evaluation is outside what an ontology can do. ARCO's discipline is to surface the claim for human review, not to silently fold it into the classification. The class is used by the audit layer only and is explicitly forbidden from gate axioms.
 
@@ -179,7 +207,7 @@ ARCO declares `:PostRemoteBiometricIdentificationProcess` and `:RealTimeRemoteBi
 
 Annex III 5(b) excludes "AI systems used for the purpose of detecting financial fraud" from creditworthiness applicability. ARCO's `:FraudDetectionProcess` class is used by the audit-layer SPARQL flag only; it does not participate in any OWL gate condition. The classification cannot be verified by the ontology; fraud-detection-as-primary-purpose is provider-declared.
 
-**Anchor**: `ARCO_governance_extension.ttl:329-333` rdfs:comment.
+**Anchor**: `ARCO_governance_extension.ttl:414-418` rdfs:comment.
 
 **Why it matters**: Same pattern as I3. The ontology surfaces the relevant artifact for human review; the validity assessment is human judgment, not OWL entailment.
 

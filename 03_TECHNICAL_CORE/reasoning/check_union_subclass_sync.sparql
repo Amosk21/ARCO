@@ -18,9 +18,14 @@ PREFIX owl:  <http://www.w3.org/2002/07/owl#>
 # but missing the explicit subclass assertion (or vice versa) will silently
 # diverge from the documented extension protocol in the governance file.
 #
-# This guard runs on the reasoned graph (post-OWL-RL). It does NOT affect
-# OWL classification; it is a documentary consistency check the pipeline
-# surfaces alongside the other audit-layer SPARQL ASKs.
+# This guard runs on the ASSERTED graph (pre-OWL-RL; run_pipeline binds it
+# to g_source — L3.11). On the closure the check is meaningless both ways:
+# Direction 1 (drift detection) is dead because OWL-RL re-materializes the
+# missing rdfs:subClassOf from the union axiom before the guard looks, and
+# Direction 2 false-alarms on the adversarial decoys (inferred alias
+# subclassing). "Explicitly asserted" is only checkable on asserted triples.
+# It does NOT affect OWL classification; it is a documentary consistency
+# check the pipeline surfaces alongside the other audit-layer SPARQL ASKs.
 #
 # This query is graph-level (no system parameter); it inspects the
 # ontology axioms directly.

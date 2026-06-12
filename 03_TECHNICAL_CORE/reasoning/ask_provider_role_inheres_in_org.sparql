@@ -1,6 +1,18 @@
 PREFIX : <https://arco.ai/ontology/core#>
 PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
 
+# DOCUMENTARY SPOT-CHECK (OPEN_PROBLEMS L3.8 disposition, 2026-06-05): this
+# query is hard-pinned to the Sentinel fixture particulars
+# (:ProviderRole_001 / :ProviderOrg_001) and is wired into no pipeline
+# constant, no manifest field, and no test — it is a manual spot-check that
+# the Sentinel provider role inheres in (ro:0000052 inheres_in) its bearer
+# organization. Retained in place per the never-delete default; the
+# parameterized structural check for the same shape lives in the SHACL
+# documentary layer (:ProviderRoleShape, sh:targetClass :ProviderRole,
+# sh:path ro:0000052, in validation/assessment_documentation_shape.ttl).
+# Do not generalize this file; author a caller-bound query instead if a
+# reusable check is needed.
+
 ASK WHERE {
   :ProviderRole_001 ro:0000052 :ProviderOrg_001 .
 }

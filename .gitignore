@@ -96,3 +96,6 @@ scripts/render_html_to_pdf_playwright.py
 
 # Public diagrams are reviewed before being added to Git
 04_DIAGRAMS_AND_MODELS/*
+
+# NCOR business material - never publish to the public ARCO repo
+docs/NCOR/

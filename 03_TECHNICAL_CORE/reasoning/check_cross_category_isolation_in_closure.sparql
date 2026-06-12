@@ -1,0 +1,26 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# AUDIT LAYER — cross-category isolation check (absence-in-closure).
+# TRUE = the bound ?system is NOT a member of the bound foreign Annex III
+# class in the materialized OWL-RL closure.
+#
+# Deliberately per-(system, class): the Annex III applicability classes are
+# not asserted disjoint, and the regulation does not forbid one system
+# falling under two categories. This audits that a SPECIFIC system did not
+# leak into a SPECIFIC foreign category under current assertions —
+# contingent isolation, not entailed disjointness. Audit-layer counterpart
+# to the cross-category expectations already asserted in test_scenarios.py.
+#
+# Same absence-in-closure boundary as
+# check_negative_case_no_annex_iii_in_closure.sparql: absence here is not
+# DL non-entailment; HermiT is the independent DL check.
+#
+# ?system and ?excluded_class are bound by the caller (initBindings).
+# Closes OPEN_PROBLEMS L3.8 gap (3). Report-only in run_pipeline.py; not an
+# audit_pass constituent; classification authority remains OWL-RL entailment.
+
+ASK WHERE {
+  ?system rdf:type :System .
+  FILTER NOT EXISTS { ?system rdf:type ?excluded_class . }
+}

@@ -4,6 +4,15 @@ PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 # Checks that a compliance obligation links the system to a provider role.
 # This is the "who bears responsibility" foundation.
 #
+# LANE NOTE (OPEN_PROBLEMS L3.8 disposition, 2026-06-05): this query asks a
+# documentary-completeness question, which is SHACL-shaped territory — but it
+# is a LIVE graph_backed audit constituent, not a misfiled leftover: it feeds
+# the obligation_check manifest field (output_manifest_v2.yaml), is conjoined
+# into audit_pass in run_pipeline.py, and is consumed downstream (MCP). SHACL
+# is its structural-completeness sibling, not its replacement. Do not move,
+# delete, or duplicate this check into SHACL without auditing those consumers
+# (two-source-of-truth risk).
+#
 # The ?system variable is bound by the caller (rdflib initBindings or ROBOT
 # --initial-binding) to the system IRI under evaluation.
 

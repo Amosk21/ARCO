@@ -5,4 +5,6 @@ http://www.ontologyrepository.com/CommonCoreOntologies/DesignativeInformationCon
 http://www.ontologyrepository.com/CommonCoreOntologies/prescribes
 http://www.ontologyrepository.com/CommonCoreOntologies/designates
 http://www.ontologyrepository.com/CommonCoreOntologies/has_output
+http://www.ontologyrepository.com/CommonCoreOntologies/definition_source
+http://www.ontologyrepository.com/CommonCoreOntologies/doctrinal_source
 http://www.ontologyrepository.com/CommonCoreOntologies/Person

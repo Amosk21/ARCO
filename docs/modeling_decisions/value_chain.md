@@ -31,23 +31,23 @@ flowchart TB
   LEDGER["Evidence ledger<br/>human adjudicates source-text to triple<br/>docs/kiosk_demo_v1/evidence_ledger.md"]:::human
 
   subgraph REAL ["Reality side: POPULATED (BFO IC and SDC subkinds)"]
-    SYS[":System ⊑ bfo:0000027<br/>Sentinel, CreditScorer, Kiosk +3<br/>ARCO_core.ttl:58"]:::reality
-    COMP[":HardwareComponent ⊑ bfo:0000030<br/>bears dispositions<br/>ARCO_core.ttl:74"]:::reality
-    DISP[":CapabilityDisposition ⊑ bfo:0000016<br/>latent-capability target<br/>(rationale at ARCO_core.ttl:26-38)<br/>ARCO_core.ttl:84"]:::reality
+    SYS[":System ⊑ bfo:0000027<br/>Sentinel, CreditScorer, Kiosk +3<br/>ARCO_core.ttl:98"]:::reality
+    COMP[":HardwareComponent ⊑ bfo:0000030<br/>bears dispositions<br/>ARCO_core.ttl:114"]:::reality
+    DISP[":CapabilityDisposition ⊑ bfo:0000016<br/>latent-capability target<br/>(rationale at ARCO_core.ttl:28-40)<br/>ARCO_core.ttl:124"]:::reality
     ROLE[":ProviderRole / :DeployerRole / :NaturalPersonRole<br/>⊑ bfo:0000023 Role"]:::reality
   end
 
   subgraph INFO ["Information side: POPULATED (CCO ICE subkinds, typed instances)"]
-    IUS[":IntendedUseSpecification<br/>⊑ cco:DirectiveInformationContentEntity<br/>ARCO_governance_extension.ttl:233"]:::ice
-    USS[":UseScenarioSpecification<br/>⊑ cco:DesignativeInformationContentEntity<br/>ARCO_governance_extension.ttl:279"]:::ice
-    DET[":ComplianceDetermination / :HighRiskDetermination<br/>⊑ cco:DescriptiveInformationContentEntity<br/>ARCO_core.ttl:142, 148"]:::ice
-    REG[":RegulatoryContent<br/>e.g. :AnnexIII_Condition_1a<br/>ARCO_core.ttl:137"]:::ice
+    IUS[":IntendedUseSpecification<br/>⊑ cco:DirectiveInformationContentEntity<br/>ARCO_governance_extension.ttl:278"]:::ice
+    USS[":UseScenarioSpecification<br/>⊑ cco:DesignativeInformationContentEntity<br/>ARCO_governance_extension.ttl:324"]:::ice
+    DET[":ComplianceDetermination / :HighRiskDetermination<br/>⊑ cco:DescriptiveInformationContentEntity<br/>ARCO_core.ttl:197, 203"]:::ice
+    REG[":RegulatoryContent<br/>e.g. :AnnexIII_Condition_1a<br/>ARCO_core.ttl:192"]:::ice
   end
 
   subgraph CLF ["OWL-RL three-gate classifier: POPULATED"]
-    G1["Gate 1 (reality)<br/>System bfo:0000051 (has_part) Component<br/>Component ro:0000091 (has_disposition) AnnexIIITriggeringCapability<br/>ARCO_governance_extension.ttl:421-433"]:::reasoner
-    G2["Gate 2 (representation)<br/>IUS inverse iao:0000136 System<br/>+ IUS cco:prescribes someValuesFrom RegulatedProcess<br/>ARCO_governance_extension.ttl:441-444"]:::reasoner
-    G3["Gate 3 (representation)<br/>USS inverse iao:0000136 System<br/>+ USS cco:designates owl:hasValue NaturalPersonRole<br/>ARCO_governance_extension.ttl:454-466"]:::reasoner
+    G1["Gate 1 (reality)<br/>System bfo:0000051 (has_part) Component<br/>Component ro:0000091 (has_disposition) AnnexIIITriggeringCapability<br/>ARCO_governance_extension.ttl:241-266"]:::reasoner
+    G2["Gate 2 (representation)<br/>IUS inverse iao:0000136 System<br/>+ IUS cco:prescribes someValuesFrom RegulatedProcess<br/>ARCO_governance_extension.ttl:522-532"]:::reasoner
+    G3["Gate 3 (representation)<br/>USS inverse iao:0000136 System<br/>+ USS cco:designates owl:hasValue NaturalPersonRole<br/>ARCO_governance_extension.ttl:534-554"]:::reasoner
   end
 
   HER["HermiT cross-check<br/>OWL 2 DL CI matrix<br/>03_TECHNICAL_CORE/scripts/hermit_cross_check.py"]:::reasoner
@@ -124,31 +124,31 @@ Every node above traces to a file. Every edge traces to a BFO/CCO/RO/IAO/ARCO ax
 
 | Diagram node | What it is | Where it's defined |
 |---|---|---|
-| `:System` | The assessment target class | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:58-66` |
-| `:HardwareComponent` | Material component bearing dispositions | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:74-82` |
-| `:CapabilityDisposition` | Latent-capability target class | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:84-87` |
-| `:IntendedUseSpecification` | Directive ICE class | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:233-247` |
-| `:UseScenarioSpecification` | Designative ICE class | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:279-288` |
-| `:ComplianceDetermination` | Descriptive ICE (entailment record) | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:142-146` |
-| `:HighRiskDetermination` | Descriptive ICE (Gate-1 latent or three-gate applicability record) | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:148-152` |
-| `:RegulatoryContent` | Directive ICE for regulatory text | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:137-140` |
-| `:AnnexIII1aApplicableSystem` | Three-gate defined class for Annex III 1(a) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:405-468` |
-| `:AnnexIII5bApplicableSystem` | Three-gate defined class for Annex III 5(b) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:491-550` |
-| `:HighRiskSystem` | Gate-1-only latent-risk flag class | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:199-221` |
+| `:System` | The assessment target class | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:98-106` |
+| `:HardwareComponent` | Material component bearing dispositions | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:114-122` |
+| `:CapabilityDisposition` | Latent-capability target class | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:124-127` |
+| `:IntendedUseSpecification` | Directive ICE class | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:278-292` |
+| `:UseScenarioSpecification` | Designative ICE class | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:324-333` |
+| `:ComplianceDetermination` | Descriptive ICE (entailment record) | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:197-201` |
+| `:HighRiskDetermination` | Descriptive ICE (Gate-1 latent or three-gate applicability record) | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:203-207` |
+| `:RegulatoryContent` | Directive ICE for regulatory text | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:192-195` |
+| `:AnnexIII1aApplicableSystem` | Three-gate defined class for Annex III 1(a) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:490-556` |
+| `:AnnexIII5bApplicableSystem` | Three-gate defined class for Annex III 5(b) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:579-641` |
+| `:HighRiskSystem` | Gate-1-only latent-risk flag class | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:241-266` |
 | `cco:InformationBearingEntity` (pending) | Document material bearer class | CCO v1.7 (canonical IRI; not yet in `cco_seed.txt`) |
 | `cco:InformationQualityEntity` (pending) | Inscription quality class | CCO v1.7 (canonical IRI; not yet in `cco_seed.txt`) |
 | `cco:has_text_value` (pending) | Verbatim text predicate | CCO v1.7 line 437-442 in `runs/scratch/cco-v1.7/CommonCoreOntologiesMerged.ttl`; not yet in `cco_seed.txt` |
 
 | Diagram edge | Relation IRI | Where it's defined |
 |---|---|---|
-| Inscription inheres in document (asserted IQE to IBE) | `ro:0000052` (characteristic_of) | `03_TECHNICAL_CORE/ontology/imports/ro_bot.owl:534-549` plus ARCO binding `ro:0000052 rdfs:subPropertyOf bfo:0000197` at `ARCO_core.ttl:193-194` (PR #41). Asserted-subject: IQE (SDC); asserted-object: IBE (IC). Inverse `ro:0000053` (bearer_of) materializes via OWL-RL prp-inv1. |
+| Inscription inheres in document (asserted IQE to IBE) | `ro:0000052` (characteristic_of) | `03_TECHNICAL_CORE/ontology/imports/ro_bot.owl:534-549` plus ARCO binding `ro:0000052 rdfs:subPropertyOf bfo:0000197` at `ARCO_core.ttl:248-249` (PR #41). Asserted-subject: IQE (SDC); asserted-object: IBE (IC). Inverse `ro:0000053` (bearer_of) materializes via OWL-RL prp-inv1. |
 | ICE is concretized by inscription (asserted ICE to IQE) | `bfo:0000058` (is concretized by) | `03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl:225-241`. Asserted-subject: ICE (GDC); asserted-object: IQE (SDC). Domain BFO_0000031 (GDC); range union of BFO_0000015 (Process) and BFO_0000020 (SDC). Inverse `bfo:0000059` (concretizes) materializes via OWL-RL prp-inv1. |
 | System has component | `bfo:0000051` (has_part) | `03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl` |
 | Component has disposition | `ro:0000091` (has_disposition) | `03_TECHNICAL_CORE/ontology/imports/ro_bot.owl:712+` |
 | Bearer has role | `ro:0000087` (has_role) | `03_TECHNICAL_CORE/ontology/imports/ro_bot.owl:696-708` |
 | ICE is about system | `iao:0000136` (is_about) | `03_TECHNICAL_CORE/ontology/imports/iao_bot.owl` |
-| IUS prescribes process | `cco:prescribes` | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:132-134` |
-| USS designates role | `cco:designates` | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:136-139` |
+| IUS prescribes process | `cco:prescribes` | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:133-135` |
+| USS designates role | `cco:designates` | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:137-140` |
 
 ## Status notes
 
@@ -168,7 +168,7 @@ Every node above traces to a file. Every edge traces to a BFO/CCO/RO/IAO/ARCO ax
 - The full RO / IAO / BFO / CCO import chain. The slim modules at `03_TECHNICAL_CORE/ontology/imports/*.owl` provide everything the diagram cites. See `docs/ARCO_imports_rationale.md` for the import-chain discussion.
 - Fixture-specific data. The 6 fixtures (Sentinel, CreditScorer, Verification, flag_tests, adversarial_blanknode, adversarial_decoy) instantiate the reality and information sides for specific systems. See `three_gate_classifier.md` for which fixture exercises which gate combination.
 - The accountability-to-individual extension (canon-grounded in conversation; activates when a specific use case demands named-individual chain).
-- The CCO version provenance hardening (the version pin lives in `ARCO_governance_extension.ttl:15` comment, not in `cco_bot.owl` itself).
+- The CCO version provenance hardening (the version pin lives in `ARCO_governance_extension.ttl:16` comment, not in `cco_bot.owl` itself).
 
 ## When to update
 

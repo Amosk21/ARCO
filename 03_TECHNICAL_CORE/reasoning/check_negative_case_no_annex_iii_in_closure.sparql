@@ -1,0 +1,29 @@
+PREFIX : <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# AUDIT LAYER — negative-case absence check.
+# TRUE = the bound ?system exists in the graph AND carries no Annex III
+# applicability membership in the materialized OWL-RL closure.
+#
+# This checks absence-in-closure, NOT DL non-entailment. A membership can
+# be absent because OWL-RL cannot derive it; the independent DL check is
+# HermiT (scripts/hermit_cross_check.py). test_scenarios.py runs this query
+# against every fixture: positive fixtures must return FALSE (proving the
+# query detects presence) before the kiosk's TRUE is treated as meaningful.
+# OWA: TRUE means "not present under current commitments," never
+# "proven not high-risk."
+#
+# The ?system rdf:type :System anchor is load-bearing: without it, a
+# mistyped system IRI would return TRUE (absent entirely = vacuously no
+# membership). With the anchor, a missing system returns FALSE and surfaces.
+#
+# ?system is bound by the caller (rdflib initBindings or ROBOT
+# --initial-binding), same convention as check_annex_iii_1a_entailment.sparql.
+# Closes OPEN_PROBLEMS L3.8 gap (1). Report-only in run_pipeline.py; not an
+# audit_pass constituent; classification authority remains OWL-RL entailment.
+
+ASK WHERE {
+  ?system rdf:type :System .
+  FILTER NOT EXISTS { ?system rdf:type :AnnexIII1aApplicableSystem . }
+  FILTER NOT EXISTS { ?system rdf:type :AnnexIII5bApplicableSystem . }
+}

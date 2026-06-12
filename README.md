@@ -2,11 +2,19 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-ARCO answers a specific question about an AI system: before you build or deploy it, does it satisfy the formal encoding of an EU AI Act Annex III high-risk condition? You hand the pipeline a structured description of the system (the hardware, what it's intended to be used for, who its decisions affect) and the OWL reasoner returns the answer with the reasoning chain attached. The same input always produces the same answer, and anyone with an OWL reasoner can re-derive the classification from the public axioms. ARCO's own pipeline is not part of the audit trail; the axioms and the input facts are.
+You're building an AI system. Somewhere down the line someone official asks you the question you can't wave off: now that the EU regulates this, is what we're building high-risk?
 
-The problem this solves: a compliance team, regulator, or buyer needs to know whether a specific AI system falls under Annex III before it ships. A probabilistic score isn't a defensible answer to that question. A checklist asking "does the document exist" misses what's in the document. A behavioral monitor only runs after deployment. ARCO produces a determination upstream of all of that, with the reasoning chain inspectable triple by triple.
+You want to know that immediately, not a year in, after the time's already sunk and you've built around the wrong answer.
 
-Open-source solo research project. Current encoding covers Annex III 1(a) (remote biometric identification) and 5(b) (creditworthiness evaluation); the encoded interpretation has not been externally reviewed by counsel; not a deployable compliance product.
+And you can't put it all on the lawyers. Not because they're wrong, but because they're expensive, you can't get one on every design decision, and even a good one doesn't know your system the way you do, so what comes back is slow and hedged. What you need first is a way to walk your boss, or the regulator, down the line: here is why this lands where it lands, and here is the reason behind every step. Something you can point at and defend. Bring counsel in after that and you're handing them a clean starting point instead of paying them to take your system apart from scratch.
+
+ARCO is a working proof that a tool like this can be built and trusted. You give it a structured description of a system: what the hardware can really do, what it's meant to be used for, who its decisions land on. It works out whether that meets the conditions for a high-risk category, and it shows the whole chain of reasoning that got there, so anyone who doubts the answer can walk back through it and point at the exact step they'd argue with. Same description in, same answer out, every time, and because it runs on fixed logic instead of a model's guess, anyone can re-run it and get the same result. The part that would turn it into a tool a compliance team could pick up, taking a plain vendor document and producing that structured description without an expert in the loop, is the next piece of work and is not done yet.
+
+Underneath, ARCO runs on a formal foundation called BFO. It's an international standard (ISO/IEC 21838-2), and it's the shared base under hundreds of other projects, from biology to defense. What that buys you in plain terms: the words mean one fixed thing every time, so the answer tracks what your system actually is, not how the paperwork happens to be worded.
+
+And it reaches past this one law. What ARCO checks is always the same three things: what a system can do, what it's for, and who it affects. That's what rules tend to reach for wherever someone gets held responsible, so the same machine re-aims at other categories and other rulebooks. I've built it out for two of the EU's high-risk categories so far.
+
+The straight version: this is a solo open-source project. Two of the eight high-risk categories so far, no lawyer has signed off on the legal reading, and it's a working proof of the idea, not something to drop into a compliance team tomorrow. Everything it can't do is written down plainly in [LIMITATIONS.md](LIMITATIONS.md), on purpose.
 
 [![ARCO Demo Run](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/arco-demo.yml) [![ROBOT Validation](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml/badge.svg?branch=main)](https://github.com/Amosk21/ARCO/actions/workflows/robot-validate.yml)
 
@@ -73,23 +81,33 @@ A separate flag (`HighRiskSystem`) fires from the capability gate alone. That fl
 
 ---
 
+## It's a pattern, not just this one demo
+
+ARCO does two EU categories right now, but the part doing the real work isn't tied to the EU at all. Every answer comes down to three things: what the system can do, what it's meant to be used for, and who's on the receiving end. That's the same three things rules reach for over and over, because it's how responsibility tends to work: who can do the thing, what they meant to do with it, and who it lands on.
+
+Once those three are written down as something a reasoner can work over, you can point it somewhere else. The same setup that checks a credit model has the shape to check a hiring tool, or a system that decides who gets seen first in an emergency room. Different details, same skeleton. So adding a category is mostly filling in the specifics, not rebuilding the machine.
+
+One thing I want to be straight about, because it's the flip side of the same coin. Something flexible enough to re-aim across all those areas is flexible enough to be aimed at things I wouldn't sign off on, like profiling people at scale. There's no mechanism in the code that can stop that. Keeping ARCO pointed where it's pointed is a line I hold, not a lock I built, and I'd rather say that out loud than pretend the flexibility only cuts one way. The full disclosure is in [LIMITATIONS.md](LIMITATIONS.md) §12.
+
+---
+
 ## What ARCO describes
 
 > *Items marked with (\*) are work-in-progress: a modeling discipline articulated in the technical core but not yet exercised in fixtures, or a pending modeling decision with a clear path forward. Tracked in ARCO's internal working register.*
 
 A system is a real physical thing. Its hardware components bear capabilities, which are actual physical properties of the hardware. A face-recognition module bears the capability to do biometric identification because of its hardware. The capability exists because of the hardware's physical structure. It is there whether the system is running or sitting idle.
 
-Software running on the hardware is treated as information content (a Generically Dependent Continuant per BFO 2020, `bfo:0000031`). The software generically depends on the hardware that runs it (`bfo:0000084 g-depends`); the hardware concretizes the software via an inscription quality (`bfo:0000058 is_concretized_by`); and the hardware is what bears the capability disposition. (\*) The software-hardware concretization layer is articulated as discipline in `ARCO_core.ttl:126-130` but is not yet exercised in any fixture; the hardware-software amalgam is disclosed as a deliberate simplification at `LIMITATIONS.md §3.5`.
+Software running on the hardware is treated as information content (a Generically Dependent Continuant per BFO 2020, `bfo:0000031`). The software generically depends on the hardware that runs it (`bfo:0000084 g-depends`); the hardware concretizes the software via an inscription quality (`bfo:0000058 is_concretized_by`); and the hardware is what bears the capability disposition. (\*) The software-hardware concretization layer is articulated as discipline in `ARCO_core.ttl:181-185` but is not yet exercised in any fixture; the hardware-software amalgam is disclosed as a deliberate simplification at `LIMITATIONS.md §3.5`.
 
 Separately, there are documents about the system. The vendor writes an Intended Use Specification saying what the system is for. The vendor writes a Use Scenario Specification saying which role categories the system operates on. These are claims the provider makes about the system; they are typed as Information Content Entities (`iao:0000030`). They describe the system; they are not the system.
 
-EU AI Act Annex III applies when three commitments come together:
+ARCO's encoding concludes a system is Annex III applicable when three commitments come together:
 
-1. The system's hardware bears a regulated capability.
+1. The system's hardware bears a regulated capability. (\*) This first gate is ARCO's design-time evidential addition: the Act's own Annex III trigger is the documented intended purpose carried by gates 2 and 3, so a description with documented regulated intent but no reviewed capability commitment is not entailed — a deliberate strictness in the under-classification direction, disclosed in LIMITATIONS.
 2. The vendor's intended use specification commits the system to a regulated process via the IUS subkind defined-class (`cco:prescribes someValuesFrom :Process`).
 3. The use scenario specification designates the affected role category. For Annex III 1(a), this is natural persons. (\*) The relationship between this designated role and the system's process is pending tightening; the current axiom does not pin down whether natural persons are subjects of identification, operators of the system, or another role-in-context.
 
-When all three appear in a reviewed graph, the reasoner concludes "Annex III applicable." Two reasoners (OWL-RL rule-based, HermiT tableau-based / OWL 2 DL) cross-check the conclusion. A regulator can take the axioms and the input facts and re-derive the classification with any OWL reasoner. No Python line decides for them. (\*) The full entailment chain (around 20,000 entailed triples per run) is not yet exported in the published artifacts; surfacing the reasoned graph and HermiT classification output alongside the certificate is active work.
+When all three appear in a reviewed graph, the reasoner concludes "Annex III applicable." Two reasoners (OWL-RL rule-based, HermiT tableau-based / OWL 2 DL) cross-check the conclusion. A regulator can take the axioms and the input facts and re-derive the classification with any OWL reasoner. No Python line decides the entailment; the pipeline's output composition is Python, and it is audited separately. (\*) The full entailment chain (around 20,000 entailed triples per run) is not yet exported in the published artifacts; surfacing the reasoned graph and HermiT classification output alongside the certificate is active work.
 
 Some pieces of the picture are kept partial on purpose:
 
@@ -110,9 +128,13 @@ The architectural detail (BFO 2020 grounding, the seven modeling buckets, how th
 
 ## Why the architecture matters
 
-The architecture grounds in BFO 2020 (ISO/IEC 21838-2:2021) and uses the seven-bucket BFO modeling discipline. Material entities, qualities, realizable entities, processes, immaterial entities, temporal regions, and information artifacts are the seven categories every model has to populate or honestly disclose a scope cut on. Bucket assignment for each modeled entity is canonical, not improvised. The BFO 2020 axioms live at `imports/bfo-2020.owl`; the seven-bucket discipline is operationalized in the diagrams at `docs/modeling_decisions/` and verified per-entity in `seven_buckets_status.md`.
+Two choices make a classification something you can prove, not just produce.
 
-**Reality and representation are kept separate.** Capabilities are physical: a hardware component bears them as BFO dispositions (`ARCO_core.ttl:74-87`). Intended uses, use scenarios, and compliance determinations are documentary: IAO information content entities about the system. The reasoner enforces the separation through BFO 2020 standard disjointness between Independent Continuant and Generically Dependent Continuant; the binding mechanism that catches category errors at materialization time is verified by `03_TECHNICAL_CORE/scripts/probe_disjointness_and_binding.py`.
+First, it is reached by formal logic. The regulation's high-risk condition is written down as a definition, and a reasoner works out whether a system meets it. No line of code makes the call, so anyone with a standard reasoner can re-derive the result from the public definitions; the authority is the logic, not the pipeline.
+
+Second, the definitions are grounded in BFO 2020 (ISO/IEC 21838-2:2021) and the Common Core Ontologies, which commit to what things actually are rather than convenient labels. A capability is a real property of the hardware, present whether the system runs or not, so the classification follows what a system is rather than how it happens to be described, and the terms mean the same thing across organizations because they share a foundation. That grounding is what the seven-bucket BFO modeling discipline operationalizes: material entities, qualities, realizable entities, processes, immaterial entities, temporal regions, and information artifacts are the seven categories every model has to populate or honestly disclose a scope cut on, and bucket assignment for each modeled entity is canonical, not improvised. The BFO 2020 axioms live at `imports/bfo-2020.owl`; the seven-bucket discipline is laid out in the diagrams at `docs/modeling_decisions/`.
+
+**Reality and representation are kept separate.** Capabilities are physical: a hardware component bears them as BFO dispositions (`ARCO_core.ttl:114-127`). Intended uses, use scenarios, and compliance determinations are documentary: IAO information content entities about the system. The reasoner enforces the separation through BFO 2020 standard disjointness between Independent Continuant and Generically Dependent Continuant; the binding mechanism that catches category errors at materialization time is verified by `03_TECHNICAL_CORE/scripts/probe_disjointness_and_binding.py`.
 
 **Source documentation reaches the graph through human adjudication, not automated extraction.** Vendor documentation, intended-use specs, and technical evidence pass through a reviewed evidence ledger before becoming RDF commitments. Source documents generate descriptive ICE claims; promotion of a claim to a reality-side commitment is rare, conditional, and human-adjudicated. No automated extraction writes to instance TTL. The kiosk demo v1 (`docs/kiosk_demo_v1/`) is the first structural sketch of the evidence-ledger step; substituting a real vendor document for the current hypothetical packet and wiring the source-to-commitment chain programmatically is `OPEN_PROBLEMS.md L1.1` (no evidence ledger is yet programmatically backed for any fixture).
 

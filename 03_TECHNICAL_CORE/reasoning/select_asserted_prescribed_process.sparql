@@ -32,6 +32,15 @@ SELECT ?ius ?process ?process_class ?process_label WHERE {
   ?process rdf:type ?process_class .
   FILTER(!isBlank(?process_class))
   FILTER(STRSTARTS(STR(?process_class), "https://arco.ai/ontology/core#"))
+  # Most-specific only: drop a class if the process is also typed one of its arco subclasses.
+  # Without this, OWL-RL materialization of the :BiometricIdentificationProcess genus would
+  # surface it as an extra row alongside the leaf :RemoteBiometricIdentificationProcess.
+  FILTER NOT EXISTS {
+    ?process rdf:type ?sub_class .
+    ?sub_class rdfs:subClassOf ?process_class .
+    FILTER(?sub_class != ?process_class)
+    FILTER(STRSTARTS(STR(?sub_class), "https://arco.ai/ontology/core#"))
+  }
   OPTIONAL { ?process_class rdfs:label ?process_label }
 }
 ORDER BY ?ius ?process ?process_class

@@ -17,7 +17,7 @@
     - CreditScorer_001 is NOT entailed as AnnexIII1aApplicableSystem (no biometric identification capability; Gate 1 of 1(a) fails).
     - Sentinel_ID_System (from instances_sentinel.ttl) is NOT entailed as AnnexIII5bApplicableSystem (no creditworthiness capability; Gate 1 of 5(b) fails).
 
-  Conservative scope: demonstrates category extension for creditworthiness evaluation. Micro-enterprise exclusions and other 5(b) nuances are not modeled at this stage.""" ;
+  Conservative scope: demonstrates category extension for creditworthiness evaluation. The fraud-detection carve-out and other 5(b) nuances are not modeled at this stage.""" ;
   owl:imports <https://arco.ai/ontology/governance> .
 
 #################################################################

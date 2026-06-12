@@ -55,6 +55,11 @@ REGULATORY_ALIGNMENT_QUERY = REASONING_DIR / "check_regulatory_alignment.sparql"
 DEROGATION_FLAG_QUERY = REASONING_DIR / "flag_derogation_candidate.sparql"
 FRAUD_FLAG_QUERY = REASONING_DIR / "flag_fraud_exclusion_candidate.sparql"
 UNION_SYNC_QUERY = REASONING_DIR / "check_union_subclass_sync.sparql"
+# Report-only absence audits (OPEN_PROBLEMS L3.8) — informational lines like
+# the derogation/fraud flags; never audit_pass constituents, never emitted fields.
+NEGATIVE_CASE_ABSENCE_QUERY = REASONING_DIR / "check_negative_case_no_annex_iii_in_closure.sparql"
+CROSS_CATEGORY_ISOLATION_QUERY = REASONING_DIR / "check_cross_category_isolation_in_closure.sparql"
+INTENT_WITHOUT_CAPABILITY_QUERY = REASONING_DIR / "flag_intent_without_capability.sparql"
 
 # Emission-layer SELECT queries — graph-bound display values for certificate fields.
 # These replace inline Python-embedded SPARQL strings (Gate 1/2/3) and Python
@@ -119,6 +124,78 @@ def load_union_graph(*paths: Path) -> Graph:
         g.parse(p.as_posix(), format=fmt)
     return g
 
+
+# ── TBox/ABox load guard (OPEN_PROBLEMS L3.12) ─────────────────────────
+# Instance data is ABox-only by contract: class semantics come from the
+# reviewed ontology files, never from input. Without this guard a single
+# owl:equivalentClass / rdfs:subClassOf triple smuggled into an instance
+# file rewires classification, and both reasoners honor it identically
+# (the adversarial decoy fixtures prove the mechanism). The decoys are the
+# sanctioned exception — they exist to demonstrate classification rides on
+# owl:equivalentClass semantics rather than IRI names — and are allowlisted
+# by filename.
+_OWL = "http://www.w3.org/2002/07/owl#"
+_RDFS = "http://www.w3.org/2000/01/rdf-schema#"
+_RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+# Class-level schema predicates: forbidden when the triple touches an
+# ARCO-namespace term (subject or object).
+SCHEMA_SHAPING_PREDICATES = (
+    URIRef(_OWL + "equivalentClass"),
+    URIRef(_RDFS + "subClassOf"),
+    URIRef(_OWL + "disjointWith"),
+    URIRef(_OWL + "unionOf"),
+    URIRef(_OWL + "sameAs"),
+)
+# Property-level schema predicates: forbidden in instance files in ANY
+# namespace — instance data has no business declaring property semantics.
+# (QA-verified attack shapes: rdfs:subPropertyOf onto cco:prescribes fakes
+# Gate 2 via prp-spo1; owl:sameAs onto the punned role universal fakes
+# Gate 3's hasValue via eq-rep. A foreign-namespace subject would evade an
+# ARCO-term-scoped check, hence the blanket rule for this set.)
+PROPERTY_SHAPING_PREDICATES = (
+    URIRef(_RDFS + "subPropertyOf"),
+    URIRef(_OWL + "propertyChainAxiom"),
+    URIRef(_OWL + "inverseOf"),
+    URIRef(_OWL + "equivalentProperty"),
+    URIRef(_RDFS + "domain"),
+    URIRef(_RDFS + "range"),
+)
+TBOX_GUARD_ALLOWLIST = {
+    "ARCO_instances_adversarial_decoy.ttl",
+    "ARCO_instances_adversarial_decoy_5b.ttl",
+}
+
+
+def guard_instances_tbox(instances_path: Path) -> None:
+    """Fail the run if the instances file asserts schema-shaping triples
+    on ARCO-namespace terms, or property-semantics triples in any
+    namespace (L3.12)."""
+    if instances_path.name in TBOX_GUARD_ALLOWLIST:
+        return
+    ig = Graph()
+    ig.parse(instances_path.as_posix(), format="turtle")
+    owl_class = URIRef(_OWL + "Class")
+    rdf_type = URIRef(_RDF + "type")
+    violations = []
+    for s, p, o in ig:
+        arco_term = (isinstance(s, URIRef) and str(s).startswith(ARCO_NS)) or (
+            isinstance(o, URIRef) and str(o).startswith(ARCO_NS)
+        )
+        if p in SCHEMA_SHAPING_PREDICATES and arco_term:
+            violations.append((s, p, o))
+        elif p in PROPERTY_SHAPING_PREDICATES:
+            violations.append((s, p, o))
+        elif p == rdf_type and o == owl_class and isinstance(s, URIRef) and str(s).startswith(ARCO_NS):
+            violations.append((s, p, o))
+    if violations:
+        listing = "\n".join(f"  {s} {p} {o}" for s, p, o in violations[:10])
+        raise RuntimeError(
+            "TBOX GUARD: instance file asserts schema-shaping triples on "
+            f"ARCO-namespace terms ({len(violations)} violation(s)); instance "
+            "data is ABox-only — class semantics come from the reviewed "
+            f"ontology (OPEN_PROBLEMS L3.12):\n{listing}"
+        )
+
 def clone_graph(g: Graph) -> Graph:
     h = Graph()
     for t in g:
@@ -161,6 +238,36 @@ def run_sparql_ask_for_system(data_graph: Graph, query_path: Path, system_local:
     system_iri = URIRef(f"{ARCO_NS}{system_local}")
     try:
         result = data_graph.query(q, initBindings={"system": system_iri})
+        if isinstance(result, bool):
+            return result
+        if hasattr(result, "askAnswer") and result.askAnswer is not None:
+            return bool(result.askAnswer)
+        rows = list(result)
+        return bool(rows[0]) if rows else False
+    except Exception as e:
+        raise RuntimeError(f"SPARQL query failed: {query_path}\n{e}")
+
+
+def run_sparql_ask_for_system_with_class(
+    data_graph: Graph, query_path: Path, system_local: str, excluded_class_local: str
+) -> bool:
+    """Run a caller-bound ASK with both ?system and ?excluded_class bound.
+
+    Companion to run_sparql_ask_for_system for the cross-category isolation
+    audit (OPEN_PROBLEMS L3.8 gap 3), which is deliberately per-(system,
+    foreign-class) rather than graph-level: the Annex III applicability
+    classes are not asserted disjoint, and a graph-level variant would encode
+    a disjointness the regulation does not assert.
+    """
+    if not query_path.exists():
+        raise FileNotFoundError(f"Missing SPARQL query file: {query_path}")
+    q = query_path.read_text(encoding="utf-8").strip()
+    bindings = {
+        "system": URIRef(f"{ARCO_NS}{system_local}"),
+        "excluded_class": URIRef(f"{ARCO_NS}{excluded_class_local}"),
+    }
+    try:
+        result = data_graph.query(q, initBindings=bindings)
         if isinstance(result, bool):
             return result
         if hasattr(result, "askAnswer") and result.askAnswer is not None:
@@ -1188,11 +1295,36 @@ def write_html_view(
             )
         counterfactual_html = "\n".join(counterfactual_items)
     else:
+        # L2.12 component D output carrier (OPEN_PROBLEMS L2.12; LIMITATIONS §3.7.d):
+        # when the asserted prescribed process types as the bare 1:N genus, the
+        # single fact that would change the outcome is the Art 3(41) remoteness
+        # question — deliberately a deployer elicitation, not a baked-in class.
+        # Surface the question instead of presenting a stable-looking endpoint.
+        _genus_iri = f"{ARCO_NS}BiometricIdentificationProcess"
+        _genus_asserted = any(
+            p.get("class_iri") == _genus_iri
+            for p in (asserted_prescribed_processes or [])
+        )
+        _elicitation_html = ""
+        if _genus_asserted:
+            _elicitation_html = (
+                '<p><strong>Open elicitation question (Article 3(41)):</strong> the asserted '
+                'prescribed process is typed as the bare 1:N identification genus '
+                '(<code>BiometricIdentificationProcess</code>). Whether this deployment is '
+                '<em>remote</em> &mdash; identification without the subjects&rsquo; active '
+                'involvement &mdash; is the single reviewed commitment that would change this '
+                'outcome, and it is deliberately a deployer question, not a baked-in class '
+                '(LIMITATIONS &sect;3.7.d). If the deployer confirms capture without active '
+                'involvement, retype the process token as '
+                '<code>RemoteBiometricIdentificationProcess</code> and re-run; Annex III 1(a) '
+                'would then be evaluated against the remote subkind.</p>'
+            )
         counterfactual_html = (
             '<div class="cf-item"><p>No Annex III categories are currently triggered. '
             'To trigger a category-specific ARCO classification, the system would '
             'need to satisfy all three gates (capability, prescribed process, '
-            'affected role) for at least one Annex III category.</p></div>'
+            'affected role) for at least one Annex III category.</p>'
+            + _elicitation_html + '</div>'
         )
 
     # ── obligations text (Layer 3) ─────────────────────────────────
@@ -1209,7 +1341,7 @@ def write_html_view(
           <div class="obl-card">
             <div class="obl-icon">1</div>
             <div class="obl-title">Conformity Assessment</div>
-            <div class="obl-desc">The system must undergo conformity assessment procedures before being placed on the market or put into service (Article 43). For biometric identification systems, this requires involvement of a notified body.</div>
+            <div class="obl-desc">The system must undergo conformity assessment procedures before being placed on the market or put into service (Article 43). For Annex III point 1 biometric systems: where harmonised standards or common specifications are applied, the provider opts for either internal control (Annex VI) or the notified-body procedure (Annex VII); where they are not applied, the notified-body procedure (Annex VII) is required (Article 43(1)). For the other Annex III categories, internal control per Annex VI applies (Article 43(2)).</div>
             <div class="obl-ref">Articles 16, 43</div>
           </div>
           <div class="obl-card">
@@ -1691,7 +1823,10 @@ section {{ scroll-margin-top: 1rem }}
       <strong>Scope:</strong> ARCO assesses structured RDF instance data supplied to the
       pipeline. It does not verify raw vendor documentation, the physical deployed system,
       or legal sufficiency. ARCO currently models Annex III 1(a) (biometric identification)
-      and 5(b) (creditworthiness) only.
+      and 5(b) (creditworthiness) only. The PRIMARY classification is the Annex III
+      applicability ARCO entails under its encoding, not the final legal high-risk
+      determination under the EU AI Act (which also depends on the Article 6(3) derogation,
+      surfaced but not evaluated). Article 5 prohibited-practice routing is not evaluated.
     </p>
     {("<p class='exec-text' style='font-size:0.85em;border-left:3px solid #c97a00;padding-left:0.75rem;margin-top:0.75rem;color:#5a3a00;background:#fff7e6'><strong>Derogation note:</strong> Article 6(3) derogation, if legally valid, may supersede Annex III high-risk treatment. ARCO flags the claim but does not evaluate it; human legal review is required.</p>") if (derogation_flagged and is_high_risk) else ""}
   </div>
@@ -1925,6 +2060,7 @@ def main() -> None:
 
     sub("LOAD")
     print("Loading: core ontology + governance extension + instance data")
+    guard_instances_tbox(INSTANCES)
     g_source = load_union_graph(BFO_2020, IAO_BOT, RO_BOT, CCO_BOT, CORE, GOV, INSTANCES)
     print(f"Triples loaded (asserted): {len(g_source)}")
 
@@ -2042,8 +2178,48 @@ def main() -> None:
     union_sync_ok = None
     if UNION_SYNC_QUERY.exists():
         print("\nUnion-subclass sync (AnnexIIITriggeringCapability membership consistency)...")
-        union_sync_ok = run_sparql_ask_from_file(g, UNION_SYNC_QUERY)
+        # L3.11: run against the ASSERTED graph (g_source), not the closure.
+        # On the closure the guard is half-dead (OWL-RL re-materializes the
+        # missing subclass triple before the guard looks, so the drift it
+        # exists to catch can never be caught) and half-false-alarm (the
+        # decoys' inferred alias subclassing trips Direction 2). Empirically
+        # verified twice in the 2026-06-10 audit.
+        union_sync_ok = run_sparql_ask_from_file(g_source, UNION_SYNC_QUERY)
         print(f"Union sync: {union_sync_ok}")
+
+    # ── Negative-case absence + cross-category isolation (report-only; OPEN_PROBLEMS L3.8) ──
+    # Absence-in-closure audit lines, informational like the exception flags
+    # below: NOT audit_pass constituents and NOT emitted fields (folding them
+    # in would change the Sentinel smoke-test surface and the manifest's
+    # fixed audit_layer_status constituent set). On positive fixtures the
+    # absence check correctly prints False (membership present); on the
+    # verification kiosk it prints True. Absence here is absence from the
+    # materialized OWL-RL closure under current commitments (OWA), not DL
+    # non-entailment — HermiT is the independent DL check. Expected-answer
+    # enforcement lives in test_scenarios.py, keyed off each scenario's
+    # expected dict.
+    if NEGATIVE_CASE_ABSENCE_QUERY.exists():
+        print("\nNegative-case absence check (Annex III membership in closure; report-only)...")
+        _absence = run_sparql_ask_for_system(g, NEGATIVE_CASE_ABSENCE_QUERY, SYSTEM_LOCAL)
+        print(f"Annex III membership absent from closure: {_absence}")
+
+    if CROSS_CATEGORY_ISOLATION_QUERY.exists():
+        print("\nCross-category isolation (per foreign Annex III class; report-only)...")
+        for _foreign_local in ("AnnexIII1aApplicableSystem", "AnnexIII5bApplicableSystem"):
+            _isolated = run_sparql_ask_for_system_with_class(
+                g, CROSS_CATEGORY_ISOLATION_QUERY, SYSTEM_LOCAL, _foreign_local
+            )
+            print(f"Not a member of {_foreign_local} in closure: {_isolated}")
+
+    # Intent-without-capability (report-only; OPEN_PROBLEMS L3.10). Surfaces the
+    # under-classification direction disclosed at LIMITATIONS §3.9: Gate 2+3
+    # documentary evidence present for a modeled category while that category's
+    # Gate 1 capability is absent from the closure. Never folded into audit_pass;
+    # never a gate condition (same discipline as the derogation/fraud flags).
+    if INTENT_WITHOUT_CAPABILITY_QUERY.exists():
+        print("\nIntent-without-capability check (Gates 2+3 documented, Gate 1 absent in closure; report-only)...")
+        _iwc = run_sparql_ask_for_system(g, INTENT_WITHOUT_CAPABILITY_QUERY, SYSTEM_LOCAL)
+        print(f"Documented regulated intent without asserted capability: {_iwc}")
 
     # ── Audit-layer exception flags (informational only — do not affect classification or audit_pass) ──
     # These detect provider-submitted claim artifacts that may affect legal interpretation.
@@ -2324,6 +2500,8 @@ def main() -> None:
     # signals the unevaluated derogation; do not double-disclose).
     if (annex_iii_1a_ok or annex_iii_5b_ok) and not derogation_flagged:
         print("  ARTICLE 6(3) DEROGATION: NOT EVALUATED (run scope)")
+    if annex_iii_1a_ok:
+        print("  ARTICLE 5 PROHIBITION:   NOT EVALUATED (run scope)")
     if obligation_ok is not None:
         print(f"  OBLIGATION:              {_cert_obligation_label}")
     if reg_alignment_ok is not None:
@@ -2339,6 +2517,10 @@ def main() -> None:
     print("         It does not verify raw vendor documentation, the physical deployed")
     print("         system, or legal sufficiency. ARCO currently models Annex III 1(a)")
     print("         (biometric identification) and 5(b) (creditworthiness) only.")
+    print("         The PRIMARY classification is the Annex III applicability ARCO")
+    print("         entails under its encoding, not the final legal high-risk")
+    print("         determination under the EU AI Act, which also depends on the")
+    print("         Article 6(3) derogation (surfaced but not evaluated here).")
     print("=" * 72)
 
     # ---------------------------------------------------------------
@@ -2385,6 +2567,8 @@ def main() -> None:
     # only when a category is entailed and no DerogationClaim is asserted.
     if (annex_iii_1a_ok or annex_iii_5b_ok) and not derogation_flagged:
         cert_lines.append("  ARTICLE 6(3) DEROGATION: NOT EVALUATED (run scope)")
+    if annex_iii_1a_ok:
+        cert_lines.append("  ARTICLE 5 PROHIBITION:   NOT EVALUATED (run scope)")
     if obligation_ok is not None:
         cert_lines.append(f"  OBLIGATION:              {_cert_obligation_label}")
     if reg_alignment_ok is not None:
@@ -2407,6 +2591,10 @@ def main() -> None:
     cert_lines.append("         It does not verify raw vendor documentation, the physical deployed")
     cert_lines.append("         system, or legal sufficiency. ARCO currently models Annex III 1(a)")
     cert_lines.append("         (biometric identification) and 5(b) (creditworthiness) only.")
+    cert_lines.append("         The PRIMARY classification is the Annex III applicability ARCO")
+    cert_lines.append("         entails under its encoding, not the final legal high-risk")
+    cert_lines.append("         determination under the EU AI Act, which also depends on the")
+    cert_lines.append("         Article 6(3) derogation (surfaced but not evaluated here).")
     cert_lines.append("=" * 72)
     (OUTPUT_DIR / "certificate.txt").write_text("\n".join(cert_lines) + "\n", encoding="utf-8")
 
@@ -2465,7 +2653,7 @@ def main() -> None:
         "annex_iii_5b": ("VERIFIED (ENTAILED)" if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
         "derogation_evaluation_scope": {
             "evaluated": False,
-            "reason": "Article 6(3) derogation evaluation not modeled in current ARCO release; see LIMITATIONS.md §3.7",
+            "reason": "Article 6(3) derogation evaluation not modeled in current ARCO release; see LIMITATIONS.md §2",
         },
         "obligation": _status_label(
             obligation_ok, "PASS", "FAIL",

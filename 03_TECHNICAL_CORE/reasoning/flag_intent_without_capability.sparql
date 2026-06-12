@@ -1,0 +1,66 @@
+PREFIX :    <https://arco.ai/ontology/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX ro:  <http://purl.obolibrary.org/obo/RO_>
+PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+
+# AUDIT LAYER — intent-without-capability flag (report-only; OPEN_PROBLEMS L3.10).
+#
+# TRUE = the bound ?system exists, AND for at least one modeled Annex III
+# category the Gate 2 + Gate 3 documentary evidence is present in the
+# materialized OWL-RL closure (a regulated-subkind Intended Use
+# Specification about the system, plus a Use Scenario Specification
+# designating :NaturalPersonRole), BUT no component-borne disposition of
+# THAT category's capability class is present in the closure (Gate 1
+# evidence absent for the documented category).
+#
+# Why this flag exists: the Annex III conditions ARCO encodes trigger on
+# documented intended purpose; Gate 1 (capability) is ARCO's design-time
+# evidential ADDITION (LIMITATIONS §3.9). TRUE surfaces the
+# under-classification direction per run — documented regulated intent
+# with no reviewed capability commitment, which ARCO deliberately does
+# NOT entail. Mirrors the derogation/fraud flag discipline: informational
+# only, directs human review, never a gate condition, never folded into
+# audit_pass.
+#
+# Absence semantics: absence from the materialized OWL-RL closure under
+# current commitments (OWA), not DL non-entailment; HermiT is the
+# independent DL check. ?system is bound by the caller (initBindings),
+# same convention as check_negative_case_no_annex_iii_in_closure.sparql.
+#
+# Axiom path mirrored: the Gate 2 / Gate 3 representation-side conjuncts
+# of :AnnexIII1aApplicableSystem and :AnnexIII5bApplicableSystem
+# (ARCO_governance_extension.ttl gate blocks), with the corresponding
+# Gate 1 reality-side conjunct tested for absence. The category pairs are
+# enumerated inline — the same per-category parameterization debt tracked
+# at L3.2/D4-10 applies here; extend both UNION branches when a new
+# category lands (extension protocol).
+
+ASK WHERE {
+  ?system rdf:type :System .
+  ?uss rdf:type :UseScenarioSpecification ;
+       iao:0000136 ?system ;
+       cco:designates :NaturalPersonRole .
+  {
+    ?ius rdf:type :RemoteBiometricIdentificationIntendedUseSpec ;
+         iao:0000136 ?system .
+    FILTER NOT EXISTS {
+      ?system bfo:0000051 ?comp1 .
+      ?comp1 rdf:type :SystemComponent .
+      ?comp1 ro:0000091 ?disp1 .
+      ?disp1 rdf:type :BiometricIdentificationCapability .
+    }
+  }
+  UNION
+  {
+    ?ius rdf:type :CreditworthinessEvaluationIntendedUseSpec ;
+         iao:0000136 ?system .
+    FILTER NOT EXISTS {
+      ?system bfo:0000051 ?comp2 .
+      ?comp2 rdf:type :SystemComponent .
+      ?comp2 ro:0000091 ?disp2 .
+      ?disp2 rdf:type :CreditworthinessEvaluationCapability .
+    }
+  }
+}

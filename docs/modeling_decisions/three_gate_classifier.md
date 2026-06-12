@@ -17,27 +17,27 @@ flowchart TB
   classDef negative fill:#fee2e2,stroke:#b91c1c,color:#450a0a
   classDef output fill:#fce7f3,stroke:#9d174d,color:#3b0827
 
-  SYS[":System root class<br/>ARCO_core.ttl:48"]:::triggering
+  SYS[":System root class<br/>ARCO_core.ttl:98"]:::triggering
 
-  G1_GENERIC["Gate 1 GENERIC (Latent flag)<br/>System bfo:0000051 (has_part) Component<br/>AND Component ro:0000091 (has_disposition) AnnexIIITriggeringCapability<br/>ARCO_governance_extension.ttl:203-221"]:::gate
+  G1_GENERIC["Gate 1 GENERIC (Latent flag)<br/>System bfo:0000051 (has_part) Component<br/>AND Component ro:0000091 (has_disposition) AnnexIIITriggeringCapability<br/>ARCO_governance_extension.ttl:241-266"]:::gate
 
-  G1_1a["Gate 1 specific to 1(a)<br/>has_disposition some :BiometricIdentificationCapability<br/>ARCO_governance_extension.ttl:427-431"]:::gate
+  G1_1a["Gate 1 specific to 1(a)<br/>has_disposition some :BiometricIdentificationCapability<br/>ARCO_governance_extension.ttl:509-521"]:::gate
 
-  G1_5b["Gate 1 specific to 5(b)<br/>has_disposition some :CreditworthinessEvaluationCapability<br/>ARCO_governance_extension.ttl:513-517"]:::gate
+  G1_5b["Gate 1 specific to 5(b)<br/>has_disposition some :CreditworthinessEvaluationCapability<br/>ARCO_governance_extension.ttl:599-611"]:::gate
 
-  G2_1a["Gate 2 specific to 1(a)<br/>some IUS inverse iao:0000136 the System<br/>AND IUS is a :RemoteBiometricIdentificationIntendedUseSpec<br/>(class-level cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess)<br/>ARCO_governance_extension.ttl:441-444, 254-262"]:::gate
+  G2_1a["Gate 2 specific to 1(a)<br/>some IUS inverse iao:0000136 the System<br/>AND IUS is a :RemoteBiometricIdentificationIntendedUseSpec<br/>(class-level cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess)<br/>ARCO_governance_extension.ttl:522-532, 294-307"]:::gate
 
-  G2_5b["Gate 2 specific to 5(b)<br/>some IUS inverse iao:0000136 the System<br/>AND IUS is a :CreditworthinessEvaluationIntendedUseSpec<br/>(class-level cco:prescribes someValuesFrom :CreditworthinessEvaluationProcess)<br/>ARCO_governance_extension.ttl:527-530, 264-277"]:::gate
+  G2_5b["Gate 2 specific to 5(b)<br/>some IUS inverse iao:0000136 the System<br/>AND IUS is a :CreditworthinessEvaluationIntendedUseSpec<br/>(class-level cco:prescribes someValuesFrom :CreditworthinessEvaluationProcess)<br/>ARCO_governance_extension.ttl:612-621, 309-322"]:::gate
 
-  G3["Gate 3 (shared by 1a and 5b)<br/>some USS inverse iao:0000136 the System<br/>AND USS cco:designates owl:hasValue :NaturalPersonRole<br/>ARCO_governance_extension.ttl:454-466, 536-548"]:::gate
+  G3["Gate 3 (shared by 1a and 5b)<br/>some USS inverse iao:0000136 the System<br/>AND USS cco:designates owl:hasValue :NaturalPersonRole<br/>ARCO_governance_extension.ttl:534-554, 623-639"]:::gate
 
-  TRIG[":AnnexIIITriggeringCapability<br/>(regulatory fiat partition)<br/>owl:equivalentClass owl:unionOf<br/>(:BiometricIdentificationCapability :CreditworthinessEvaluationCapability)<br/>ARCO_governance_extension.ttl:180-190"]:::triggering
+  TRIG[":AnnexIIITriggeringCapability<br/>(regulatory fiat partition)<br/>owl:equivalentClass owl:unionOf<br/>(:BiometricIdentificationCapability :CreditworthinessEvaluationCapability)<br/>ARCO_governance_extension.ttl:219-232"]:::triggering
 
-  CLS_1a[":AnnexIII1aApplicableSystem<br/>(defined class, all three 1(a) gates)<br/>ARCO_governance_extension.ttl:405-468"]:::class1a
+  CLS_1a[":AnnexIII1aApplicableSystem<br/>(defined class, all three 1(a) gates)<br/>ARCO_governance_extension.ttl:490-556"]:::class1a
 
-  CLS_5b[":AnnexIII5bApplicableSystem<br/>(defined class, all three 5(b) gates)<br/>ARCO_governance_extension.ttl:491-550"]:::class5b
+  CLS_5b[":AnnexIII5bApplicableSystem<br/>(defined class, all three 5(b) gates)<br/>ARCO_governance_extension.ttl:579-641"]:::class5b
 
-  HRS[":HighRiskSystem<br/>(latent flag, Gate 1 generic only)<br/>NOT the legal high-risk category<br/>ARCO_governance_extension.ttl:199-221"]:::latent
+  HRS[":HighRiskSystem<br/>(latent flag, Gate 1 generic only)<br/>NOT the legal high-risk category<br/>ARCO_governance_extension.ttl:241-266"]:::latent
 
   PRI_OUT["PRIMARY ARCO classification<br/>(category-specific applicability)<br/>certificate field: primary_arco_classification<br/>schema 1.3"]:::output
 
@@ -99,23 +99,23 @@ The certificate carries TWO distinct classification claims. They are not the sam
 
 **LATENT-RISK FLAG** is `:HighRiskSystem` membership, entailed by Gate 1 alone: the system has a part bearing some triggering capability. This is the looser, capability-only signal. It fires on any system whose hardware bears identification OR creditworthiness capability, regardless of whether the intended-use or use-scenario gates are satisfied. The latent flag is NOT the legal high-risk classification; it is a "look harder here" signal grounded in the latent-disposition target ARCO names in its thesis.
 
-The bifurcation matters because Gate 1 is reality-side (the hardware physically grounds the capability) and Gates 2 and 3 are representation-side (provider intent and use scenario). ARCO's stated target is to surface latent dispositions at design time: Gate 1 alone surfaces the latent capability; the full three-gate axiom is what the regulation actually keys on for applicability.
+The bifurcation matters because Gate 1 is reality-side (the hardware physically grounds the capability) and Gates 2 and 3 are representation-side (provider intent and use scenario). ARCO's stated target is to surface latent dispositions at design time: Gate 1 alone surfaces the latent capability. Gates 2 and 3 carry the conditions the regulation keys on (documented intended use of a regulated process kind; affected natural persons); Gate 1 is ARCO's added design-time evidential gate, stricter than the Annex III text. The encoding therefore has a disclosed under-classification direction: a description with documented regulated intent but no asserted capability commitment is not entailed (see LIMITATIONS §3.9).
 
 ## Verification table
 
 | Axiom or class | File and lines | Note |
 |---|---|---|
-| `:AnnexIII1aApplicableSystem` (full defined class) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:405-468` | Three gates via `owl:intersectionOf` with `owl:equivalentClass` |
-| `:AnnexIII5bApplicableSystem` (full defined class) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:491-550` | Same shape as 1(a) with category-specific subclasses |
-| `:HighRiskSystem` (latent flag, Gate 1 generic only) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:199-221` | `owl:equivalentClass owl:intersectionOf` over `:System` and Gate-1-generic component restriction |
-| `:AnnexIIITriggeringCapability` (regulatory fiat union) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:180-190` | Defined class via `owl:unionOf` over named member capability classes |
-| `:BiometricIdentificationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:89-93` | In triggering union; 1:N |
-| `:BiometricVerificationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:95-99` | NOT in triggering union; 1:1 (why kiosk fixture is negative) |
-| `:CreditworthinessEvaluationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:101-105` | In triggering union |
-| `:RemoteBiometricIdentificationIntendedUseSpec` (Gate 2 1(a) IUS subkind) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:249-262` | `owl:equivalentClass` with `cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess` |
-| `:CreditworthinessEvaluationIntendedUseSpec` (Gate 2 5(b) IUS subkind) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:264-277` | Same shape, category-specific |
-| Gate 3 `cco:designates owl:hasValue :NaturalPersonRole` pattern | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:454-466, 536-548` | Avoids bearer-less role token per `LIMITATIONS.md` §3.1 |
-| `:NaturalPersonRole` | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:323-327` | `cco:designates owl:hasValue` references the universal; no bearer particulars minted (L2.4 DISCLOSED) |
+| `:AnnexIII1aApplicableSystem` (full defined class) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:490-556` | Three gates via `owl:intersectionOf` with `owl:equivalentClass` |
+| `:AnnexIII5bApplicableSystem` (full defined class) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:579-641` | Same shape as 1(a) with category-specific subclasses |
+| `:HighRiskSystem` (latent flag, Gate 1 generic only) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:241-266` | `owl:equivalentClass owl:intersectionOf` over `:System` and Gate-1-generic component restriction |
+| `:AnnexIIITriggeringCapability` (regulatory fiat union) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:219-232` | Defined class via `owl:unionOf` over named member capability classes |
+| `:BiometricIdentificationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:129-133` | In triggering union; 1:N |
+| `:BiometricVerificationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:135-139` | NOT in triggering union; 1:1 (why kiosk fixture is negative) |
+| `:CreditworthinessEvaluationCapability` | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:141-145` | In triggering union |
+| `:RemoteBiometricIdentificationIntendedUseSpec` (Gate 2 1(a) IUS subkind) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:294-307` | `owl:equivalentClass` with `cco:prescribes someValuesFrom :RemoteBiometricIdentificationProcess` |
+| `:CreditworthinessEvaluationIntendedUseSpec` (Gate 2 5(b) IUS subkind) | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:309-322` | Same shape, category-specific |
+| Gate 3 `cco:designates owl:hasValue :NaturalPersonRole` pattern | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:534-554, 623-639` | Avoids bearer-less role token per `LIMITATIONS.md` §3.1 |
+| `:NaturalPersonRole` | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:408-412` | `cco:designates owl:hasValue` references the universal; no bearer particulars minted (L2.4 DISCLOSED) |
 
 | Fixture | OWL outcome under three-gate axiom | File |
 |---|---|---|
@@ -127,7 +127,7 @@ The bifurcation matters because Gate 1 is reality-side (the hardware physically 
 
 ## Why the disposition-not-function choice matters here
 
-The three-gate axiom uses `:CapabilityDisposition` (subclass of `bfo:0000016`) for the capability conjunct. If `:CapabilityDisposition` were instead typed under `bfo:0000034 (Function)`, Gate 1 would narrow to designed-for capabilities and exclude latent capacities that the hardware grounds without explicit design intent. Disposition is the correct parent class for the latent-capacity target ARCO surfaces; the rationale comment at `ARCO_core.ttl:26-38` cites the BFO 2020 [064-001] Function elucidation directly.
+The three-gate axiom uses `:CapabilityDisposition` (subclass of `bfo:0000016`) for the capability conjunct. If `:CapabilityDisposition` were instead typed under `bfo:0000034 (Function)`, Gate 1 would narrow to designed-for capabilities and exclude latent capacities that the hardware grounds without explicit design intent. Disposition is the correct parent class for the latent-capacity target ARCO surfaces; the rationale comment at `ARCO_core.ttl:28-40` cites the BFO 2020 [064-001] Function elucidation directly.
 
 ## What this diagram does NOT show
 
