@@ -26,7 +26,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #   - ?system is bound by the caller to the system IRI under evaluation.
 #   - process_label is OPTIONAL.
 
-SELECT ?ius ?process ?process_class ?process_label ?process_def WHERE {
+SELECT ?ius ?process ?process_class ?process_label ?process_def ?process_scopenote WHERE {
   ?ius rdf:type :IntendedUseSpecification ;
        iao:0000136 ?system ;
        cco:prescribes ?process .
@@ -48,5 +48,8 @@ SELECT ?ius ?process ?process_class ?process_label ?process_def WHERE {
   # processes). Surfaced graph-side so the emission layer renders it from the
   # graph rather than as a Python literal.
   OPTIONAL { ?process_class skos:definition ?process_def }
+  # skos:scopeNote carries the process class's regulatory applicability, surfaced
+  # graph-side so the negative-case output renders the scope conclusion from the graph.
+  OPTIONAL { ?process_class skos:scopeNote ?process_scopenote }
 }
 ORDER BY ?ius ?process ?process_class
