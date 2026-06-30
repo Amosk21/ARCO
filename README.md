@@ -2,17 +2,15 @@
 
 **Assurance & Regulatory Classification Ontology**
 
-You're building an AI system. Somewhere down the line someone official asks you the question you can't wave off: now that the EU regulates this, is what we're building high-risk?
+ARCO was built to take some of the weight off the people deploying AI systems under new regulation. Whether a system counts as high-risk under the EU AI Act tends to surface late, and the answer has to be right early, before the build is already shaped around a guess and the time is sunk. You can't put a lawyer on every design decision, and even a good one doesn't know the system the way the team building it does, so what comes back is slow and hedged.
 
-You want to know that immediately, not a year in, after the time's already sunk and you've built around the wrong answer.
+ARCO gives a first answer to that question and shows the work behind it. You give it a structured description of a system (what the hardware can really do, what it's meant to be used for, and who its decisions land on), and it works out whether that meets the conditions for a high-risk category. Then it lays out the chain of reasoning that got there, so the team can put the answer in front of leadership or a regulator and walk it back step by step, point at the exact place they'd argue with, and hand counsel a clean starting point instead of paying them to take the system apart from scratch.
 
-And you can't put it all on the lawyers. Not because they're wrong, but because they're expensive, you can't get one on every design decision, and even a good one doesn't know your system the way you do, so what comes back is slow and hedged. What you need first is a way to walk your boss, or the regulator, down the line: here is why this lands where it lands, and here is the reason behind every step. Something you can point at and defend. Bring counsel in after that and you're handing them a clean starting point instead of paying them to take your system apart from scratch.
-
-ARCO is a working proof that a tool like this can be built and trusted. You give it a structured description of a system: what the hardware can really do, what it's meant to be used for, who its decisions land on. It works out whether that meets the conditions for a high-risk category, and it shows the whole chain of reasoning that got there, so anyone who doubts the answer can walk back through it and point at the exact step they'd argue with. Same description in, same answer out, every time, and because it runs on fixed logic instead of a model's guess, anyone can re-run it and get the same result. The part that would turn it into a tool a compliance team could pick up, taking a plain vendor document and producing that structured description without an expert in the loop, is the next piece of work and is not done yet.
+It's a working proof that a tool like this can be built and trusted, not a finished product. Same description in, same answer out, every time, because it runs on fixed logic instead of a model's guess, so anyone can re-run it and get the same result. The part that would turn it into something a compliance team could pick up tomorrow, taking a plain vendor document and producing that structured description without an expert in the loop, is the next piece of work and is not done yet.
 
 Underneath, ARCO runs on a formal foundation called BFO. It's an international standard (ISO/IEC 21838-2), and it's the shared base under hundreds of other projects, from biology to defense. What that buys you in plain terms: the words mean one fixed thing every time, so the answer tracks what your system actually is, not how the paperwork happens to be worded.
 
-And it reaches past this one law. What ARCO checks is always the same three things: what a system can do, what it's for, and who it affects. That's what rules tend to reach for wherever someone gets held responsible, so the same machine re-aims at other categories and other rulebooks. I've built it out for two of the EU's high-risk categories so far.
+ARCO isn't tied to this one law. What it checks is always the same three things: what a system can do, what it's for, and who it affects. That's what rules tend to reach for wherever someone gets held responsible, so the same machine re-aims at other categories and other rulebooks. I've built it out for two of the EU's high-risk categories so far.
 
 The straight version: this is a solo open-source project. Two of the eight high-risk categories so far, no lawyer has signed off on the legal reading, and it's a working proof of the idea, not something to drop into a compliance team tomorrow. Everything it can't do is written down plainly in [LIMITATIONS.md](LIMITATIONS.md), on purpose.
 
@@ -87,7 +85,7 @@ ARCO does two EU categories right now, but the part doing the real work isn't ti
 
 Once those three are written down as something a reasoner can work over, you can point it somewhere else. The same setup that checks a credit model has the shape to check a hiring tool, or a system that decides who gets seen first in an emergency room. Different details, same skeleton. So adding a category is mostly filling in the specifics, not rebuilding the machine.
 
-One thing I want to be straight about, because it's the flip side of the same coin. Something flexible enough to re-aim across all those areas is flexible enough to be aimed at things I wouldn't sign off on, like profiling people at scale. There's no mechanism in the code that can stop that. Keeping ARCO pointed where it's pointed is a line I hold, not a lock I built, and I'd rather say that out loud than pretend the flexibility only cuts one way. The full disclosure is in [LIMITATIONS.md](LIMITATIONS.md) §12.
+The flexibility cuts both ways, and it's worth being straight about. Something flexible enough to re-aim across all those areas is flexible enough to be aimed at things I wouldn't sign off on, like profiling people at scale. There's no mechanism in the code that can stop that. Keeping ARCO pointed where it's pointed is a line I hold, not a lock I built. The full disclosure is in [LIMITATIONS.md](LIMITATIONS.md) §12.
 
 ---
 

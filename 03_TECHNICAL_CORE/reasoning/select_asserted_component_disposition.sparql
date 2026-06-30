@@ -4,6 +4,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
 # EMISSION LAYER — binds asserted component/disposition rows regardless of
 # triggering-union membership.
@@ -27,7 +28,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 #     "asserted disposition" for the gate-card / determination path, and
 #     callers can list all rows for a richer evidence panel.
 
-SELECT ?component ?disposition ?disposition_class ?cls_label WHERE {
+SELECT ?component ?disposition ?disposition_class ?cls_label ?cls_def WHERE {
   ?system bfo:0000051 ?component .
   ?component ro:0000091 ?disposition .
   ?disposition rdf:type ?disposition_class .
@@ -41,5 +42,10 @@ SELECT ?component ?disposition ?disposition_class ?cls_label WHERE {
   # dedup fragility flagged by the PR #68 adversarial audit (M-A2/M-A4).
   FILTER(STRSTARTS(STR(?disposition_class), "https://arco.ai/ontology/core#"))
   OPTIONAL { ?disposition_class rdfs:label ?cls_label }
+  # skos:definition carries the ontology's own meaning of the asserted class
+  # (e.g. the 1:1 / one-to-one matching framing and its Article 3(36) basis on
+  # :BiometricVerificationCapability). Surfaced graph-side so the emission layer
+  # renders the definition from the graph rather than as a Python literal.
+  OPTIONAL { ?disposition_class skos:definition ?cls_def }
 }
 ORDER BY ?component ?disposition ?disposition_class
