@@ -127,7 +127,7 @@ The bifurcation matters because Gate 1 is reality-side (the hardware physically 
 
 ## Why the disposition-not-function choice matters here
 
-The three-gate axiom uses `:CapabilityDisposition` (subclass of `bfo:0000016`) for the capability conjunct. If `:CapabilityDisposition` were instead typed under `bfo:0000034 (Function)`, Gate 1 would narrow to designed-for capabilities and exclude latent capacities that the hardware grounds without explicit design intent. Disposition is the correct parent class for the latent-capacity target ARCO surfaces; the rationale comment at `ARCO_core.ttl:28-40` cites the BFO 2020 [064-001] Function elucidation directly.
+The three-gate axiom uses `:Capability` (subclass of `bfo:0000016`) for the capability conjunct. If `:Capability` were instead typed under `bfo:0000034 (Function)`, Gate 1 would narrow to designed-for capabilities and exclude latent capacities that the hardware grounds without explicit design intent. Disposition is the correct parent class for the latent-capacity target ARCO surfaces; the rationale comment at `ARCO_core.ttl:28-40` cites the BFO 2020 [064-001] Function elucidation directly.
 
 ## What this diagram does NOT show
 

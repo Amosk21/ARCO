@@ -26,11 +26,11 @@ The hardware bears a capability disposition whether or not the disposition is cu
 
 **Why it matters**: This is ARCO's stated value proposition. Any modeling decision that breaks the latent-disposition framing collapses ARCO into regulatory pattern-match search instead of BFO-grounded classification. See F2 for the load-bearing parent class choice that protects this.
 
-### F2. `:CapabilityDisposition ⊑ bfo:0000016 (Disposition)`, not `bfo:0000034 (Function)`
+### F2. `:Capability ⊑ bfo:0000016 (Disposition)`, not `bfo:0000034 (Function)`
 
 ARCO targets the latent capability the bearer's physical make-up grounds, regardless of whether the make-up was designed for that purpose. Function is a disposition-subkind whose physical make-up exists *for that purpose*; typing capability as Function would narrow ARCO out of the latent case (a hardware that physically grounds biometric capacity without being designed-for-it would not bear a Function but does bear a Disposition).
 
-**Anchor**: `ARCO_core.ttl:124-127` (`:CapabilityDisposition ⊑ bfo:0000016` declaration; rationale comment at `:28`); BFO 2020 [064-001] Function elucidation at `bfo-2020.owl:1326-1327`.
+**Anchor**: `ARCO_core.ttl:124-127` (`:Capability ⊑ bfo:0000016` declaration; rationale comment at `:28`); BFO 2020 [064-001] Function elucidation at `bfo-2020.owl:1326-1327`.
 
 **Why it matters**: Disposition admits both latent-only capacities AND designed-for functions as subkinds. Function would exclude the latent case. Terminal choice, not deferred upgrade.
 
@@ -109,7 +109,7 @@ The capability disposition is located on a `SystemComponent`, not on the `System
 
 ### S3. `:AnnexIIITriggeringCapability` as regulatory fiat partition (owl:unionOf), not natural kind
 
-There is no mind-independent property shared by all "triggering capabilities" in reality. What makes a capability "triggering" is the legal text of Annex III. ARCO models this as a defined class whose extension is fixed by `owl:unionOf` over the listed member capability classes. Each member IS a real BFO disposition (subclass of `:CapabilityDisposition`); the grouping is by extrinsic regulatory criterion under Article 6.
+There is no mind-independent property shared by all "triggering capabilities" in reality. What makes a capability "triggering" is the legal text of Annex III. ARCO models this as a defined class whose extension is fixed by `owl:unionOf` over the listed member capability classes. Each member IS a real BFO disposition (subclass of `:Capability`); the grouping is by extrinsic regulatory criterion under Article 6.
 
 **Anchor**: `ARCO_governance_extension.ttl:219-232` (class declaration + rdfs:comment + owl:unionOf); `LIMITATIONS.md §3.2` (regulatory grouping disclosure).
 
@@ -251,7 +251,7 @@ The class name `:CapabilityDisposition` is a compositional construction (Capabil
 
 ### M-Capability-1. Interest modeling for capability accountability
 
-The canonical capability framing is a disposition whose realization is associated with the interest of an organism or group. ARCO's `:CapabilityDisposition` currently models the disposition side only; there is no Interest hookup. Three canonical options surfaced:
+The canonical capability framing is a disposition whose realization is associated with the interest of an organism or group. ARCO's `:Capability` currently models the disposition side only; there is no Interest hookup. Three canonical options surfaced:
 
 - A: use `cco:has_interest_in` relation only. Domain `cco:Agent`; range `bfo:0000015` Process. Matches CCO v1.7 + the canonical relational treatment. No class minted; satisfies Principle 5 (terminological moderation).
 - B: mint `:Interest ⊑ bfo:0000019` Quality per abi production extension (`CapabilityOntology.ttl:60-64`). Expands Bucket 2 from empty to populated. abi's `:bearerOfInterest` and `:hasInterestIn` over-mints must NOT be copied if this option is chosen (use BFO `bearer_of` and `inheres_in` instead).
