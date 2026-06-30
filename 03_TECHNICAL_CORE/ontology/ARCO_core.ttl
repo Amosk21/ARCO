@@ -25,7 +25,7 @@
 #   of material components. Defensible for component-level disposition
 #   tracing. If a future system has stronger functional unity, revisit.
 #
-#   CapabilityDisposition ⊑ Disposition (not Function): ARCO's target is the
+#   Capability ⊑ Disposition (not Function): ARCO's target is the
 #   latent capability that the bearer's physical make-up grounds at design
 #   time, regardless of whether the make-up was designed for that purpose.
 #   BFO 2020 [064-001] defines Function as the disposition-subkind whose
@@ -118,31 +118,31 @@
   rdfs:subClassOf [
     a owl:Restriction ;
     owl:onProperty ro:0000091 ; # has disposition (RO-specific)
-    owl:someValuesFrom :CapabilityDisposition
+    owl:someValuesFrom :Capability
   ] .
 
-:CapabilityDisposition rdf:type owl:Class ;
-  rdfs:label "AI Capability Disposition"@en ;
-  skos:definition "A disposition borne by a system component whose realization is the component participating in a process that produces the capability's output. ARCO subclasses this to enumerate capability kinds named by Annex III (biometric identification, creditworthiness evaluation, and others)."@en ;
+:Capability rdf:type owl:Class ;
+  rdfs:label "AI Capability"@en ;
+  skos:definition "A disposition borne by a system component whose realization is the component participating in a process that produces the output the disposition is directed toward. ARCO subclasses this to enumerate capability kinds named by Annex III (biometric identification, creditworthiness evaluation, and others)."@en ;
   rdfs:subClassOf bfo:0000016 . # Disposition
 
 :BiometricIdentificationCapability rdf:type owl:Class ;
   rdfs:label "Biometric Identification Capability"@en ;
   skos:definition "The capability to identify an unknown person from biometric data by comparing a sample against many candidates (one-to-many matching). Gate 1 capability for ARCO's Annex III 1(a) encoding; classification additionally requires an intended use prescribing a REMOTE biometric identification process (Article 3(41)) and a use scenario designating natural persons."@en ;
   rdfs:comment "1:N biometric identification capability. Realizations identify an unknown individual against a population database. Gate 1 capability for Annex III 1(a) — the regulated process kind is the REMOTE subkind (Art 3(41)) and all three gates are required for classification; the capability alone fires only the latent-risk flag. NOT the same as 1:1 verification (see BiometricVerificationCapability)." ;
-  rdfs:subClassOf :CapabilityDisposition .
+  rdfs:subClassOf :Capability .
 
 :BiometricVerificationCapability rdf:type owl:Class ;
   rdfs:label "Biometric Verification Capability"@en ;
   skos:definition "The capability to confirm a claimed identity by comparing biometric data against a single reference (one-to-one matching). Out of scope of Annex III 1(a) per Article 3(36)."@en ;
   rdfs:comment "1:1 biometric verification capability. Realizations confirm whether a presented individual matches a claimed identity. NOT subClassOf BiometricIdentificationCapability — verification is not a species of identification. NOT in AnnexIIITriggeringCapability. Does not trigger Annex III 1(a)." ;
-  rdfs:subClassOf :CapabilityDisposition .
+  rdfs:subClassOf :Capability .
 
 :CreditworthinessEvaluationCapability rdf:type owl:Class ;
   rdfs:label "Creditworthiness Evaluation Capability"@en ;
   skos:definition "The capability to evaluate the creditworthiness of natural persons or establish their credit score (the Annex III 5(b) operative scope). Gate 1 capability for ARCO's 5(b) encoding; all three gates are required for classification."@en ;
   rdfs:comment "Capability to evaluate the creditworthiness of natural persons or establish their credit score — the 5(b) operative text. Benefits-eligibility scoring for public assistance (Annex III 5(a) territory, unmodeled) is NOT this class. Reality-side disposition (the hardware genuinely has this capacity). Regulatory grouping (AnnexIIITriggeringCapability) is asserted in the governance extension. Gate 1 capability for Annex III 5(b)." ;
-  rdfs:subClassOf :CapabilityDisposition .
+  rdfs:subClassOf :Capability .
 
 # Pairwise disjointness: these are genuinely different capability kinds.
 # A component cannot simultaneously bear biometric identification AND
@@ -172,7 +172,7 @@
   rdfs:subClassOf bfo:0000015 ; # Process
   rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty ro:0000057 ; owl:someValuesFrom :System ] ,                 # has participant
-    [ a owl:Restriction ; owl:onProperty bfo:0000055 ; owl:someValuesFrom :CapabilityDisposition ] . # realizes
+    [ a owl:Restriction ; owl:onProperty bfo:0000055 ; owl:someValuesFrom :Capability ] . # realizes
 
 #################################################################
 # 2) REPRESENTATION-SIDE UNIVERSALS (IAO)

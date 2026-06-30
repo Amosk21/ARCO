@@ -33,7 +33,7 @@ flowchart TB
   subgraph REAL ["Reality side: POPULATED (BFO IC and SDC subkinds)"]
     SYS[":System ⊑ bfo:0000027<br/>Sentinel, CreditScorer, Kiosk +3<br/>ARCO_core.ttl:98"]:::reality
     COMP[":HardwareComponent ⊑ bfo:0000030<br/>bears dispositions<br/>ARCO_core.ttl:114"]:::reality
-    DISP[":CapabilityDisposition ⊑ bfo:0000016<br/>latent-capability target<br/>(rationale at ARCO_core.ttl:28-40)<br/>ARCO_core.ttl:124"]:::reality
+    DISP[":Capability ⊑ bfo:0000016<br/>latent-capability target<br/>(rationale at ARCO_core.ttl:28-40)<br/>ARCO_core.ttl:124"]:::reality
     ROLE[":ProviderRole / :DeployerRole / :NaturalPersonRole<br/>⊑ bfo:0000023 Role"]:::reality
   end
 
@@ -126,7 +126,7 @@ Every node above traces to a file. Every edge traces to a BFO/CCO/RO/IAO/ARCO ax
 |---|---|---|
 | `:System` | The assessment target class | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:98-106` |
 | `:HardwareComponent` | Material component bearing dispositions | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:114-122` |
-| `:CapabilityDisposition` | Latent-capability target class | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:124-127` |
+| `:Capability` | Latent-capability target class | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:124-127` |
 | `:IntendedUseSpecification` | Directive ICE class | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:278-292` |
 | `:UseScenarioSpecification` | Designative ICE class | `03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl:324-333` |
 | `:ComplianceDetermination` | Descriptive ICE (entailment record) | `03_TECHNICAL_CORE/ontology/ARCO_core.ttl:197-201` |

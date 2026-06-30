@@ -531,9 +531,9 @@ def get_asserted_dispositions(g: Graph, system_local: str) -> list[dict]:
         key = (comp, disp)
         cls = r.get("disposition_class") or ""
         # Skip the most generic capability ancestor classes that OWL-RL closure
-        # materializes for any disposition typed under :CapabilityDisposition;
+        # materializes for any disposition typed under :Capability;
         # they are uninformative for emission-layer display.
-        if cls.endswith("#CapabilityDisposition"):
+        if cls.endswith("#Capability"):
             if key in seen:
                 continue
         seen[key] = {

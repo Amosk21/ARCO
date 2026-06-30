@@ -118,7 +118,7 @@ Some pieces are still being worked out (\*):
 
 - Capability + Interest framing. The canonical capability framing is "a disposition whose realization is associated with the interest of an organism or group." ARCO currently models the disposition side; the interest hookup for capability accountability is pending decision.
 - Regulatory text aboutness. How to express what the Annex III text is about beyond the universal class (canonical options surfaced; decision pending).
-- Vocabulary cleanup. The compositional class name `:CapabilityDisposition` is pending rename to `:Capability` per Smith-Against-Idiosyncrasy Principle 8.
+- Vocabulary cleanup. The compositional class name `:CapabilityDisposition` was renamed to `:Capability` per Smith-Against-Idiosyncrasy Principle 8.
 
 The architectural detail (BFO 2020 grounding, the seven modeling buckets, how the reasoner does its work) is in the section below.
 
@@ -162,7 +162,7 @@ The three-gate pattern (capability + intended use + affected role) generalizes b
 
 | What | Stage |
 |---|---|
-| Renaming the main capability class from `:CapabilityDisposition` to `:Capability` so the name represents one concept rather than two glued together | Ready to land |
+| Renaming the main capability class from `:CapabilityDisposition` to `:Capability` so the name represents one concept rather than two glued together | Landed |
 | Moving the Gate 3 design rationale out of inline code comments into proper modeling docs so a reviewer can find the reasoning without reading the TTL | Ready to land |
 | Adding the "who has an interest in this capability" relationship to the capability model. Right now ARCO captures what a capability can do but not who its outcomes serve; three approaches being weighed | Decision pending |
 | Specifying what each Annex III rule actually points at inside ARCO. Currently it points at a class; tightening to point at specific systems or sets of things together is under consideration | Decision pending |
