@@ -21,7 +21,8 @@ name: ARCO Demo Run
 #   - On main branch only: the contents of runs/demo/ also deploy to
 #     GitHub Pages, so the latest certificate is one click away without
 #     cloning the repo.
-#     Pages URL: https://amosk21.github.io/ARCO/determination_view.html
+#     Pages URL: https://amosk21.github.io/ARCO/ (root redirects to
+#     determination_view.html via a generated index.html).
 #
 # Independent OWL 2 DL cross-check runs in robot-validate.yml (HermiT
 # under the OWL 2 DL profile, separate workflow). Both must pass for a
@@ -155,6 +156,27 @@ jobs:
           name: arco-demo-artifacts
           path: runs/demo/
           if-no-files-found: error
+
+      - name: Add Pages root redirect
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > runs/demo/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=determination_view.html">
+            <link rel="canonical" href="determination_view.html">
+            <title>ARCO determination</title>
+          </head>
+          <body>
+            <p>Redirecting to the <a href="determination_view.html">ARCO determination view</a>. If you are not redirected, follow the link.</p>
+          </body>
+          </html>
+          EOF
+          echo "Wrote runs/demo/index.html (root redirect to determination_view.html)."
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'

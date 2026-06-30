@@ -5,6 +5,7 @@ PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
 PREFIX iao: <http://purl.obolibrary.org/obo/IAO_>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
 # EMISSION LAYER — binds asserted IUS-prescribed process rows regardless of
 # whether the process class is in the regulated category union.
@@ -25,7 +26,7 @@ PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 #   - ?system is bound by the caller to the system IRI under evaluation.
 #   - process_label is OPTIONAL.
 
-SELECT ?ius ?process ?process_class ?process_label WHERE {
+SELECT ?ius ?process ?process_class ?process_label ?process_def WHERE {
   ?ius rdf:type :IntendedUseSpecification ;
        iao:0000136 ?system ;
        cco:prescribes ?process .
@@ -42,5 +43,10 @@ SELECT ?ius ?process ?process_class ?process_label WHERE {
     FILTER(STRSTARTS(STR(?sub_class), "https://arco.ai/ontology/core#"))
   }
   OPTIONAL { ?process_class rdfs:label ?process_label }
+  # skos:definition carries the ontology's own meaning of the asserted process
+  # class (e.g. the one-to-many / Article 3(35) framing on the identification
+  # processes). Surfaced graph-side so the emission layer renders it from the
+  # graph rather than as a Python literal.
+  OPTIONAL { ?process_class skos:definition ?process_def }
 }
 ORDER BY ?ius ?process ?process_class

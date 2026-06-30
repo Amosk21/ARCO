@@ -541,6 +541,7 @@ def get_asserted_dispositions(g: Graph, system_local: str) -> list[dict]:
             "disposition_iri": disp,
             "class_iri": cls,
             "class_label": r.get("cls_label") or _short(cls),
+            "class_definition": r.get("cls_def") or "",
         }
     return list(seen.values())
 
@@ -591,6 +592,7 @@ def get_asserted_prescribed_processes(g: Graph, system_local: str) -> list[dict]
             "process_iri": proc,
             "class_iri": r.get("process_class") or "",
             "class_label": r.get("process_label") or _short(r.get("process_class") or ""),
+            "class_definition": r.get("process_def") or "",
         }
     return list(seen.values())
 
@@ -1159,13 +1161,19 @@ def write_html_view(
     # and runs/audits/2026-05-14_output_audit_AGENT1_technical_trace.md H1).
     if asserted_dispositions:
         first_d = asserted_dispositions[0]
+        _disp_def = first_d.get("class_definition", "")
+        _disp_def_clause = (
+            f" ARCO's definition of that capability, from the ontology: "
+            f"<em>{_disp_def}</em>"
+            if _disp_def else ""
+        )
         _gate1_negative_html = (
             f"<strong>No <code>:AnnexIIITriggeringCapability</code>-typed disposition "
             f"is asserted on any component of this system in the loaded graph.</strong> "
             f"The asserted disposition <em>{_short(first_d['disposition_iri'])}</em> "
             f"on <em>{_short(first_d['component_iri'])}</em> is typed as "
             f"<em>{first_d['class_label']}</em>, which is not a member of the "
-            f"<code>:AnnexIIITriggeringCapability</code> <code>owl:unionOf</code>. "
+            f"<code>:AnnexIIITriggeringCapability</code> <code>owl:unionOf</code>.{_disp_def_clause} "
             f"Under the Open World Assumption, this is not a closed-world denial of "
             f"the underlying hardware's capabilities."
         )
@@ -1179,6 +1187,12 @@ def write_html_view(
 
     if asserted_prescribed_processes:
         first_p = asserted_prescribed_processes[0]
+        _proc_def = first_p.get("class_definition", "")
+        _proc_def_clause = (
+            f" ARCO's definition of that process, from the ontology: "
+            f"<em>{_proc_def}</em>"
+            if _proc_def else ""
+        )
         _gate2_negative_html = (
             f"<strong>No process token prescribed by an Intended Use Specification of "
             f"this system is typed as a regulated process class in the loaded graph.</strong> "
@@ -1186,7 +1200,7 @@ def write_html_view(
             f"typed as <em>{first_p['class_label']}</em>, which is not a member of the "
             f"regulated process union "
             f"(<code>:RemoteBiometricIdentificationProcess</code> for Annex III 1(a); "
-            f"<code>:CreditworthinessEvaluationProcess</code> for 5(b))."
+            f"<code>:CreditworthinessEvaluationProcess</code> for 5(b)).{_proc_def_clause}"
         )
     else:
         _gate2_negative_html = (
@@ -1407,7 +1421,7 @@ def write_html_view(
             obligations_html = f"""
         <div class="obl-note">
           <p>No category-specific Annex III applicability class is currently entailed under ARCO's encoding of Annex III 1(a) and 5(b). ARCO does not model other regulatory obligations; absence here is not a determination about other regulatory regimes.</p>
-          <p style="margin-top:0.75rem;border-left:3px solid #888;padding-left:0.75rem;color:#444"><strong>Fixture note (rdfs:comment on the system):</strong> {_comment_safe}</p>
+          <p style="margin-top:0.75rem;border-left:3px solid #888;padding-left:0.75rem;color:var(--mu)"><strong>Fixture note (rdfs:comment on the system):</strong> {_comment_safe}</p>
         </div>"""
         else:
             obligations_html = """
@@ -1819,7 +1833,7 @@ section {{ scroll-margin-top: 1rem }}
       '<div class="cat-title">' + c["title"] + '</div></div>'
       for c in triggered_categories
     ) + "</div>" if triggered_categories else ""}
-    <p class="exec-text" style="font-size:0.85em;border-left:3px solid #888;padding-left:0.75rem;margin-top:1rem;color:#444">
+    <p class="exec-text" style="font-size:0.85em;border-left:3px solid #888;padding-left:0.75rem;margin-top:1rem;color:var(--mu)">
       <strong>Scope:</strong> ARCO assesses structured RDF instance data supplied to the
       pipeline. It does not verify raw vendor documentation, the physical deployed system,
       or legal sufficiency. ARCO currently models Annex III 1(a) (biometric identification)
@@ -1899,7 +1913,7 @@ section {{ scroll-margin-top: 1rem }}
   </table>
 
   <div class="triples">OWL-RL entailed triples added: <span>+{inferred_added}</span></div>
-  <p style="margin:0.25rem 0 1rem 0; font-size:0.85em; color:#555;">Most are upper-ontology subclass and inverse-property closure across BFO/RO/IAO/CCO. The load-bearing classification entailments are the small subset shown above (system <code>rdf:type</code> assignments plus the supporting subclass and inverse-aboutness triples the gates depend on).</p>
+  <p style="margin:0.25rem 0 1rem 0; font-size:0.85em; color:var(--mu);">Most are upper-ontology subclass and inverse-property closure across BFO/RO/IAO/CCO. The load-bearing classification entailments are the small subset shown above (system <code>rdf:type</code> assignments plus the supporting subclass and inverse-aboutness triples the gates depend on).</p>
 
   <h3 style="margin-top:1.5rem">Raw Pipeline Outputs</h3>
   <details>
