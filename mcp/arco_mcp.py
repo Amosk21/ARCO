@@ -211,7 +211,7 @@ def arco_run_pipeline(
     entail_pass = summary.get("entailment") == "PRESENT"
     annex_1a = summary.get("annex_iii_1a", "N/A")
     annex_5b = summary.get("annex_iii_5b", "N/A")
-    no_category = annex_1a == "NOT APPLICABLE" and annex_5b == "NOT APPLICABLE"
+    no_category = annex_1a == "NOT ENTAILED" and annex_5b == "NOT ENTAILED"
     non_applicable_run = shacl_pass and no_category
     classification_layer = "PASS" if (shacl_pass and entail_pass) or non_applicable_run else "FAIL"
     audit_layer = "PASS" if summary.get("all_checks_passed") and classification_layer == "PASS" else (
@@ -219,7 +219,7 @@ def arco_run_pipeline(
     )
 
     primary_classes = summary.get("primary_arco_classes", [])
-    classification = primary_classes[0] if primary_classes else "NotApplicable"
+    classification = primary_classes[0] if primary_classes else "NotEntailed"
     latent_mode = summary.get("latent_risk_mode", "NOT PRESENT")
 
     return {

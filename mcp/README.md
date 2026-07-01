@@ -203,7 +203,7 @@ hit Ctrl+C to exit.)
 - `arco_run_hermit_crosscheck` requires ROBOT v1.9.10 + Java 17+. Without ROBOT, the tool returns a structured `hermit_status: "UNAVAILABLE"` error rather than crashing.
 - `arco_run_hermit_crosscheck` runs one named fixture per tool call. The standalone `03_TECHNICAL_CORE/scripts/hermit_cross_check.py` is the fixture-wide cross-check and is what CI uses for the full sweep.
 - `arco_competency_check` re-reasons the graph in-process on each call (10-30s). For batch competency-check runs, consider calling `arco_run_pipeline` once and then mapping its output rather than calling each CQ separately.
-- ARCO currently models Annex III item 1(a) (biometric identification) and 5(b) (creditworthiness) only. CQs covering those categories are answerable; categories not yet modeled return NotApplicable.
+- ARCO currently models Annex III item 1(a) (biometric identification) and 5(b) (creditworthiness) only. CQs covering those categories are answerable; where no modeled high-risk category is entailed, the classification is `NotEntailed` (a non-entailment under current commitments, not a closed-world claim that no category is legally applicable).
 - Tools resolve paths relative to the ARCO repo root (computed from this script's location). Moving `arco_mcp.py` outside the `mcp/` subdirectory will break path resolution.
 
 ## Files

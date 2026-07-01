@@ -993,7 +993,7 @@ def write_html_view(
             # (forbidden_pattern: embedding the qualifier into a
             # graph_backed value).
             return '<span class="badge bp">VERIFIED (ENTAILED)</span>'
-        return '<span class="badge bn">NOT APPLICABLE</span>'
+        return '<span class="badge bn">NOT ENTAILED</span>'
 
     # ── mode badge ─────────────────────────────────────────────────
     if has_applicable_category:
@@ -2293,9 +2293,9 @@ def main() -> None:
     # the graph_backed VERIFIED literal (per output_manifest_v2.yaml
     # field `derogation_evaluation_scope` forbidden_pattern).
     if annex_iii_1a_ok is not None:
-        print(f"Annex III 1a:  {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 1a:  {'VERIFIED (ENTAILED, OWL-derived)' if annex_iii_1a_ok else 'NOT ENTAILED (under current commitments)'}")
     if annex_iii_5b_ok is not None:
-        print(f"Annex III 5b:  {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 5b:  {'VERIFIED (ENTAILED, OWL-derived)' if annex_iii_5b_ok else 'NOT ENTAILED (under current commitments)'}")
     # Separate run-scope disclosure for derogation evaluation. Surfaces
     # only when a category is entailed and no DerogationClaim is asserted
     # (when a claim IS asserted, the existing FLAG row signals the
@@ -2519,13 +2519,13 @@ def main() -> None:
     # forbidden_pattern (Python concatenation that embeds the qualifier
     # into a graph_backed value).
     if annex_iii_1a_ok is not None:
-        _line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT APPLICABLE"
+        _line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT ENTAILED (under current commitments)"
         print(f"  ANNEX III 1(a):          {_line_1a}")
     if annex_iii_5b_ok is not None:
         if annex_iii_5b_ok:
             _line_5b = "VERIFIED (ENTAILED)"
         else:
-            _line_5b = "NOT APPLICABLE"
+            _line_5b = "NOT ENTAILED (under current commitments)"
         print(f"  ANNEX III 5(b):          {_line_5b}")
     # Separate run-scope disclosure for derogation evaluation. Surfaces
     # only when a category is entailed and no DerogationClaim is asserted
@@ -2591,10 +2591,10 @@ def main() -> None:
     # (per output_manifest_v2.yaml field `derogation_evaluation_scope`
     # forbidden_pattern).
     if annex_iii_1a_ok is not None:
-        _cert_line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT APPLICABLE"
+        _cert_line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT ENTAILED (under current commitments)"
         cert_lines.append(f"  ANNEX III 1(a):          {_cert_line_1a}")
     if annex_iii_5b_ok is not None:
-        _cert_line_5b = "VERIFIED (ENTAILED)" if annex_iii_5b_ok else "NOT APPLICABLE"
+        _cert_line_5b = "VERIFIED (ENTAILED)" if annex_iii_5b_ok else "NOT ENTAILED (under current commitments)"
         cert_lines.append(f"  ANNEX III 5(b):          {_cert_line_5b}")
     # Separate run-scope disclosure for derogation evaluation. Surfaces
     # only when a category is entailed and no DerogationClaim is asserted.
@@ -2682,8 +2682,8 @@ def main() -> None:
         # field below, not embedded in these graph_backed literals
         # (per output_manifest_v2.yaml field `derogation_evaluation_scope`
         # forbidden_pattern).
-        "annex_iii_1a": ("VERIFIED (ENTAILED)" if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
-        "annex_iii_5b": ("VERIFIED (ENTAILED)" if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
+        "annex_iii_1a": ("VERIFIED (ENTAILED)" if annex_iii_1a_ok else ("NOT ENTAILED" if annex_iii_1a_ok is not None else "N/A")),
+        "annex_iii_5b": ("VERIFIED (ENTAILED)" if annex_iii_5b_ok else ("NOT ENTAILED" if annex_iii_5b_ok is not None else "N/A")),
         "derogation_evaluation_scope": {
             "evaluated": False,
             "reason": "Article 6(3) derogation evaluation not modeled in current ARCO release; see LIMITATIONS.md §2",
