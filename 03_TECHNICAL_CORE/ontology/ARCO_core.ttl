@@ -28,9 +28,12 @@
 #   Capability ⊑ Disposition (not Function): ARCO's target is the
 #   latent capability that the bearer's physical make-up grounds at design
 #   time, regardless of whether the make-up was designed for that purpose.
-#   BFO 2020 [064-001] defines Function as the disposition-subkind whose
-#   bearer's physical make-up exists "either through evolution or through
-#   intentional design, in order to realize processes of a certain sort";
+#   BFO 2020 [064-001] elucidates Function as a disposition existing in
+#   virtue of the bearer's physical make-up, that make-up having come into
+#   being through evolution (natural biological entities) or intentional
+#   design (artefacts) "in order to realize processes of a certain sort"
+#   (paraphrase except the quoted clause; imports/bfo-2020.owl
+#   BFO_0000034, identifier 064-BFO);
 #   typing as Function would narrow to designed-for cases and exclude
 #   non-designed-in capacities that the hardware nonetheless grounds.
 #   Disposition admits both, with Function instances participating as a
@@ -40,7 +43,10 @@
 #   disposition.
 #
 #   HighRiskSystem and AnnexIIITriggeringCapability live in the governance
-#   extension, not here. Core contains only reality-side universals.
+#   extension, not here. The core/governance split is generic vs
+#   EU-AI-Act-specific: core carries the generic classes — both
+#   reality-side (section 1) and representation-side (section 2) — while
+#   the EU AI Act regulatory classes live in the governance extension.
 #   AnnexIII1aApplicableSystem: full three-gate (capability + intent +
 #   scenario). Defined in governance extension.
 
@@ -86,10 +92,13 @@
 # 1) REALITY-SIDE UNIVERSALS (BFO)
 #
 # Design Decision: We use ro:0000091 (has_disposition) rather than
-# ro:0000053 (bearer_of) because:
+# ro:0000053 (has characteristic — the pinned RO 2025-12-17 rdfs:label;
+# "bearer of" survives in the pin only as editor/alternative-term
+# annotations) because:
 #   - has_disposition is more specific in the RO property hierarchy
 #   - has_disposition has domain: independent continuant, range: disposition
-#   - bearer_of is generic (covers qualities, roles, functions, dispositions)
+#   - has characteristic is generic (covers qualities, roles, functions,
+#     dispositions)
 #   - This aligns with OBO Foundry best practices
 # See section 5 for the parallel ro:0000052 → bfo:0000197 subPropertyOf
 # binding (BFO range adds the IC constraint RO removed from characteristic_of).
@@ -123,7 +132,8 @@
 
 :Capability rdf:type owl:Class ;
   rdfs:label "AI Capability"@en ;
-  skos:definition "A disposition borne by a system component whose realization is the component participating in a process that produces the output the disposition is directed toward. ARCO subclasses this to enumerate capability kinds named by Annex III (biometric identification, creditworthiness evaluation, and others)."@en ;
+  skos:definition "A disposition borne by a system component whose realization is the component participating in a process that produces the output the disposition is directed toward."@en ;
+  skos:scopeNote "ARCO subclasses this to enumerate capability kinds named by Annex III (biometric identification, creditworthiness evaluation, and others)."@en ;
   rdfs:subClassOf bfo:0000016 . # Disposition
 
 :BiometricIdentificationCapability rdf:type owl:Class ;
@@ -143,7 +153,7 @@
 :CreditworthinessEvaluationCapability rdf:type owl:Class ;
   rdfs:label "Creditworthiness Evaluation Capability"@en ;
   skos:definition "The capability to evaluate a person's creditworthiness or establish their credit score."@en ;
-  skos:scopeNote "Gate 1 capability for ARCO's Annex III 5(b) encoding; full applicability also needs the creditworthiness-evaluation intended use and a natural-person use scenario. The operative trigger is Annex III item 5(b) under Article 6(2); the Act gives no Article 3 definition of creditworthiness, so 5(b)'s own text is the only anchor (do not pin to a definitional article)."@en ;
+  skos:scopeNote "Gate 1 capability for ARCO's Annex III 5(b) encoding (the provision covers evaluating the creditworthiness of natural persons or establishing their credit score); full applicability also needs the creditworthiness-evaluation intended use and a natural-person use scenario. The operative trigger is Annex III item 5(b) under Article 6(2); the Act gives no Article 3 definition of creditworthiness, so 5(b)'s own text is the only anchor (do not pin to a definitional article)."@en ;
   rdfs:comment "Evaluating a person's credit standing, a real, reality-side capability the hardware bears. Do not confuse it with benefits-eligibility scoring for public assistance, which is Annex III 5(a) territory (unmodeled), not this class. ARCO models it as disjoint from the two biometric capabilities, and as a member of the :AnnexIIITriggeringCapability set it is the Gate 1 capability for Annex III 5(b) and fires the latent :HighRiskSystem flag. Gate 1 is ARCO's design-time evidential addition, stricter than the Annex III text (LIMITATIONS §3.9)." ;
   rdfs:subClassOf :Capability .
 
@@ -236,7 +246,7 @@ bfo:0000055 rdfs:label "realizes" .
 
 # RO relations
 ro:0000052 rdfs:label "characteristic of" .
-ro:0000053 rdfs:label "bearer of" .
+ro:0000053 rdfs:label "has characteristic" .
 ro:0000057 rdfs:label "has participant" .
 ro:0000087 rdfs:label "has role" .
 ro:0000091 rdfs:label "has disposition" .

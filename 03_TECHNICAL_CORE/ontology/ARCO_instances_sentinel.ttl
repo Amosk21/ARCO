@@ -25,7 +25,7 @@
 
 :Sentinel_FaceID_Module rdf:type :HardwareComponent ;
   rdfs:label "Sentinel Facial Recognition Module" ;
-  rdfs:comment "Hardware component containing biometric sensors and processing capability." ;
+  rdfs:comment "Hardware component containing biometric sensors and processing; asserted to bear the biometric identification disposition under this deployment's reviewed commitments." ;
   ro:0000091 :Sentinel_FaceID_Disposition . # has disposition
 
 :Sentinel_ID_System rdf:type :System ;
@@ -62,7 +62,7 @@
 
 :Sentinel_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Sentinel Use Scenario: Biometric ID of Natural Persons" ;
-  rdfs:comment "Designative ICE: is_about the system, designates the :NaturalPersonRole universal via cco:designates (a typed designation property whose range admits universals). Gate 3 satisfaction does not require a role-bearer token; designation by inscription naming the regulated role category is sufficient." ;
+  rdfs:comment "Designative ICE: is_about the system; cco:designates :NaturalPersonRole with the class IRI as a named individual (OWL 2 punning; the Gate-3 entailment consumes the IRI only in its individual interpretation). No role-bearer token is minted (L2.4); category designation is ARCO's documented intent, not a CCO-documented use (LIMITATIONS §3.1)." ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :RemoteBiometricIdentificationProcess ;
   iao:0000136 cco:Person ;

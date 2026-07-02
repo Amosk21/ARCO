@@ -51,9 +51,10 @@
 # typed as :CreditworthinessEvaluationProcess — the Gate 2
 # type-check target for AnnexIII5bApplicableSystem.
 # Gate 3: UseScenarioSpecification (a Designative ICE) must
-# cco:designates :NaturalPersonRole — designation references the
-# role universal directly via a typed designation property whose
-# range admits universals. No role-bearer required.
+# cco:designates :NaturalPersonRole — owl:hasValue uses the class
+# IRI as a named individual (OWL 2 punning; the entailment consumes
+# the IRI only in its individual interpretation). No role-bearer
+# token is minted (L2.4); see LIMITATIONS §3.1.
 #################################################################
 
 :CreditScorer_EvalProcess_Token rdf:type :CreditworthinessEvaluationProcess ;
