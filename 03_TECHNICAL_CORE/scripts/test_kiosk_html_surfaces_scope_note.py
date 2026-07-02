@@ -5,8 +5,8 @@ The essence-vs-aboutness annotation pass moved the regulatory carve-out conclusi
 ("out of scope of Annex III 1(a) ...") OUT of skos:definition (which the negative-case
 certificate renders) and INTO skos:scopeNote. Without a matching emitter change, the
 plain-English carve-out would silently disappear from the rendered output — the cut
-would be realist-correct but produce an emission-completeness regression (flagged by
-the Smith realist gate in the M-DefDiscipline-1 adversarial review).
+would be realist-correct but produce an emission-completeness regression (flagged
+during the M-DefDiscipline-1 adversarial review).
 
 This test pins the emitter behavior, and pins it tightly:
 

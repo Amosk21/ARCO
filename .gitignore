@@ -99,3 +99,7 @@ scripts/render_html_to_pdf_playwright.py
 
 # NCOR business material - never publish to the public ARCO repo
 docs/NCOR/
+
+# Local working documents (session plans, review guides) — may reference canon authors; never publish
+docs/plans/
+docs/reviews/
