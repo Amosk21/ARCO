@@ -27,16 +27,33 @@ owl:imports <https://arco.ai/ontology/core> .
 #   SHACL qualified shapes + SPARQL ASK queries provide fallback validation
 #   if a different reasoner does not materialize inverse restrictions.
 #
-#   OWL 2 punning: iao:0000136 (is_about) targets class IRIs as individuals
-#   in traceability assertions (e.g., condition is_about BiometricCapability).
-#   This is permitted in OWL 2 but the IRI is interpreted separately as class
-#   and individual. No classification entailment depends on punning — it is
-#   used for audit/traceability only.
+#   OWL 2 punning: several ARCO IRIs occupy both class and individual
+#   positions. This is legal OWL 2 DL; under the Direct Semantics the class
+#   and individual interpretations of a punned IRI are independent. Two
+#   distinct uses with different load:
+#   (1) Traceability aboutness — iao:0000136 / cco:prescribes assertions
+#       whose object is a class IRI (e.g., a condition ICE is_about
+#       :BiometricIdentificationCapability). Documentary only: no
+#       classification entailment consumes these triples (checked set: the
+#       HermiT justifications for the four positive conclusions on the
+#       committed fixtures contain none of them).
+#   (2) Gate-3 designation — cco:designates owl:hasValue :NaturalPersonRole.
+#       This IS classification-load-bearing. The entailment uses
+#       :NaturalPersonRole strictly as a named individual (hasValue
+#       semantics); the class axioms on the same IRI play no role in the
+#       derivation, and no axiom bridges the two readings. Reading that
+#       individual as a proxy for the role category is ARCO's documented
+#       modeling intent, not an OWL semantic consequence and not a
+#       CCO-documented use (CCO's designates examples all target
+#       particulars); see LIMITATIONS.md §3.1 and OPEN_PROBLEMS.md X.12 /
+#       L2.7.
 #
 #   Class-level restrictions are general: IntendedUseSpecification prescribes
-#   some Process (not a specific process); UseScenarioSpecification is_about
-#   some Role (not a specific role). Annex III category specifics belong on
-#   instances, keeping the schema extensible to 1(b), 1(c), etc.
+#   some Process and is_about some System; UseScenarioSpecification is_about
+#   some System (no class-level role restriction — the designated role
+#   category sits on the instance via cco:designates). Annex III category
+#   specifics belong on instances, keeping the schema extensible to 1(b),
+#   1(c), etc.
 
 
 #################################################################
@@ -97,10 +114,11 @@ owl:imports <https://arco.ai/ontology/core> .
 # 3) CCO DECLARATIONS — bridging assertions + redundant locals
 #
 # CCO is loaded as a ROBOT BOT-extracted slim module (cco_bot.owl) via
-# ARCO_core.ttl's import chain. Two of the declarations below do
+# ARCO_core.ttl's import chain. Three of the declarations below do
 # non-trivial work as IAO/CCO bridging assertions:
 #   - cco:DirectiveInformationContentEntity rdfs:subClassOf iao:0000030
 #   - cco:DescriptiveInformationContentEntity rdfs:subClassOf iao:0000030
+#   - cco:DesignativeInformationContentEntity rdfs:subClassOf iao:0000030
 # These wire CCO's ICE hierarchy to IAO's iao:0000030 (upstream CCO does
 # not formally link cco:InformationContentEntity to iao:0000030).
 #
@@ -122,21 +140,26 @@ cco:DescriptiveInformationContentEntity rdf:type owl:Class ;
 
 cco:DesignativeInformationContentEntity rdf:type owl:Class ;
   rdfs:label "Designative Information Content Entity"@en ;
-  rdfs:comment "ICE that uniquely distinguishes an entity (including a universal) by inscription. Examples: a URL designating a Web Page, a person's name designating that person, a regulatory specification designating an affected role category. CCO declares this class disjoint with DirectiveInformationContentEntity and DescriptiveInformationContentEntity, so a single ICE cannot be typed as both a Designative ICE and a Directive ICE." ;
+  rdfs:comment "ICE that uniquely distinguishes an entity by inscription. Pinned CCO examples: a URL designating a Web Page, a person's name designating that person, a vehicle identification number designating a vehicle — all particulars. ARCO additionally uses a Designative ICE to designate an affected role category via OWL 2 punning (class IRI as named individual); that category-designation use is ARCO's documented intent, not a CCO-documented use (LIMITATIONS.md §3.1). CCO declares this class disjoint with DirectiveInformationContentEntity and DescriptiveInformationContentEntity, so a single ICE cannot be typed as both a Designative ICE and a Directive ICE." ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 # Three D's subtyping — map existing ARCO ICE classes to directive/descriptive.
+# Convention note: each of the three ARCO classes below also asserts
+# rdfs:subClassOf iao:0000030 directly in ARCO_core.ttl. That parent is
+# entailed here anyway via the Three-D parent's own iao:0000030 bridge
+# above, so the double assertion is chain-internal redundancy kept so each
+# file reads standalone — a single lineage, not multiple inheritance.
 :RegulatoryContent rdfs:subClassOf cco:DirectiveInformationContentEntity .
 :InformationOutput rdfs:subClassOf cco:DescriptiveInformationContentEntity .
 :ComplianceDetermination rdfs:subClassOf cco:DescriptiveInformationContentEntity .
 
 cco:prescribes rdf:type owl:ObjectProperty ;
   rdfs:label "prescribes"@en ;
-  rdfs:comment "A directive ICE prescribes a process type as a rule or guide. Domain: DirectiveInformationContentEntity. Range: Process (bfo:0000015 subclass)." .
+  rdfs:comment "A directive ICE prescribes a process type as a rule or guide. Domain: DirectiveInformationContentEntity (pinned declaration, cco_bot.owl). The pinned declaration carries NO range; the only inherited range constraint is the parent cco:is_about's bfo:0000001 (Entity), and the pinned definition admits both Occurrent and Continuant targets. ARCO's Gate-2 use targets typed process tokens." .
 
 cco:designates rdf:type owl:ObjectProperty ;
   rdfs:label "designates"@en ;
-  rdfs:comment "x designates y iff x is an ICE and, given some context, x uniquely distinguishes y from other entities. Domain: DesignativeInformationContentEntity. Range: BFO Entity (bfo:0000001), which admits universals — so a designation can target a class IRI used as a concept-individual. Used in ARCO as the Gate 3 typed designation property: a UseScenarioSpecification cco:designates :NaturalPersonRole. cco_bot.owl declares this rdfs:subPropertyOf cco:is_about; the local declaration here additionally asserts rdfs:subPropertyOf iao:0000136 (is_about) so designation reflects up to the same is_about layer used elsewhere in ARCO." ;
+  rdfs:comment "x designates y iff x is an instance of an Information Content Entity, and y is an instance of an Entity, such that given some context, x uniquely distinguishes y from other entities (pinned CCO v1.7 definition). The pinned declaration carries domain DesignativeInformationContentEntity and NO range; the only inherited range constraint is the parent cco:is_about's bfo:0000001. In ARCO, Gate 3 uses this property with owl:hasValue :NaturalPersonRole — an OWL 2 pun in which the class IRI stands as a named individual for the role category. Designating a category is ARCO's disclosed extension of the CCO pattern, not a CCO-documented use (LIMITATIONS.md §3.1). cco_bot.owl declares this rdfs:subPropertyOf cco:is_about; the local declaration here additionally asserts rdfs:subPropertyOf iao:0000136 (is_about), reflecting designation up to ARCO's is_about layer." ;
   rdfs:subPropertyOf iao:0000136 .  # is about
 
 cco:has_output rdf:type owl:ObjectProperty ;
@@ -222,7 +245,7 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment "Defined class. Membership is the union of capability classes named by Annex III of Regulation (EU) 2024/1689, fixed by regulation rather than by primitive subsumption. Each member is a real BFO capability disposition; the grouping is by extrinsic regulatory criterion under Article 6. The rdfs:subClassOf :Capability relationship is entailed by the union (each member is a Capability); not stated explicitly to avoid redundancy. Adding a new Annex III capability category requires (a) adding the new class to the owl:unionOf list and (b) asserting rdfs:subClassOf :AnnexIIITriggeringCapability for in-file readability." ;
   :hasRegulatoryBasis "Regulation (EU) 2024/1689, Article 6(2) and Annex III"@en ;
   :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
-  skos:scopeNote "Universal whose instances are real BFO capability dispositions; the GROUPING (owl:unionOf over member capability classes) is determined by Regulation (EU) 2024/1689 Annex III as named under Article 6(2), not by a single shared physical property in reality. Fiat/bona-fide boundary distinction used analogically per docs/modeling_decisions/decisions_justification_map.md S3a: members are bona-fide capability kinds; the regulatory grouping is a fiat partition by extrinsic criterion under Article 6, not a natural joint."@en ;
+  skos:scopeNote "Defined class (not a universal): its instances are real BFO capability dispositions; the GROUPING (owl:unionOf over member capability classes) is determined by Regulation (EU) 2024/1689 Annex III as named under Article 6(2), not by a single shared physical property in reality. Fiat/bona-fide boundary distinction used analogically per docs/modeling_decisions/decisions_justification_map.md S3a: members are bona-fide capability kinds; the regulatory grouping is a fiat partition by extrinsic criterion under Article 6, not a natural joint."@en ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:unionOf (
@@ -241,10 +264,10 @@ cco:Organization rdf:type owl:Class ;
 :HighRiskSystem rdf:type owl:Class ;
   rdfs:label "Annex III Capability-Precondition Flag"@en ;
   skos:definition "An AI system that bears, via one of its components, a capability in the Annex III triggering set. Membership fires from Gate 1 alone (the capability precondition); full Annex III applicability requires all three gates and is recorded by the category-specific applicable-system classes."@en ;
-  rdfs:comment "Latent-risk flag. Membership is satisfied by Gate 1 alone: the system has a SystemComponent that bears a disposition belonging to AnnexIIITriggeringCapability. This class is INFERRED by the reasoner and presented in the certificate as LATENT-RISK FLAG. It is NOT the full legal high-risk category — that requires all three gates (capability + intended use + use scenario) and is captured by the category-specific classes (AnnexIII1aApplicableSystem, AnnexIII5bApplicableSystem). The IRI is retained as :HighRiskSystem for backward compatibility with downstream consumers; the rdfs:label and this comment reflect what the axiom actually entails." ;
+  rdfs:comment "Latent-risk flag. Membership is satisfied by Gate 1 alone: the system has a SystemComponent that bears a disposition belonging to AnnexIIITriggeringCapability. This class is INFERRED by the reasoner and presented in the certificate as LATENT-RISK FLAG. It is NOT the full legal high-risk category — that requires all three gates (capability + intended use + use scenario) and is captured by the category-specific classes (AnnexIII1aApplicableSystem, AnnexIII5bApplicableSystem). The IRI is retained as :HighRiskSystem for backward compatibility with downstream consumers; the rdfs:label and this comment reflect what the axiom actually entails. The rdfs:subClassOf :System parent is entailed by the equivalentClass intersection (its first conjunct is :System) and is not stated explicitly, to avoid redundancy; the sibling classes :AnnexIII1aApplicableSystem and :AnnexIII5bApplicableSystem assert it for in-file readability." ;
   :hasRegulatoryBasis "Regulation (EU) 2024/1689, Article 6 and Annex III"@en ;
   :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
-  skos:scopeNote "Universal whose instances are AI systems bearing a triggering-capability disposition via a SystemComponent; extension fixed by the latent-flag Gate-1-only axiom. The class denotes systems bearing the triggering capability, not the act of flagging them. This is the LATENT-FLAG layer, NOT the EU AI Act legal high-risk classification — the full Annex III applicability requires three gates per :AnnexIII1aApplicableSystem / :AnnexIII5bApplicableSystem. Fiat/bona-fide boundary distinction used analogically per S3a: instances are real systems; the partition criterion is regulatory under Article 6, not a natural joint."@en ;
+  skos:scopeNote "Defined class (not a universal): its instances are AI systems bearing a triggering-capability disposition via a SystemComponent; extension fixed by the latent-flag Gate-1-only axiom. The class denotes systems bearing the triggering capability, not the act of flagging them. This is the LATENT-FLAG layer, NOT the EU AI Act legal high-risk classification — the full Annex III applicability requires three gates per :AnnexIII1aApplicableSystem / :AnnexIII5bApplicableSystem. Fiat/bona-fide boundary distinction used analogically per S3a: instances are real systems; the partition criterion is regulatory under Article 6, not a natural joint."@en ;
   owl:equivalentClass [
     rdf:type owl:Class ;
     owl:intersectionOf (
@@ -405,7 +428,7 @@ cco:Organization rdf:type owl:Class ;
 :CreditworthinessEvaluationProcess rdf:type owl:Class ;
   rdfs:label "Creditworthiness Evaluation Process"@en ;
   skos:definition "A process that evaluates a person's creditworthiness or assigns a credit score."@en ;
-  skos:scopeNote "The Gate-2 process kind for Annex III 5(b), evaluating creditworthiness or establishing a credit score, operative through Annex III item 5(b) under Article 6(2). 5(b) is self-contained: the Act gives no Article 3 definition of creditworthiness, so the differentia must not be pinned to any Article 3 article. Gate 2 is one of three independently necessary gates."@en ;
+  skos:scopeNote "The Gate-2 process kind for Annex III 5(b), evaluating the creditworthiness of natural persons or establishing their credit score, operative through Annex III item 5(b) under Article 6(2). 5(b) is self-contained: the Act gives no Article 3 definition of creditworthiness, so the differentia must not be pinned to any Article 3 article. Gate 2 is one of three independently necessary gates."@en ;
   rdfs:comment "Scoring or evaluating a person's credit standing, the regulated process for Annex III 5(b). Do not confuse it with benefits-eligibility scoring for public assistance (Annex III 5(a) territory, unmodeled). Gate 2 reaches it indirectly, through the :CreditworthinessEvaluationIntendedUseSpec subkind that prescribes it. The 5(b) fraud exception is not enforced here (no disjointness with :FraudDetectionProcess); the audit layer raises it for human review. The natural-person restriction is Gate 3's, not this process's." ;
   rdfs:subClassOf bfo:0000015 . # Process
 
@@ -484,10 +507,13 @@ cco:Organization rdf:type owl:Class ;
 # SPARQL ASK queries provide a fallback validation layer.
 #
 # Aboutness targets include class IRIs used as individuals (OWL 2
-# punning). This is permitted in OWL 2 but means the IRI is
-# interpreted separately as a class and as an individual. We do
-# not rely on punning for core classification entailments — it is
-# used for traceability and audit only.
+# punning), in two distinct uses with different load (see the design
+# note at the top of this file): the traceability aboutness assertions
+# are documentary — no classification entailment consumes them — while
+# Gate 3's cco:designates owl:hasValue :NaturalPersonRole IS
+# classification-load-bearing, consumed strictly in its individual
+# interpretation; the class axioms on the same IRI play no role in the
+# derivation.
 #
 # SPARQL checks are AUDIT ONLY — the classification is an
 # OWL entailment, not a pattern match.
@@ -499,12 +525,12 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment """System that satisfies ARCO's three-gate encoding of Annex III 1(a) via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition BiometricIdentificationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :RemoteBiometricIdentificationProcess. Uses owl:someValuesFrom for genuine type-checking; any correctly typed process token satisfies the gate.
-    Gate 3 (representation-side): affected role — a UseScenarioSpecification (a Designative ICE) is_about the system AND cco:designates :NaturalPersonRole. Uses cco:designates with owl:hasValue at the universal level: the designation property's range admits universals, so the gate references the role category by its class IRI without requiring a role-bearer (BFO Roles are bearer-dependent specifically dependent continuants; designation by inscription is the canonical CCO pattern for naming a category).
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification (a Designative ICE) is_about the system AND cco:designates :NaturalPersonRole. Uses owl:hasValue with the class IRI as a named individual (OWL 2 punning, DL-legal; the entailment consumes the IRI only in its individual interpretation). The individual is read as a proxy for the role category so the gate can reference the affected-role kind without minting a role-bearer particular for which no source warrant exists (L2.4; BFO Roles are bearer-dependent specifically dependent continuants). This category-designation reading is ARCO's documented intent, not canonical CCO usage; see LIMITATIONS §3.1.
   Classification is OWL-entailed under owlrl; gate independence verified by regression test (test_gate_removal.py).
   SPARQL ASK queries (check_intended_use, check_regulatory_alignment) are downstream audit-layer checks that inspect declared documentary content on the reasoned graph; they do not contribute to this entailment and cannot affect it. Encoding note: Gates 2 and 3 carry the Act's intended-use and affected-population conditions; Gate 1 (capability) is ARCO's design-time evidential addition, stricter than the Annex III text — absence of a capability assertion blocks entailment even when regulated intent is documented (under-classification direction; see LIMITATIONS §3.9).""" ;
   :hasRegulatoryBasis "Regulation (EU) 2024/1689, Annex III item 1(a); Article 6(2); Article 3(41) (remote biometric identification system definition); Article 3(36) (verification carve-out); Recitals 15 and 17"@en ;
   :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
-  skos:scopeNote "Universal whose instances are AI systems satisfying the three-gate defined-class axiom for Annex III 1(a); ARCO reports membership only as entailed under reviewed commitments. The partition criterion is the conjunction of the intended-use and use-scenario gates carried by Annex III item 1(a) with ARCO's added capability gate (LIMITATIONS §3.9) — a regulatory fiat boundary plus an ARCO-added capability condition (not part of the Annex III text; evidential in effect, since entailment requires a reviewed capability commitment), not a natural joint in the system space. Fiat/bona-fide boundary distinction used analogically per S3a: instances are real systems; the boundary that picks them out is determined by Regulation (EU) 2024/1689, not by a shared physical property."@en ;
+  skos:scopeNote "Defined class (not a universal): its instances are AI systems satisfying the three-gate defined-class axiom for Annex III 1(a); ARCO reports membership only as entailed under reviewed commitments. The partition criterion is the conjunction of the intended-use and use-scenario gates carried by Annex III item 1(a) with ARCO's added capability gate (LIMITATIONS §3.9) — a regulatory fiat boundary plus an ARCO-added capability condition (not part of the Annex III text; evidential in effect, since entailment requires a reviewed capability commitment), not a natural joint in the system space. Fiat/bona-fide boundary distinction used analogically per S3a: instances are real systems; the boundary that picks them out is determined by Regulation (EU) 2024/1689, not by a shared physical property."@en ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
     rdf:type owl:Class ;
@@ -537,14 +563,15 @@ cco:Organization rdf:type owl:Class ;
         owl:someValuesFrom :RemoteBiometricIdentificationIntendedUseSpec
       ]
 
-      # Gate 3 (representation-side): scenario spec is_about this system AND cco:designates the
-      # :NaturalPersonRole universal. cco:designates is a typed designation property whose range
-      # admits universals (cco:designates has range bfo:0000001 Entity, which subsumes universals),
-      # so owl:hasValue references the role universal directly. This is the canonical CCO usage
-      # for designation by inscription (a URL designates a Web Page, a name designates a person),
-      # not informal class-as-individual punning, and it avoids minting bearer-less role tokens
-      # (BFO Roles are bearer-dependent specifically dependent continuants requiring ro:0000052
-      # to an independent continuant).
+      # Gate 3 (representation-side): scenario spec is_about this system AND cco:designates
+      # :NaturalPersonRole. cco:designates declares NO range in the pinned CCO v1.7; the only
+      # inherited range constraint is the parent cco:is_about's bfo:0000001. owl:hasValue uses
+      # the class IRI as a named individual (OWL 2 punning, DL-legal; the entailment consumes
+      # the IRI only in its individual interpretation), avoiding a role-bearer particular for
+      # which no source warrant exists (L2.4; BFO Roles are bearer-dependent specifically
+      # dependent continuants requiring ro:0000052 to an independent continuant). Category
+      # designation is ARCO's documented intent, not a CCO-documented use — CCO's designates
+      # examples all target particulars (LIMITATIONS §3.1).
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
@@ -574,8 +601,9 @@ cco:Organization rdf:type owl:Class ;
 #         this system AND cco:prescribes a CreditworthinessEvaluationProcess
 #         token — genuine type-check, same pattern as 1(a) Gate 2.
 # Gate 3 (representation-side): UseScenarioSpecification is_about
-#         this system AND is_about some instance typed as :NaturalPersonRole
-#         — genuine type-check, same pattern as 1(a) Gate 3.
+#         this system AND cco:designates owl:hasValue :NaturalPersonRole
+#         (class IRI as named individual; no role instance is minted or
+#         required — encoding recorded at L2.4) — same pattern as 1(a) Gate 3.
 #
 # Conservative claim: demonstrates category extension for
 # creditworthiness evaluation. The 5(b) fraud-detection carve-out
@@ -588,13 +616,13 @@ cco:Organization rdf:type owl:Class ;
   rdfs:comment """System satisfying ARCO's three-gate encoding of Annex III 5(b) via three independently necessary gates:
     Gate 1 (reality-side): capability — system has_part a component that has_disposition CreditworthinessEvaluationCapability.
     Gate 2 (representation-side): prescribed process — an IntendedUseSpecification is_about the system AND cco:prescribes some instance of :CreditworthinessEvaluationProcess. Same pattern as 1(a); any correctly typed process token satisfies the gate.
-    Gate 3 (representation-side): affected role — a UseScenarioSpecification (a Designative ICE) is_about the system AND cco:designates :NaturalPersonRole. Same pattern as 1(a) Gate 3: cco:designates with owl:hasValue references the role universal at the class-IRI level via a typed designation property whose range admits universals; no role tokens required.
+    Gate 3 (representation-side): affected role — a UseScenarioSpecification (a Designative ICE) is_about the system AND cco:designates :NaturalPersonRole. Same pattern as 1(a) Gate 3: owl:hasValue with the class IRI as a named individual (OWL 2 punning; the entailment consumes the IRI only in its individual interpretation); no role-bearer particular is minted (L2.4). This category-designation reading is ARCO's documented intent, not canonical CCO usage; see LIMITATIONS §3.1.
   Classification is OWL-entailed under owlrl.
   Conservative scope: demonstrates category extension; the fraud-detection carve-out and other 5(b) nuances remain deferred (audit-layer flag only, not a classification gate).
   Cross-category non-entailment: a system bearing only CreditworthinessEvaluationCapability is NOT entailed as AnnexIII1aApplicableSystem; a system bearing only BiometricIdentificationCapability is NOT entailed as AnnexIII5bApplicableSystem. (OWA — both claims hold under current assertions.) Encoding note: Gates 2 and 3 carry the Act's intended-use and affected-population conditions; Gate 1 (capability) is ARCO's design-time evidential addition, stricter than the Annex III text (under-classification direction; see LIMITATIONS §3.9).""" ;
   :hasRegulatoryBasis "Regulation (EU) 2024/1689, Annex III item 5(b); Article 6(2)"@en ;
   :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
-  skos:scopeNote "Universal whose instances are AI systems satisfying the three-gate defined-class axiom for Annex III 5(b); ARCO reports membership only as entailed under reviewed commitments. The partition criterion is the conjunction of the intended-use and use-scenario gates carried by Annex III item 5(b) with ARCO's added capability gate (LIMITATIONS §3.9) — a regulatory fiat boundary plus an ARCO-added capability condition (not part of the Annex III text; evidential in effect, since entailment requires a reviewed capability commitment), not a natural joint in the system space. Fiat/bona-fide boundary distinction used analogically per S3a: instances are real systems; the boundary that picks them out is determined by Regulation (EU) 2024/1689, not by a shared physical property. Conservative scope: the fraud-detection carve-out (the single exception clause in Annex III 5(b)) is not modeled as a classification gate; it is disclosed at LIMITATIONS §2 and surfaced by the audit-layer flag query, and carve-out-as-OWL-consequence is deliberately held closed pending firm legal interpretation. Fiat-boundary annotation for the carve-out class is queued as X.14."@en ;
+  skos:scopeNote "Defined class (not a universal): its instances are AI systems satisfying the three-gate defined-class axiom for Annex III 5(b); ARCO reports membership only as entailed under reviewed commitments. The partition criterion is the conjunction of the intended-use and use-scenario gates carried by Annex III item 5(b) with ARCO's added capability gate (LIMITATIONS §3.9) — a regulatory fiat boundary plus an ARCO-added capability condition (not part of the Annex III text; evidential in effect, since entailment requires a reviewed capability commitment), not a natural joint in the system space. Fiat/bona-fide boundary distinction used analogically per S3a: instances are real systems; the boundary that picks them out is determined by Regulation (EU) 2024/1689, not by a shared physical property. Conservative scope: the fraud-detection carve-out (the single exception clause in Annex III 5(b)) is not modeled as a classification gate; it is disclosed at LIMITATIONS §2 and surfaced by the audit-layer flag query, and carve-out-as-OWL-consequence is deliberately held closed pending firm legal interpretation. Fiat-boundary annotation for the carve-out class is queued as X.14."@en ;
   rdfs:subClassOf :System ;
   owl:equivalentClass [
     rdf:type owl:Class ;
@@ -626,10 +654,11 @@ cco:Organization rdf:type owl:Class ;
         owl:someValuesFrom :CreditworthinessEvaluationIntendedUseSpec
       ]
 
-      # Gate 3 (representation-side): scenario spec is_about this system AND cco:designates the
-      # :NaturalPersonRole universal. Same pattern as 1(a) Gate 3: cco:designates with
-      # owl:hasValue references the role universal at the class-IRI level via a typed
-      # designation property whose range admits universals; no role tokens required.
+      # Gate 3 (representation-side): scenario spec is_about this system AND cco:designates
+      # :NaturalPersonRole. Same pattern as 1(a) Gate 3: owl:hasValue uses the class IRI as a
+      # named individual (OWL 2 punning; the entailment consumes the IRI only in its individual
+      # interpretation); no role-bearer particular is minted (L2.4). Category designation is
+      # ARCO's documented intent, not a CCO-documented use (LIMITATIONS §3.1).
       [ rdf:type owl:Restriction ;
         owl:onProperty [ rdf:type owl:ObjectProperty ; owl:inverseOf iao:0000136 ] ;
         owl:someValuesFrom [
