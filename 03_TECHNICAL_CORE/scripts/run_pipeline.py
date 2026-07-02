@@ -542,6 +542,7 @@ def get_asserted_dispositions(g: Graph, system_local: str) -> list[dict]:
             "class_iri": cls,
             "class_label": r.get("cls_label") or _short(cls),
             "class_definition": r.get("cls_def") or "",
+            "class_scopenote": r.get("cls_scopenote") or "",
         }
     return list(seen.values())
 
@@ -593,6 +594,7 @@ def get_asserted_prescribed_processes(g: Graph, system_local: str) -> list[dict]
             "class_iri": r.get("process_class") or "",
             "class_label": r.get("process_label") or _short(r.get("process_class") or ""),
             "class_definition": r.get("process_def") or "",
+            "class_scopenote": r.get("process_scopenote") or "",
         }
     return list(seen.values())
 
@@ -991,7 +993,7 @@ def write_html_view(
             # (forbidden_pattern: embedding the qualifier into a
             # graph_backed value).
             return '<span class="badge bp">VERIFIED (ENTAILED)</span>'
-        return '<span class="badge bn">NOT APPLICABLE</span>'
+        return '<span class="badge bn">NOT ENTAILED</span>'
 
     # ── mode badge ─────────────────────────────────────────────────
     if has_applicable_category:
@@ -1167,13 +1169,24 @@ def write_html_view(
             f"<em>{_disp_def}</em>"
             if _disp_def else ""
         )
+        # Surface the class's regulatory scope (skos:scopeNote) next to its essence
+        # (skos:definition). The essence-vs-aboutness annotation pass moved the Annex III
+        # carve-out conclusion out of the definition into scopeNote; render it here so the
+        # negative-case certificate keeps the plain-English carve-out, graph-backed rather
+        # than as a Python literal. Pinned by test_kiosk_html_surfaces_scope_note.py.
+        _disp_scope = first_d.get("class_scopenote", "")
+        _disp_scope_clause = (
+            f" Its regulatory scope, from the ontology: "
+            f"<em>{_disp_scope}</em>"
+            if _disp_scope else ""
+        )
         _gate1_negative_html = (
             f"<strong>No <code>:AnnexIIITriggeringCapability</code>-typed disposition "
             f"is asserted on any component of this system in the loaded graph.</strong> "
             f"The asserted disposition <em>{_short(first_d['disposition_iri'])}</em> "
             f"on <em>{_short(first_d['component_iri'])}</em> is typed as "
             f"<em>{first_d['class_label']}</em>, which is not a member of the "
-            f"<code>:AnnexIIITriggeringCapability</code> <code>owl:unionOf</code>.{_disp_def_clause} "
+            f"<code>:AnnexIIITriggeringCapability</code> <code>owl:unionOf</code>.{_disp_def_clause}{_disp_scope_clause} "
             f"Under the Open World Assumption, this is not a closed-world denial of "
             f"the underlying hardware's capabilities."
         )
@@ -1193,6 +1206,12 @@ def write_html_view(
             f"<em>{_proc_def}</em>"
             if _proc_def else ""
         )
+        _proc_scope = first_p.get("class_scopenote", "")
+        _proc_scope_clause = (
+            f" Its regulatory scope, from the ontology: "
+            f"<em>{_proc_scope}</em>"
+            if _proc_scope else ""
+        )
         _gate2_negative_html = (
             f"<strong>No process token prescribed by an Intended Use Specification of "
             f"this system is typed as a regulated process class in the loaded graph.</strong> "
@@ -1200,7 +1219,7 @@ def write_html_view(
             f"typed as <em>{first_p['class_label']}</em>, which is not a member of the "
             f"regulated process union "
             f"(<code>:RemoteBiometricIdentificationProcess</code> for Annex III 1(a); "
-            f"<code>:CreditworthinessEvaluationProcess</code> for 5(b)).{_proc_def_clause}"
+            f"<code>:CreditworthinessEvaluationProcess</code> for 5(b)).{_proc_def_clause}{_proc_scope_clause}"
         )
     else:
         _gate2_negative_html = (
@@ -2274,9 +2293,9 @@ def main() -> None:
     # the graph_backed VERIFIED literal (per output_manifest_v2.yaml
     # field `derogation_evaluation_scope` forbidden_pattern).
     if annex_iii_1a_ok is not None:
-        print(f"Annex III 1a:  {'VERIFIED (ENTAILED)' if annex_iii_1a_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 1a:  {'VERIFIED (ENTAILED, OWL-derived)' if annex_iii_1a_ok else 'NOT ENTAILED (under current commitments)'}")
     if annex_iii_5b_ok is not None:
-        print(f"Annex III 5b:  {'VERIFIED (ENTAILED)' if annex_iii_5b_ok else 'NOT APPLICABLE'} (OWL-entailed)")
+        print(f"Annex III 5b:  {'VERIFIED (ENTAILED, OWL-derived)' if annex_iii_5b_ok else 'NOT ENTAILED (under current commitments)'}")
     # Separate run-scope disclosure for derogation evaluation. Surfaces
     # only when a category is entailed and no DerogationClaim is asserted
     # (when a claim IS asserted, the existing FLAG row signals the
@@ -2500,13 +2519,13 @@ def main() -> None:
     # forbidden_pattern (Python concatenation that embeds the qualifier
     # into a graph_backed value).
     if annex_iii_1a_ok is not None:
-        _line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT APPLICABLE"
+        _line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT ENTAILED (under current commitments)"
         print(f"  ANNEX III 1(a):          {_line_1a}")
     if annex_iii_5b_ok is not None:
         if annex_iii_5b_ok:
             _line_5b = "VERIFIED (ENTAILED)"
         else:
-            _line_5b = "NOT APPLICABLE"
+            _line_5b = "NOT ENTAILED (under current commitments)"
         print(f"  ANNEX III 5(b):          {_line_5b}")
     # Separate run-scope disclosure for derogation evaluation. Surfaces
     # only when a category is entailed and no DerogationClaim is asserted
@@ -2572,10 +2591,10 @@ def main() -> None:
     # (per output_manifest_v2.yaml field `derogation_evaluation_scope`
     # forbidden_pattern).
     if annex_iii_1a_ok is not None:
-        _cert_line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT APPLICABLE"
+        _cert_line_1a = "VERIFIED (ENTAILED)" if annex_iii_1a_ok else "NOT ENTAILED (under current commitments)"
         cert_lines.append(f"  ANNEX III 1(a):          {_cert_line_1a}")
     if annex_iii_5b_ok is not None:
-        _cert_line_5b = "VERIFIED (ENTAILED)" if annex_iii_5b_ok else "NOT APPLICABLE"
+        _cert_line_5b = "VERIFIED (ENTAILED)" if annex_iii_5b_ok else "NOT ENTAILED (under current commitments)"
         cert_lines.append(f"  ANNEX III 5(b):          {_cert_line_5b}")
     # Separate run-scope disclosure for derogation evaluation. Surfaces
     # only when a category is entailed and no DerogationClaim is asserted.
@@ -2663,8 +2682,8 @@ def main() -> None:
         # field below, not embedded in these graph_backed literals
         # (per output_manifest_v2.yaml field `derogation_evaluation_scope`
         # forbidden_pattern).
-        "annex_iii_1a": ("VERIFIED (ENTAILED)" if annex_iii_1a_ok else ("NOT APPLICABLE" if annex_iii_1a_ok is not None else "N/A")),
-        "annex_iii_5b": ("VERIFIED (ENTAILED)" if annex_iii_5b_ok else ("NOT APPLICABLE" if annex_iii_5b_ok is not None else "N/A")),
+        "annex_iii_1a": ("VERIFIED (ENTAILED)" if annex_iii_1a_ok else ("NOT ENTAILED" if annex_iii_1a_ok is not None else "N/A")),
+        "annex_iii_5b": ("VERIFIED (ENTAILED)" if annex_iii_5b_ok else ("NOT ENTAILED" if annex_iii_5b_ok is not None else "N/A")),
         "derogation_evaluation_scope": {
             "evaluated": False,
             "reason": "Article 6(3) derogation evaluation not modeled in current ARCO release; see LIMITATIONS.md §2",

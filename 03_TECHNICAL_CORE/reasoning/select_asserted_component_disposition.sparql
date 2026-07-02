@@ -28,7 +28,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #     "asserted disposition" for the gate-card / determination path, and
 #     callers can list all rows for a richer evidence panel.
 
-SELECT ?component ?disposition ?disposition_class ?cls_label ?cls_def WHERE {
+SELECT ?component ?disposition ?disposition_class ?cls_label ?cls_def ?cls_scopenote WHERE {
   ?system bfo:0000051 ?component .
   ?component ro:0000091 ?disposition .
   ?disposition rdf:type ?disposition_class .
@@ -47,5 +47,11 @@ SELECT ?component ?disposition ?disposition_class ?cls_label ?cls_def WHERE {
   # :BiometricVerificationCapability). Surfaced graph-side so the emission layer
   # renders the definition from the graph rather than as a Python literal.
   OPTIONAL { ?disposition_class skos:definition ?cls_def }
+  # skos:scopeNote carries the class's regulatory applicability (e.g. the "out of
+  # scope of Annex III 1(a) per Article 3(36)" carve-out on :BiometricVerificationCapability).
+  # Surfaced graph-side so the negative-case output renders the carve-out conclusion from
+  # the graph; without it, moving regulatory framing from definition to scopeNote would
+  # drop the plain-English carve-out from the rendered certificate.
+  OPTIONAL { ?disposition_class skos:scopeNote ?cls_scopenote }
 }
 ORDER BY ?component ?disposition ?disposition_class

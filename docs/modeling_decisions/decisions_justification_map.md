@@ -127,7 +127,7 @@ Working-precedent note (2026-05-24): no direct working-code precedent was found 
 
 Enforcement is review-based in this patch. SHACL shape requiring `:hasRegulatoryBasis` on every regulatory universal is deferred; a future contributor adding a new Annex III applicable-system class and forgetting the annotation will be caught only by code review until the SHACL gate lands.
 
-**Anchor**: `ARCO_core.ttl` (property mint + capability disjointness axiom annotation); `ARCO_governance_extension.ttl` (four-class annotations + process disjointness axiom annotation); `OPEN_PROBLEMS.md` X.13 (fix tracking row); `OPEN_PROBLEMS.md` X.14 (second-pass extension to `:NaturalPersonRole`, `:DerogationClaim`, `:FraudDetectionProcess`); the fiat/bona-fide boundary distinction, used analogically; standard naming discipline: canonical-vocabulary deference (Principle: defer to canonical vocabulary — `cco:doctrinal_source` parent with upward closure to `cco:definition_source`) and Principle 5 (terminological moderation — only one custom annotation property, narrowly scoped).
+**Anchor**: `ARCO_core.ttl` (property mint + capability disjointness axiom annotation); `ARCO_governance_extension.ttl` (four-class annotations + process disjointness axiom annotation); `OPEN_PROBLEMS.md` X.13 (fix tracking row); `OPEN_PROBLEMS.md` X.14 (second-pass extension to `:NaturalPersonRole`, `:DerogationClaim`, `:FraudDetectionProcess`); the fiat/bona-fide boundary distinction, used analogically; standard naming discipline: canonical-vocabulary deference (`cco:doctrinal_source` parent with upward closure to `cco:definition_source`) and terminological moderation (only one custom annotation property, narrowly scoped).
 
 **Cross-references**: extends S3 (regulatory fiat partition); applies to S4 (`:HighRiskSystem` latent-flag annotation includes the pin-back scope-note "The class denotes systems bearing the triggering capability, not the act of flagging them"); applies to S7 (three-gate applicable-system classes); compatible with S5 (`cco:designates owl:hasValue` Gate 3 pattern — also a CCO-canonical annotation usage). Does NOT close L2.3 (file-header `dc:source` citation hygiene is a different shape).
 
@@ -239,7 +239,7 @@ The 2026-05-12 canon backtest surfaced three foundation-level modeling decisions
 
 ### M-NameDiscipline-1. `:CapabilityDisposition` compositional naming
 
-The class name `:CapabilityDisposition` is a compositional construction (Capability + Disposition) without an anchoring `:Capability` class in ARCO. Standard ontology naming discipline treats this pattern as undisciplined: when an ontology uses terms of the form `a † b`, it should also include the corresponding `a` and `b` terms. abi production canon (`CapabilityOntology.ttl:53-57`) uses just `:Capability`.
+The class name `:CapabilityDisposition` is a compositional construction (Capability + Disposition) without an anchoring `:Capability` class in ARCO. Standard ontology naming discipline treats this pattern as undisciplined: when an ontology uses terms of the form `a † b`, it should also include the corresponding `a` and `b` terms.
 
 **Resolutions**:
 - R1: add `:Capability` as a separate class; demote `:CapabilityDisposition` to subclass or remove.
@@ -247,7 +247,7 @@ The class name `:CapabilityDisposition` is a compositional construction (Capabil
 
 **Anchor**: `docs/CANON_BACKTEST_2026-05-12.md §D.2`.
 
-**Why it matters**: This rename can ship independently of foundation map work; it is the smallest-cost M-decision but touches many files (TTL, SHACL, SPARQL, Python, tests). Naming consistency with abi production canon makes future cross-ontology references cleaner.
+**Why it matters**: This rename can ship independently of foundation map work; it is the smallest-cost M-decision but touches many files (TTL, SHACL, SPARQL, Python, tests). The name then says exactly what the axiom says, and nothing more.
 
 ### M-Capability-1. Interest modeling for capability accountability
 
