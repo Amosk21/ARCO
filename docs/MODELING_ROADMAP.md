@@ -46,7 +46,7 @@ I had five modeling decisions queued under a "Foundation Map" precondition that 
 
 | Row | What ships |
 |---|---|
-| **X.6** | I want to promote the Sentinel-1(a) bucket and property audit (currently at `runs/loop/2026-05-09_beverley-research/sentinel_1a_bucket_audit/10_phase4_consolidated_table.md`) into `docs/MODELING_VALUE_DEMO.md`. It's per-entity verification of every load-bearing axiom commitment against BFO, RO, IAO, and CCO; right now it's sitting in scratch. |
+| **X.6** | I want to promote the Sentinel-1(a) bucket and property audit (currently a local per-entity audit table under runs/loop, untracked) into `docs/MODELING_VALUE_DEMO.md`. It's per-entity verification of every load-bearing axiom commitment against BFO, RO, IAO, and CCO; right now it's sitting in scratch. |
 | **X.9** | Two new adversarial fixtures (entailed-without-determination, asserted-without-entailment) and the SPARQL queries that catch the misalignment cases. New manifest status `asserted_but_not_entailed`. |
 
 ### The actual load-bearing modeling work
