@@ -239,7 +239,7 @@ The 2026-05-12 canon backtest surfaced three foundation-level modeling decisions
 
 ### M-NameDiscipline-1. `:CapabilityDisposition` compositional naming
 
-The class name `:CapabilityDisposition` is a compositional construction (Capability + Disposition) without an anchoring `:Capability` class in ARCO. Smith-Against-Idiosyncrasy Principle 8 names this pattern as undisciplined: when an ontology uses terms of the form `a † b`, it should also include the corresponding `a` and `b` terms. abi production canon (`CapabilityOntology.ttl:53-57`) uses just `:Capability`.
+The class name `:CapabilityDisposition` is a compositional construction (Capability + Disposition) without an anchoring `:Capability` class in ARCO. Smith-Against-Idiosyncrasy Principle 8 names this pattern as undisciplined: when an ontology uses terms of the form `a † b`, it should also include the corresponding `a` and `b` terms.
 
 **Resolutions**:
 - R1: add `:Capability` as a separate class; demote `:CapabilityDisposition` to subclass or remove.
@@ -247,7 +247,7 @@ The class name `:CapabilityDisposition` is a compositional construction (Capabil
 
 **Anchor**: `docs/CANON_BACKTEST_2026-05-12.md §D.2`.
 
-**Why it matters**: This rename can ship independently of foundation map work; it is the smallest-cost M-decision but touches many files (TTL, SHACL, SPARQL, Python, tests). Naming consistency with abi production canon makes future cross-ontology references cleaner.
+**Why it matters**: This rename can ship independently of foundation map work; it is the smallest-cost M-decision but touches many files (TTL, SHACL, SPARQL, Python, tests). The name then says exactly what the axiom says, and nothing more.
 
 ### M-Capability-1. Interest modeling for capability accountability
 
