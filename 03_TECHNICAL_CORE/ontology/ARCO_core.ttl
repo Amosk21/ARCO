@@ -73,7 +73,7 @@
 #     to OWL Axiom reifications on regulatory disjointness axioms.
 #     NOT applied to leaf capability kinds — those are treated as bona
 #     fide capability kinds (real participant-structure / cardinality
-#     distinctions); the Smith-Varzi pattern is applied analogically
+#     distinctions); the fiat/bona-fide boundary pattern is applied analogically
 #     only at regulatory-extension partitions — see S3a.
 #################################################################
 
@@ -163,7 +163,7 @@
   owl:annotatedTarget :BiometricVerificationCapability ;
   :hasRegulatoryBasis "Regulation (EU) 2024/1689, Article 3(35) (biometric identification definition), Article 3(36) (biometric verification definition, 1:1), Article 3(41) (remote biometric identification system definition), Annex III item 1(a), Recitals 15 and 17"@en ;
   :hasRegulatoryBasis "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"^^xsd:anyURI ;
-  skos:scopeNote "The 1:N identification and 1:1 verification process kinds have real technical content: different required participants, different realizable process kinds, different evaluability metrics (FAR/FRR for verification; rank-N accuracy for identification). The REGULATORY CONSEQUENCE of this disjointness — that biometric verification is excluded from Annex III 1(a) per Recital 15 / Recital 17 / Annex III 1(a) operative carve-out — is a fiat legal cut grounded in Regulation (EU) 2024/1689 Articles 3(35), 3(36), and 3(41). Smith-Varzi fiat/bona-fide distinction used analogically per S3a: the capability kinds are bona fide; the regulatory exclusion that rides on this disjointness is fiat."@en
+  skos:scopeNote "The 1:N identification and 1:1 verification process kinds have real technical content: different required participants, different realizable process kinds, different evaluability metrics (FAR/FRR for verification; rank-N accuracy for identification). The REGULATORY CONSEQUENCE of this disjointness — that biometric verification is excluded from Annex III 1(a) per Recital 15 / Recital 17 / Annex III 1(a) operative carve-out — is a fiat legal cut grounded in Regulation (EU) 2024/1689 Articles 3(35), 3(36), and 3(41). Fiat/bona-fide boundary distinction used analogically per S3a: the capability kinds are bona fide; the regulatory exclusion that rides on this disjointness is fiat."@en
 ] .
 
 :OperationalProcess rdf:type owl:Class ;

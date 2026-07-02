@@ -18,8 +18,7 @@ Excluded fixtures:
   GhostSystem is a reasoner-property probe, not production modeling guidance. The
   decision to require named evidence-bearing particulars is queued for human
   modeling session — see:
-    runs/loop/2026-05-09_beverley-research/design_memo_named-evidence-bearing-particulars.md
-    runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md (Q1)
+    the local design memos and modeling-decisions queue (runs/loop, untracked; Q1)
 
 ROBOT JAR is located at:
   $ROBOT_JAR if set
@@ -206,7 +205,7 @@ def main() -> int:
         print("RESULT: HermiT and OWL-RL disagree on at least one query.")
         print("        Diagnose: RL incompleteness, unexpected DL entailment, or new reasoner-profile divergence.")
         print("        If a new fixture introduces blank-node SDCs, see:")
-        print("          runs/loop/2026-05-09_beverley-research/modeling_decisions_queue.md (Q1)")
+        print("          the local modeling-decisions queue (runs/loop, untracked; Q1)")
         return 1
 
 
