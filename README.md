@@ -118,7 +118,7 @@ Some pieces are still being worked out (\*):
 
 - Capability + Interest framing. The canonical capability framing is "a disposition whose realization is associated with the interest of an organism or group." ARCO currently models the disposition side; the interest hookup for capability accountability is pending decision.
 - Regulatory text aboutness. How to express what the Annex III text is about beyond the universal class (canonical options surfaced; decision pending).
-- Vocabulary cleanup. The compositional class name `:CapabilityDisposition` was renamed to `:Capability` following standard ontology naming discipline: a compositional name requires its anchor terms to exist.
+- Vocabulary cleanup. The compositional class name `:CapabilityDisposition` was renamed to `:Capability`. The reason is concrete: a name composed of two terms should not exist in an ontology that lacks one of them, and ARCO had no `:Capability` class. The rename supplies the missing anchor and lets the BFO parent carry the Disposition typing.
 
 The architectural detail (BFO 2020 grounding, the seven modeling buckets, how the reasoner does its work) is in the section below.
 
