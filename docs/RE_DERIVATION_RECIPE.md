@@ -38,14 +38,14 @@ Keep the directory layout intact. The catalog maps IRIs to paths relative to its
 1. Clone the repository. Do not move the ontology files out of the tree.
 2. Open Protege 5.6.x. File, Open, select `03_TECHNICAL_CORE/ontology/ARCO_instances_sentinel.ttl`.
 3. Protege auto-detects `catalog-v001.xml` in the same folder. In the Active Ontology tab, the Ontology imports panel should show the governance ontology and, through it, core, BFO 2020, and the three slim modules, all resolved to local files. If any import renders red, open Preferences, "Imported ontologies", and point Protege at `catalog-v001.xml` explicitly.
-4. Reasoner menu: select **HermiT** (bundled with Protege), then Start reasoner. Do not select Pellet for this load; the bundled Pellet lineage runs out of memory preparing the RO slim's 110 property-chain axioms (see the bound at the end of this document).
+4. Reasoner menu: select **HermiT** (bundled with Protege), then Start reasoner. Do not select Pellet for this load; the bundled Pellet lineage runs out of memory preparing the RO slim's 110 property-chain axioms (see the Bounds section below).
 5. Entities tab, Individuals, select `Sentinel_ID_System`. In the Description pane under "Types", inferred types render on a pale yellow background. Expect **`AnnexIII1aApplicableSystem`** and **`HighRiskSystem`** alongside the asserted `System`. `AnnexIII5bApplicableSystem` should not appear.
 6. Negative control: File, Open in new window, `ARCO_instances_verification.ttl`, same reasoner steps. `VerificationKiosk_001` shows only the asserted `System`; no Annex III type appears among the inferred types.
 7. Both loads should report the ontology consistent (no red "inconsistent ontology" banner) and no unsatisfiable classes under owl:Nothing.
 
 ## Path B: command line with ROBOT (executed end-to-end)
 
-*Execution status: executed end-to-end from a fresh directory containing only the published files, with every import resolved through the catalog and no ARCO code in the loop. The committed record of that run (exact commands, tool versions, file hashes, timings, verdicts) is [`RE_DERIVATION_VERIFICATION_LOG.md`](RE_DERIVATION_VERIFICATION_LOG.md); compare your own run against it.*
+*Execution status: executed end-to-end from a fresh directory containing only the published files, with every import resolved through the catalog and no ARCO code in the loop. A dated record of that run (tool versions, timings, verdicts, merged-closure hashes) is the [Reference run](#reference-run-pinned-snapshot-2026-07-03) section at the end of this document; compare your own run against it.*
 
 Prerequisites: Java 11 or later on PATH; [ROBOT](http://robot.obolibrary.org/) (`robot.jar`, the OBO release tool, OWL-API based; the executed run used ROBOT 1.9.10); Python 3 with `rdflib` for reading the reasoned output. Assembly and reasoning are ROBOT only; Python only prints the verdicts, and no ARCO Python is imported at any point.
 
@@ -94,7 +94,7 @@ for fname, ind in [("reasoned_sentinel.owl", "Sentinel_ID_System"),
 EOF
 ```
 
-What you should see, from the executed run (exact values in the verification log):
+What you should see, from the executed run (exact values in the [Reference run](#reference-run-pinned-snapshot-2026-07-03) snapshot below):
 
 - `robot merge` exits 0 in seconds. The merged output is roughly 850 KB from a roughly 7 KB fixture input; everything beyond the fixture arrived via the catalog-resolved imports chain.
 - The `--catalog` flag is optional here: ROBOT auto-detects `catalog-v001.xml` beside the input file. The executed run confirmed the flag-less merge output is byte-identical to the explicit `--catalog` run.
@@ -123,7 +123,21 @@ VerificationKiosk_001 rdf:type :System  present? True
 
 ## Bounds (read before quoting any agreement claim)
 
-1. **Three engines, stated precisely.** OWL-RL (the pipeline's rule-based reasoner), HermiT (tableau; run independently by CI via ROBOT, by the clean room via owlready2, and by the cold load via ROBOT from catalog resolution), and Pellet 2.3.1 (tableau; clean room only) produce the same verdicts on both fixtures above: positive entails 1(a) and the high-risk flag, negative entails neither, both graphs consistent with zero unsatisfiable classes.
+1. **Three engines, stated precisely.** OWL-RL (the pipeline's rule-based reasoner), HermiT (tableau; run independently by CI via ROBOT on every push, by this recipe's catalog-resolved ROBOT cold load, and by a separate run through the owlready2 Python bridge), and Pellet 2.3.1 (tableau; owlready2 bridge run only) produce the same verdicts on both fixtures above: positive entails 1(a) and the high-risk flag, negative entails neither, both graphs consistent with zero unsatisfiable classes.
 2. **The Pellet bound.** Pellet 2.3.1 (the build bundled with owlready2) never reasoned over the full union: it runs out of memory in role-box preparation (FSM determinization) over `ro_bot.owl`'s 110 `owl:propertyChainAxiom` declarations, at both 2 GB and 12 GB heap. Its agreement is demonstrated on the imports-closure and union-minus-RO assemblies only. A control run isolated the blocker to `ro_bot`, not to any ARCO axiom. The receipt that excluding the RO module does not change these verdicts: HermiT over the full union returns identical results on both fixtures. This holds for the checked fixtures and classes; nothing structurally guarantees it for future axioms, which is why CI re-runs HermiT on the full union for every fixture.
 3. **What was checked.** Membership for three named classes plus consistency and unsatisfiability, per fixture. Not a full classification diff against the pipeline's reasoned graph.
 4. **The negative is open-world.** "Not entailed under current commitments" is the strongest true statement. No path in this recipe supports "the kiosk cannot be high risk."
+
+---
+
+## Reference run (pinned snapshot, 2026-07-03)
+
+This is a dated snapshot of one executed Path B run, recorded so you can compare your own run against it. Timings and text-file hashes vary across machines and line-ending settings; a different verdict is a finding, so please open an issue with your log.
+
+- Tools: ROBOT 1.9.10 (`ROBOT_JAVA_ARGS=-Xmx6G`), Java 25.0.1, Python 3.14.2, rdflib 7.5.0, Windows 11.
+- Merged closure md5: `9da53a2091a99fd7abde1b39f009391f` (`merged_sentinel.owl`, 854,483 bytes); `fc2d61008fa4f251c90a7fa21724c243` (`merged_verification.owl`, 854,826 bytes).
+- Wall-clock: each merge under 2 seconds; HermiT reasoning 543 s (positive fixture), 468 s (negative fixture).
+- Verdicts, positive fixture (`Sentinel_ID_System`): `AnnexIII1aApplicableSystem` True, `AnnexIII5bApplicableSystem` False, `HighRiskSystem` True, `System` True; consistent.
+- Verdicts, negative fixture (`VerificationKiosk_001`): `AnnexIII1aApplicableSystem` False, `AnnexIII5bApplicableSystem` False, `HighRiskSystem` False, `System` True; consistent.
+
+The CI closure check (`.github/workflows/robot-validate.yml`, step "Catalog import-closure check") re-verifies on every push that the catalog-resolved import chain equals the explicit file union, so the import-chain claim is re-derived continuously rather than only recorded in this snapshot.
