@@ -243,7 +243,7 @@ The class name `:CapabilityDisposition` is a compositional construction (Capabil
 
 **Resolutions**:
 - R1: add `:Capability` as a separate class; demote `:CapabilityDisposition` to subclass or remove.
-- R2 (preferred per Adequatism + Principle 5): rename `:CapabilityDisposition` to `:Capability`; let BFO subsumption (`:Capability ⊑ bfo:0000016`) carry the Disposition typing.
+- R2 (preferred per Adequatism and the terminological-moderation naming discipline): rename `:CapabilityDisposition` to `:Capability`; let BFO subsumption (`:Capability ⊑ bfo:0000016`) carry the Disposition typing.
 
 **Anchor**: `docs/CANON_BACKTEST_2026-05-12.md §D.2`.
 
@@ -253,7 +253,7 @@ The class name `:CapabilityDisposition` is a compositional construction (Capabil
 
 The canonical capability framing is a disposition whose realization is associated with the interest of an organism or group. ARCO's `:Capability` currently models the disposition side only; there is no Interest hookup. Three canonical options surfaced:
 
-- A: use `cco:has_interest_in` relation only. Domain `cco:Agent`; range `bfo:0000015` Process. Matches CCO v1.7 + the canonical relational treatment. No class minted; satisfies Principle 5 (terminological moderation).
+- A: use `cco:has_interest_in` relation only. Domain `cco:Agent`; range `bfo:0000015` Process. Matches CCO v1.7 + the canonical relational treatment. No class minted; satisfies the terminological-moderation naming discipline.
 - B: mint `:Interest ⊑ bfo:0000019` Quality per abi production extension (`CapabilityOntology.ttl:60-64`). Expands Bucket 2 from empty to populated. abi's `:bearerOfInterest` and `:hasInterestIn` over-mints must NOT be copied if this option is chosen (use BFO `bearer_of` and `inheres_in` instead).
 - C: hybrid (Quality typing + canonical relation direction Interest to Process).
 

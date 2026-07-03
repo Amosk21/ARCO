@@ -2,17 +2,17 @@
 
 **Purpose.** This document is the single place where ARCO's scope boundary, ontological commitments, and engineering gaps are stated plainly. Read it before quoting ARCO's capabilities in any external context, before making a commercial claim, or before extending the ontology. If a statement elsewhere in the repo appears to overreach what this document allows, this document wins and the other should be corrected.
 
-**Primary references** (authority order, per [docs/agent/ARCO_public_claims.md](docs/agent/ARCO_public_claims.md)):
+**Primary references** (authority order, per `docs/agent/ARCO_public_claims.md`, local agent guidance, untracked):
 
-1. Pipeline output (`runs/demo/`) — observed behavior
-2. [CLAUDE.md](CLAUDE.md) — project invariants
-3. [README.md](README.md) — outward-facing claim
-4. [docs/agent/ARCO_public_claims.md](docs/agent/ARCO_public_claims.md) — claim discipline
-5. [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md) — BFO/CCO alignment state
-6. [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md) — regulatory scope rules
-7. [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) — commitment backtest grading each load-bearing choice
+1. Pipeline output (`runs/demo/`) - observed behavior
+2. `CLAUDE.md` (local project constitution, untracked) - project invariants
+3. [README.md](README.md) - outward-facing claim
+4. `docs/agent/ARCO_public_claims.md` (local agent guidance, untracked) - claim discipline
+5. `docs/agent/bfo_cco_alignment_audit.md` (local agent guidance, untracked) - BFO/CCO alignment state
+6. `docs/agent/eu_ai_act_rules.md` (local agent guidance, untracked) - regulatory scope rules
+7. `KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md` (local knowledge base, untracked) - commitment backtest grading each load-bearing choice
 
-**Last reviewed:** 2026-06-10 (coherent disclosure pass following the 2026-06-10 adversarial design audit; see `runs/audits/2026-06-10_adversarial_design_audit.md`)
+**Last reviewed:** 2026-06-10 (coherent disclosure pass following the 2026-06-10 adversarial design audit; audit record kept in local working notes, untracked)
 
 **Refresh trigger:** any change to ontology class hierarchy, three-gate axioms, imported upstream ontology, Annex III category coverage, or instance-file design conventions.
 
@@ -56,7 +56,7 @@ Two Annex III categories are modeled. The rest are out of scope in the current r
 
 **Known modelling limits within the two covered categories:**
 
-- **Annex III 5(b) fraud-detection exclusion is not modeled as a classification gate.** The legal text excludes AI intended for financial fraud detection from 5(b) classification. ARCO includes `FraudDetectionProcess` as a declared class and `flag_fraud_exclusion_candidate.sparql` surfaces candidates as a post-classification audit flag for human review; the exclusion is not expressed as a negation in OWL-RL (no negation gate exists in v1), so a fraud-detection system evaluating creditworthiness produces a false positive at the entailment layer, with the audit flag as the correction surface. See [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md) "Known limit — 5(b) fraud exclusion."
+- **Annex III 5(b) fraud-detection exclusion is not modeled as a classification gate.** The legal text excludes AI intended for financial fraud detection from 5(b) classification. ARCO includes `FraudDetectionProcess` as a declared class and `flag_fraud_exclusion_candidate.sparql` surfaces candidates as a post-classification audit flag for human review; the exclusion is not expressed as a negation in OWL-RL (no negation gate exists in v1), so a fraud-detection system evaluating creditworthiness produces a false positive at the entailment layer, with the audit flag as the correction surface. See the known-limit note on the 5(b) fraud exclusion in `docs/agent/eu_ai_act_rules.md` (local agent guidance, untracked).
 - **Article 6(3) derogation is detected, not evaluated.** If a provider declares a `DerogationClaim`, `flag_derogation_candidate.sparql` surfaces it for human legal review. ARCO does not evaluate whether the claim is legally valid. The OWL-RL classification is computed independently of any derogation claim — a flagged system with all three gates satisfied is still entailed as `HighRiskSystem` in the ontology. The profiling-of-natural-persons exception (derogation always unavailable for profiling) is not separately modeled.
 - **Biometric verification is correctly excluded from 1(a).** `BiometricVerificationCapability` is declared `owl:disjointWith BiometricIdentificationCapability` and is not a subclass of `AnnexIIITriggeringCapability`. A verification-only system does not satisfy Gate 1 for 1(a). This is intentional, tested, and documented in [03_TECHNICAL_CORE/ontology/ARCO_core.ttl](03_TECHNICAL_CORE/ontology/ARCO_core.ttl) line 79.
 
@@ -77,7 +77,7 @@ Two Annex III categories are modeled. The rest are out of scope in the current r
 
 ## 3. Ontological commitments that carry stretch or debt
 
-The [BFO commitment backtest](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md) grades each load-bearing choice against primary BFO/IAO/CCO/RO definitions. The choices below are not wrong; they are documented here so a reader can see where a serious ontologist would focus critique first.
+The BFO commitment backtest (`KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md`, local knowledge base, untracked) grades each load-bearing choice against primary BFO/IAO/CCO/RO definitions. The choices below are not wrong; they are documented here so a reader can see where a serious ontologist would focus critique first.
 
 ### 3.1 Gate 3 role-category encoding — `cco:designates` over the role universal
 
@@ -199,7 +199,7 @@ ARCO loads BFO 2020 as a full upstream file and loads RO, IAO, and CCO as **ROBO
 | IAO | release `2026-03-30` | ROBOT BOT slim module | `imports/iao_bot.owl` (seed: `seeds/iao_seed.txt`) |
 | CCO | v1.7 pinned semantic-IRI release | ROBOT BOT slim module + bridge/readability declarations | `imports/cco_bot.owl` (seed: `seeds/cco_seed.txt`) plus local declarations in `ARCO_governance_extension.ttl` that map CCO Directive, Descriptive, and Designative Information Content Entity classes into `iao:0000030`, assert `cco:designates rdfs:subPropertyOf iao:0000136`, and keep BFO subsumptions for `cco:Person` and `cco:Organization` readable in-file |
 
-Per-ontology audits (2026-04-29, see `docs/agent/alignment_audit_{RO,IAO,CCO}_2026-04-29.md`) verify term-level consistency: RO 5/5, IAO 2/2, CCO 6/6.
+Per-ontology audits (2026-04-29, recorded in `docs/agent/alignment_audit_{RO,IAO,CCO}_2026-04-29.md`, local agent guidance, untracked) verify term-level consistency: RO 5/5, IAO 2/2, CCO 6/6.
 
 **What this means for claims:**
 
@@ -209,7 +209,7 @@ Per-ontology audits (2026-04-29, see `docs/agent/alignment_audit_{RO,IAO,CCO}_20
 
 The staged-full-import question that earlier versions of this document discussed has been resolved: ADR-001 ("BFO/CCO Alignment End State") records the decision and the BOT-import experiment in branch `experiment/bot-extracted-imports` realized it. The full-upstream-import alternative was tested in PRs #24 and #25 and confirmed byte-identical classification outputs at substantially higher reasoning cost (see `README.md` "Why ROBOT BOT slim modules" §5 for the operational comparison).
 
-Detail: [docs/agent/adr_001_alignment_end_state.md](docs/agent/adr_001_alignment_end_state.md), [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md) (historical), and the three 2026-04-29 alignment audits.
+Detail: `docs/agent/adr_001_alignment_end_state.md` and `docs/agent/bfo_cco_alignment_audit.md` (historical), both local agent guidance, untracked, and the three 2026-04-29 alignment audits.
 
 ---
 
@@ -279,7 +279,7 @@ A SHACL fail and an OWL-RL classification result are independent. Diagnose each 
 
 ### 7.4 Cross-reasoner agreement and known profile divergence
 
-**Does:** Run a HermiT (full OWL 2 DL) cross-check via ROBOT in CI on every push and PR. The check merges ontology + imports + core + governance + each certificate-grade fixture, runs HermiT, and compares classification SPARQL results against the production OWL-RL pipeline for every modeled system across the certificate-grade fixture set (Sentinel, CreditScorer, verification kiosk, DecoySystem, WeirdCalcSystem, both flag tests). Disagreement on any (fixture, system, query) triple fails the build. Logic and exclusion rules: [03_TECHNICAL_CORE/scripts/hermit_cross_check.py](03_TECHNICAL_CORE/scripts/hermit_cross_check.py).
+**Does:** Run a HermiT (full OWL 2 DL) cross-check via ROBOT in CI on pushes and pull requests to main. The check merges ontology + imports + core + governance + each certificate-grade fixture, runs HermiT, and evaluates the classification SPARQL queries under both HermiT and the production OWL-RL pipeline for every modeled system across the certificate-grade fixture set (Sentinel, CreditScorer, verification kiosk, DecoySystem, WeirdCalcSystem, both flag tests). The check asserts both reasoners' answers per (fixture, system, query) cell; as of the expected-polarity upgrade, each cell is also asserted against the expected value anchored in the SCENARIOS table in `test_scenarios.py`, so a wrong-polarity answer fails the build even when both reasoners agree on it. Logic and exclusion rules: [03_TECHNICAL_CORE/scripts/hermit_cross_check.py](03_TECHNICAL_CORE/scripts/hermit_cross_check.py).
 
 **Does not:** Cover the `ARCO_instances_adversarial_blanknode.ttl` fixture (`GhostSystem_001`). GhostSystem's disposition is an anonymous individual (blank node), and HermiT does not emit `ClassAssertion` axioms for anonymous individuals in its serialized output — this is correct DL profile behavior, since anonymous individuals are existential witnesses for satisfiability, not first-class ABox individuals. The `detect_latent_risk` audit traversal therefore returns `False` under HermiT and `True` under OWL-RL on GhostSystem. The classification entailment itself (`HighRiskSystem`, `AnnexIII1aApplicableSystem`) fires correctly under both reasoners; the divergence is confined to the audit-side traversal that walks `?system → ?component → ?disposition a :AnnexIIITriggeringCapability`.
 
@@ -307,7 +307,7 @@ The pipeline's output layer (`run_pipeline.py` from line 1699 onward, plus `writ
 
 **Synthesized narrative**:
 
-- The certificate's Annex III line now emits pure graph-backed values such as `VERIFIED (ENTAILED)` or `NOT APPLICABLE`. Article 6(3) derogation scope is surfaced separately as run metadata (`ARTICLE 6(3) DEROGATION: NOT EVALUATED (run scope)` in the certificate and `derogation_evaluation_scope` in `summary.json`). **CLOSED 2026-05-20** for the mixed-provenance string caught by `test_output_provenance.py`. **REMAINING**: Article 6(3) validity is still not evaluated; `:DerogationClaim` is surfaced for human legal review only.
+- The certificate's Annex III line now emits pure graph-backed values such as `VERIFIED (ENTAILED)` or `NOT ENTAILED (under current commitments)`. Article 6(3) derogation scope is surfaced separately as run metadata (`ARTICLE 6(3) DEROGATION: NOT EVALUATED (run scope)` in the certificate and `derogation_evaluation_scope` in `summary.json`). **CLOSED 2026-05-20** for the mixed-provenance string caught by `test_output_provenance.py`. **REMAINING**: Article 6(3) validity is still not evaluated; `:DerogationClaim` is surfaced for human legal review only.
 
 **Operational**:
 
@@ -331,7 +331,7 @@ The pipeline's output layer (`run_pipeline.py` from line 1699 onward, plus `writ
 
 ## 9. Engineering gaps
 
-- **Negative test infrastructure is incomplete.** Gate-removal regression tests ([test_gate_removal.py](03_TECHNICAL_CORE/scripts/test_gate_removal.py)) verify each gate is independently necessary for both modeled Annex III categories (1(a) Sentinel and 5(b) CreditScorer) by mutating axioms and confirming entailment breaks. Symmetric coverage across the two categories was added 2026-05-14. Adversarial-mechanism tests ([test_adversarial_mechanism.py](03_TECHNICAL_CORE/scripts/test_adversarial_mechanism.py)) verify three cases: DecoySystem_001 classifies via `owl:equivalentClass` on the Annex III 1(a) branch (not direct IRI assertion); WeirdCalcSystem_001 classifies via `owl:equivalentClass` on the 5(b) branch with cross-category isolation preserved (added 2026-05-20); and GhostSystem_001 classifies via blank-node `owl:someValuesFrom` (not a named individual). What does **not** exist is a parameterized test harness that loads an isolated deliberately-miscategorized instance file and runs the full pipeline against it, because the pipeline currently loads all TTL files into a single graph before reasoning — a negative-case file in the graph would contaminate positive cases. Building this harness is Step 2 of the ADR-001 work plan. Noted in [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md) §"Unresolved Engineering Problem."
+- **Negative test infrastructure is incomplete.** Gate-removal regression tests ([test_gate_removal.py](03_TECHNICAL_CORE/scripts/test_gate_removal.py)) verify each gate is independently necessary for both modeled Annex III categories (1(a) Sentinel and 5(b) CreditScorer) by mutating axioms and confirming entailment breaks. Symmetric coverage across the two categories was added 2026-05-14. Adversarial-mechanism tests ([test_adversarial_mechanism.py](03_TECHNICAL_CORE/scripts/test_adversarial_mechanism.py)) verify three cases: DecoySystem_001 classifies via `owl:equivalentClass` on the Annex III 1(a) branch (not direct IRI assertion); WeirdCalcSystem_001 classifies via `owl:equivalentClass` on the 5(b) branch with cross-category isolation preserved (added 2026-05-20); and GhostSystem_001 classifies via blank-node `owl:someValuesFrom` (not a named individual). What does **not** exist is a parameterized test harness that loads an isolated deliberately-miscategorized instance file and runs the full pipeline against it, because the pipeline currently loads all TTL files into a single graph before reasoning; a negative-case file in the graph would contaminate positive cases. Building this harness is Step 2 of the ADR-001 work plan. Noted in `docs/agent/bfo_cco_alignment_audit.md` (local agent guidance, untracked) §"Unresolved Engineering Problem."
 - **Dependency pinning.** The pipeline is verified only on: `rdflib==7.6.0`, `pyshacl==0.31.0`, `owlrl==7.1.4`. Upgrading any of these requires re-running the full regression suite. The `owlrl` pin is especially load-bearing: Gate 2 and Gate 3 use anonymous inverse property restrictions whose entailment behavior could change across reasoner versions.
 - **`AnnexIII_Condition_1a cco:prescribes :RemoteBiometricIdentificationProcess`** remains in [ARCO_governance_extension.ttl](03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl) (moved 2026-05-14 from the Sentinel instance file to the governance extension as universal regulatory content) as a class-as-individual triple retained for regulatory traceability. The companion 5(b) triple `:AnnexIII_Condition_5b cco:prescribes :CreditworthinessEvaluationProcess` is in the same file. Neither affects current classification. Both are known blockers for a future CCO import (see §4).
 - **Single-reasoner portability.** The anonymous inverse property expressions in Gate 2 and Gate 3 equivalentClass axioms have been empirically verified on `owlrl==7.1.4` only. Other OWL-RL reasoners may or may not materialize these the same way.
@@ -385,6 +385,6 @@ ARCO has no architectural mechanism to prevent this adaptation. The bounded scop
 
 - Update this document **first** when scope changes, before README or commercial copy.
 - A claim in README, EXEC_PITCH, or any outward-facing artifact that exceeds what this document permits is a bug. Correct the outward artifact, not this one.
-- The scope boundary in §2 is coupled to [docs/agent/eu_ai_act_rules.md](docs/agent/eu_ai_act_rules.md). Both must be updated together when coverage changes.
-- The ontological commitment status in §3 is coupled to [KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md](KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md). When a commitment's grade changes (a stretch is resolved, a new stretch is introduced), update the backtest first, then this document.
-- The property-layer status in §4 is coupled to [docs/agent/bfo_cco_alignment_audit.md](docs/agent/bfo_cco_alignment_audit.md). Import progress updates there first.
+- The scope boundary in §2 is coupled to `docs/agent/eu_ai_act_rules.md` (local agent guidance, untracked). Both must be updated together when coverage changes.
+- The ontological commitment status in §3 is coupled to `KB/40_REVIEWS/2026-04-20_bfo-commitment-backtest.md` (local knowledge base, untracked). When a commitment's grade changes (a stretch is resolved, a new stretch is introduced), update the backtest first, then this document.
+- The property-layer status in §4 is coupled to `docs/agent/bfo_cco_alignment_audit.md` (local agent guidance, untracked). Import progress updates there first.
