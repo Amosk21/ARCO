@@ -2,15 +2,15 @@
 Gate-2 mistype regression test (content-sensitivity, Global Invariant 3).
 
 A different mutation class from test_gate_removal.py: that suite DELETES gate
-evidence; this suite MISTYPES it. Each fixture is a single-triple mutant of
-the committed sentinel fixture in which the Gate-2 prescribed process token
-is typed as:
+evidence; this suite MISTYPES it. Each case is a PROGRAMMATIC single-triple
+mutation of the committed sentinel fixture, applied in memory at test time
+(no copied fixture files, so the mutants can never drift from the sentinel):
+the Gate-2 prescribed process token's rdf:type is swapped to
 
-  - probe_gate2_mistyped_kind.ttl: :BiometricVerificationProcess
-    (the WRONG regulated kind for 1(a)), or
-  - probe_gate2_neither_kind.ttl:  :OperationalProcess
-    (NEITHER regulated kind — a prescribed token exists, so an
-    existence-sensitive gate would fire; only a content-sensitive one blocks).
+  - :BiometricVerificationProcess (the WRONG regulated kind for 1(a)), or
+  - :OperationalProcess (NEITHER regulated kind — a prescribed token exists,
+    so an existence-sensitive gate would fire; only a content-sensitive one
+    blocks).
 
 Gate 2 goes through the IUS subkind
 :RemoteBiometricIdentificationIntendedUseSpec, defined by owl:someValuesFrom
@@ -20,20 +20,20 @@ satisfied AND keep the iao:0000136 aboutness references to
 :RemoteBiometricIdentificationProcess on the IUS and USS, proving that mere
 aboutness-of-the-regulated-class does not satisfy the gate.
 
-Expected on both fixtures:
+Expected on both mutants:
   - AnnexIII1aApplicableSystem NOT entailed (the content check blocks);
   - AnnexIII5bApplicableSystem NOT entailed;
   - HighRiskSystem entailed (the capability-only bridge deliberately fires on
     Gate 1 alone — latent-disposition flag present, no category classification);
   - the latent-risk audit ASK (detect_latent_risk.sparql) returns True.
 
-Fixture-integrity pre-checks on the asserted graph guard the test against
-becoming vacuous if a fixture is later edited (e.g. the aboutness references
-removed, or the token quietly retyped to the regulated kind).
+Integrity pre-checks on the asserted sentinel graph (before mutation) guard
+the test against becoming vacuous if the sentinel is later edited (e.g. the
+aboutness references removed, or the token renamed).
 
 Run from repo root or any subdirectory:
   python 03_TECHNICAL_CORE/scripts/test_gate2_mistype.py
-Exit 0 = all expectations hold on both fixtures. Exit 1 = failure (printed).
+Exit 0 = all expectations hold on both mutants. Exit 1 = failure (printed).
 """
 
 from __future__ import annotations
@@ -70,15 +70,16 @@ CCO = Namespace("http://www.ontologyrepository.com/CommonCoreOntologies/")
 SYSTEM = ARCO["Sentinel_ID_System"]
 TOKEN = ARCO["Sentinel_RBIP_Process"]
 
-FIXTURES = [
+SENTINEL = ONTOLOGY_DIR / "ARCO_instances_sentinel.ttl"
+REGULATED_KIND = ARCO["RemoteBiometricIdentificationProcess"]
+
+MUTATIONS = [
     {
-        "label": "MISTYPED KIND (token typed :BiometricVerificationProcess)",
-        "file": ONTOLOGY_DIR / "probes" / "probe_gate2_mistyped_kind.ttl",
+        "label": "MISTYPED KIND (token retyped :BiometricVerificationProcess)",
         "token_type": ARCO["BiometricVerificationProcess"],
     },
     {
-        "label": "NEITHER KIND (token typed :OperationalProcess)",
-        "file": ONTOLOGY_DIR / "probes" / "probe_gate2_neither_kind.ttl",
+        "label": "NEITHER KIND (token retyped :OperationalProcess)",
         "token_type": ARCO["OperationalProcess"],
     },
 ]
@@ -119,13 +120,23 @@ def main() -> None:
         if not ok:
             all_pass = False
 
-    for fixture in FIXTURES:
-        print(f"\n--- {fixture['label']} ---")
-        g = load_asserted(fixture["file"])
+    for mutation in MUTATIONS:
+        print(f"\n--- {mutation['label']} ---")
+        g = load_asserted(SENTINEL)
 
-        # Fixture-integrity pre-checks (asserted graph, before reasoning):
-        # the mutants must still carry every gate satisfier EXCEPT the
-        # regulated token type, or the negative expectations become vacuous.
+        # Sentinel-integrity pre-check (before mutation): the committed
+        # fixture must carry the regulated token type we are about to swap,
+        # or the mutation (and the negative expectations) would be vacuous.
+        check("sentinel asserts the regulated token type (pre-mutation)",
+              (TOKEN, RDF_NS["type"], REGULATED_KIND) in g)
+
+        # THE MUTATION: swap exactly one rdf:type triple, in memory.
+        g.remove((TOKEN, RDF_NS["type"], REGULATED_KIND))
+        g.add((TOKEN, RDF_NS["type"], mutation["token_type"]))
+
+        # Post-mutation integrity checks: every gate satisfier EXCEPT the
+        # regulated token type must still be present, or the negative
+        # expectations become vacuous.
         check("gate-1 disposition edge asserted",
               (ARCO["Sentinel_FaceID_Module"], RO_HAS_DISPOSITION,
                ARCO["Sentinel_FaceID_Disposition"]) in g)
@@ -138,7 +149,7 @@ def main() -> None:
               (ARCO["Sentinel_IntendedUse_001"], IAO_IS_ABOUT,
                ARCO["RemoteBiometricIdentificationProcess"]) in g)
         check("token asserted as the mutant type",
-              (TOKEN, RDF_NS["type"], fixture["token_type"]) in g)
+              (TOKEN, RDF_NS["type"], mutation["token_type"]) in g)
         check("token NOT asserted as the regulated kind",
               (TOKEN, RDF_NS["type"],
                ARCO["RemoteBiometricIdentificationProcess"]) not in g)
