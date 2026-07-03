@@ -33,10 +33,12 @@ SCOPE NOTE — Adversarial scenarios (4-5):
   graph, where the decoy's inferred alias subclassing does not trip it).
 
 ANCHOR-TABLE NOTE (OPEN_PROBLEMS L4.8 item 5):
-  SCENARIOS below is the single source of expected classification polarity
-  for the whole repo. hermit_cross_check.py imports it and asserts BOTH
-  reasoners against these values per cell — do not create a second expected
-  table anywhere. Every scenario carries a "latent_risk" key (the
+  SCENARIOS below is the single anchor table of expected classification
+  polarity for this suite and for hermit_cross_check.py, which imports it and
+  asserts BOTH reasoners against these values per cell — do not create a
+  second expected table for these checks. (test_adversarial_mechanism.py
+  asserts its own decoy-mechanism expectations locally; folding those in is
+  an optional follow-on.) Every scenario carries a "latent_risk" key (the
   detect_latent_risk.sparql structural ASK, asserted RL-side in this test's
   own loop as a live co-witness). latent_risk is NOT derivable from
   HighRiskSystem: they coincide on current fixtures only contingently, and

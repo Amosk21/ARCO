@@ -15,7 +15,7 @@
   fixture battery: the ARCO_instances_*.ttl globs and ontology/*.ttl sweeps are
   non-recursive and do not descend into probes/). Used ONLY by
   test_gate2_mistype.py. This file reuses the sentinel fixture's individual
-  IRIs deliberately — it is a single-triple mutant of that fixture and is never
+  IRIs deliberately — its logic delta from that fixture is exactly one rdf:type triple (header and some annotation triples differ) and it is never
   loaded together with it.
 
   Construction: copy of ARCO_instances_sentinel.ttl EXCEPT one triple — the
@@ -23,7 +23,7 @@
   :BiometricVerificationProcess (the 1:1 verification kind) instead of
   :RemoteBiometricIdentificationProcess. Everything else, including the
   iao:0000136 aboutness references to :RemoteBiometricIdentificationProcess
-  on the IUS and USS, is unchanged.
+  on the IUS and USS, carries the same logic triples.
 
   Expected behavior (pinned by test_gate2_mistype.py): Annex III 1(a) NOT
   entailed — Gate 2 goes through the IUS subkind
@@ -36,7 +36,7 @@
   flag present.""" .
 
 #################################################################
-# 2) SYSTEM LAYER (unchanged from sentinel)
+# 2) SYSTEM LAYER (same logic triples as the sentinel fixture)
 #################################################################
 
 :Sentinel_FaceID_Module rdf:type :HardwareComponent ;
@@ -69,14 +69,14 @@
 
 :Sentinel_UseScenario_001 rdf:type :UseScenarioSpecification ;
   rdfs:label "Sentinel Use Scenario: Biometric ID of Natural Persons" ;
-  rdfs:comment "Designative ICE: is_about the system, designates the :NaturalPersonRole universal via cco:designates (a typed designation property whose range admits universals). Gate 3 satisfaction does not require a role-bearer token; designation by inscription naming the regulated role category is sufficient." ;
+  rdfs:comment "Designative ICE: is_about the system; cco:designates :NaturalPersonRole with the class IRI as a named individual (OWL 2 punning; the Gate-3 entailment consumes the IRI only in its individual interpretation). No role-bearer token is minted (L2.4); category designation is documented modeling intent, not a CCO-documented use (LIMITATIONS 3.1)." ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :RemoteBiometricIdentificationProcess ;
   iao:0000136 cco:Person ;
   cco:designates :NaturalPersonRole .
 
 #################################################################
-# 3) OPERATIONAL LAYER (unchanged from sentinel)
+# 3) OPERATIONAL LAYER (same logic triples as the sentinel fixture)
 #################################################################
 
 :Surveillance_Run_001 rdf:type :OperationalProcess ;
@@ -90,17 +90,17 @@
   iao:0000136 :Sentinel_ID_System .
 
 #################################################################
-# 4) COMPLIANCE DETERMINATION (unchanged from sentinel)
+# 4) COMPLIANCE DETERMINATION (same logic triples as the sentinel fixture)
 #################################################################
 
 :HighRisk_Determination_001 rdf:type :HighRiskDetermination ;
   rdfs:label "High-Risk Determination 001" ;
   iao:0000136 :Sentinel_ID_System ;
   iao:0000136 :AnnexIII_Condition_1a ;
-  rdfs:comment "This determination artifact documents the compliance assessment. The system's classification as HighRiskSystem is INFERRED by the reasoner from the bridge axioms. GUARD NOTE: under the mistyped Gate-2 token, no 1(a) inference is expected; this artifact is retained unchanged to keep the delta from the sentinel fixture to exactly one triple." .
+  rdfs:comment "This determination artifact documents the compliance assessment. The system's classification as HighRiskSystem is INFERRED by the reasoner from the bridge axioms. GUARD NOTE: under the mistyped Gate-2 token, no 1(a) inference is expected; this artifact is retained so the logic delta from the sentinel fixture stays at exactly one rdf:type triple." .
 
 #################################################################
-# 5) PROVIDER + DOCUMENTATION WORKFLOW (unchanged from sentinel)
+# 5) PROVIDER + DOCUMENTATION WORKFLOW (same logic triples as the sentinel fixture)
 #################################################################
 
 :ProviderOrg_001 rdf:type :ProviderOrganization ;
@@ -123,7 +123,7 @@
   iao:0000136 :AnnexIII_Condition_1a .
 
 #################################################################
-# 6) COMPLIANCE OBLIGATION (unchanged from sentinel)
+# 6) COMPLIANCE OBLIGATION (same logic triples as the sentinel fixture)
 #################################################################
 
 :ProviderObligation_001 rdf:type :ComplianceObligationSpecification ;
