@@ -64,3 +64,6 @@ jobs:
 
       - name: Run Gate-2 mistype regression test (content-sensitivity)
         run: python 03_TECHNICAL_CORE/scripts/test_gate2_mistype.py
+
+      - name: Run output-provenance contract test
+        run: python 03_TECHNICAL_CORE/scripts/test_output_provenance.py
