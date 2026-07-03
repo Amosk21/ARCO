@@ -55,3 +55,12 @@ jobs:
 
       - name: Run canonical-IRI version-pin conformance test
         run: python 03_TECHNICAL_CORE/scripts/test_canonical_iris.py
+
+      - name: Run BI/RBI genus regression test
+        run: python 03_TECHNICAL_CORE/scripts/test_bi_rbi_genus.py
+
+      - name: Run ICE-subfamily trap guard (fail-closed regression)
+        run: python 03_TECHNICAL_CORE/scripts/test_ice_subfamily_trap.py
+
+      - name: Run Gate-2 mistype regression test (content-sensitivity)
+        run: python 03_TECHNICAL_CORE/scripts/test_gate2_mistype.py
