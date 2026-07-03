@@ -31,6 +31,18 @@ SCOPE NOTE — Adversarial scenarios (4-5):
   audit since the L3.11 fix (its former sole audit FAIL was the union-sync
   guard false-alarming on the closure; the guard now runs on the asserted
   graph, where the decoy's inferred alias subclassing does not trip it).
+
+ANCHOR-TABLE NOTE (OPEN_PROBLEMS L4.8 item 5):
+  SCENARIOS below is the single source of expected classification polarity
+  for the whole repo. hermit_cross_check.py imports it and asserts BOTH
+  reasoners against these values per cell — do not create a second expected
+  table anywhere. Every scenario carries a "latent_risk" key (the
+  detect_latent_risk.sparql structural ASK, asserted RL-side in this test's
+  own loop as a live co-witness). latent_risk is NOT derivable from
+  HighRiskSystem: they coincide on current fixtures only contingently, and
+  GhostSystem is the standing proof they can diverge across reasoners.
+  WeirdCalcSystem_001 (the 5(b) equivalency decoy) is in the table so its
+  polarity anchor no longer lives only in test_adversarial_mechanism.py.
 """
 
 from __future__ import annotations
@@ -62,6 +74,9 @@ NEGATIVE_CASE_ABSENCE_QUERY = REASONING_DIR / "check_negative_case_no_annex_iii_
 CROSS_CATEGORY_ISOLATION_QUERY = REASONING_DIR / "check_cross_category_isolation_in_closure.sparql"
 INTENT_WITHOUT_CAPABILITY_QUERY = REASONING_DIR / "flag_intent_without_capability.sparql"
 UNION_SYNC_QUERY = REASONING_DIR / "check_union_subclass_sync.sparql"
+# Structural latent-risk traversal; its expected value is the "latent_risk"
+# anchor key in SCENARIOS (L4.8 item 5 — the cross-check's fourth query).
+DETECT_LATENT_RISK_QUERY = REASONING_DIR / "detect_latent_risk.sparql"
 
 ARCO = Namespace("https://arco.ai/ontology/core#")
 RDF_NS = Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
@@ -78,6 +93,7 @@ SCENARIOS = [
             "HighRiskSystem": True,
             "AnnexIII1aApplicableSystem": True,
             "AnnexIII5bApplicableSystem": False,
+            "latent_risk": True,
         },
     },
     {
@@ -89,6 +105,7 @@ SCENARIOS = [
             "HighRiskSystem": True,
             "AnnexIII1aApplicableSystem": False,
             "AnnexIII5bApplicableSystem": True,
+            "latent_risk": True,
         },
     },
     {
@@ -100,6 +117,7 @@ SCENARIOS = [
             "HighRiskSystem": False,
             "AnnexIII1aApplicableSystem": False,
             "AnnexIII5bApplicableSystem": False,
+            "latent_risk": False,
         },
     },
     # ── Adversarial tests ──────────────────────────────────────────────
@@ -112,6 +130,7 @@ SCENARIOS = [
             "HighRiskSystem": True,           # equivalence must propagate
             "AnnexIII1aApplicableSystem": True,  # all 3 gates satisfied via equivalence
             "AnnexIII5bApplicableSystem": False,
+            "latent_risk": True,
         },
     },
     {
@@ -123,7 +142,31 @@ SCENARIOS = [
             "HighRiskSystem": True,           # someValuesFrom satisfied by blank node
             "AnnexIII1aApplicableSystem": True,  # all 3 gates satisfied
             "AnnexIII5bApplicableSystem": False,
+            # RL-side value. GhostSystem is excluded from the HermiT cross-check:
+            # the structural traversal returns False under HermiT for blank-node
+            # dispositions (LIMITATIONS §7.4) — the standing proof latent_risk
+            # must not be derived from HighRiskSystem.
+            "latent_risk": True,
         },
+    },
+    {
+        "name": "WeirdCalcSystem_001",
+        "label": "ADVERSARIAL: 5(b) Equivalency Decoy (WeirdCalculator EQUIV CreditworthinessEvaluationCapability)",
+        "instances": ONTOLOGY_DIR / "ARCO_instances_adversarial_decoy_5b.ttl",
+        "system": ARCO["WeirdCalcSystem_001"],
+        "expected": {
+            "HighRiskSystem": True,           # equivalence must propagate
+            "AnnexIII1aApplicableSystem": False,
+            "AnnexIII5bApplicableSystem": True,  # all 3 gates satisfied via equivalence
+            "latent_risk": True,
+        },
+        # Classification-core minimal fixture (see SCOPE NOTE above): every
+        # check this test runs per scenario is a graph-level ASK and all are
+        # satisfiable on it. The full pipeline's audit layer is expected to
+        # FAIL on this fixture — that is the documented two-layer split, and
+        # it is out of scope here. Previously this system's polarity anchor
+        # lived only in test_adversarial_mechanism.py (a second home); this
+        # entry makes SCENARIOS the single source (L4.8 item 5, gap B).
     },
     # Flag-detection scenarios — entailment plus exception-flag SPARQL ASKs.
     {
@@ -135,6 +178,7 @@ SCENARIOS = [
             "HighRiskSystem": True,
             "AnnexIII1aApplicableSystem": True,
             "AnnexIII5bApplicableSystem": False,
+            "latent_risk": True,
         },
         "expected_flags": {
             "DerogationClaim": True,
@@ -150,6 +194,7 @@ SCENARIOS = [
             "HighRiskSystem": True,
             "AnnexIII1aApplicableSystem": False,
             "AnnexIII5bApplicableSystem": True,
+            "latent_risk": True,
         },
         "expected_flags": {
             "DerogationClaim": False,
@@ -245,12 +290,26 @@ def main() -> None:
         print(f"  Triples: {initial} -> {final} (+{final - initial})")
 
         for cls_name, expected in scenario["expected"].items():
+            if cls_name == "latent_risk":
+                continue  # ASK anchor, not a class membership; handled below
             actual = check_type(g, system, cls_name)
             ok = actual == expected
             status = "OK" if ok else "FAIL"
             print(f"  {cls_name}: {actual} (expected {expected}) [{status}]")
             if not ok:
                 all_pass = False
+
+        # ── Latent-risk anchor co-witness (L4.8 item 5, gap A) ──
+        # The "latent_risk" key anchors the cross-check's fourth query
+        # (detect_latent_risk.sparql). Exercising it here RL-side on every
+        # scenario run keeps the anchor value itself tested, not just copied.
+        latent_expected = scenario["expected"]["latent_risk"]
+        latent_actual = run_ask(g, DETECT_LATENT_RISK_QUERY, {"system": system})
+        ok = latent_actual == latent_expected
+        status = "OK" if ok else "FAIL"
+        print(f"  latent_risk (ASK): {latent_actual} (expected {latent_expected}) [{status}]")
+        if not ok:
+            all_pass = False
 
         # ── Audit-layer absence checks (OPEN_PROBLEMS L3.8) ──
         # Expected values derive from the scenario's expected dict — one
