@@ -17,13 +17,18 @@
   owl:imports <https://arco.ai/ontology/imports/ro_bot> ;
   owl:imports <https://arco.ai/ontology/imports/iao_bot> ;
   owl:imports <https://arco.ai/ontology/imports/cco_bot> .
-# NOTE: the owl:imports IRIs above do not resolve on the web (arco.ai is not
-# a registered domain); catalog-v001.xml in this directory maps each IRI to
-# the pinned local file under imports/. Protégé and ROBOT auto-detect the
-# catalog when it sits next to the loaded file. A tool loading this file
-# without the catalog fails loudly rather than silently fetching an unpinned
-# upstream version. rdflib does not follow owl:imports; the pipeline loads
-# all files explicitly via load_union_graph().
+# NOTE: the owl:imports IRIs above use a domain that is currently
+# unregistered, so nothing resolves online today; catalog-v001.xml in this
+# directory is the authoritative resolution regardless of what that domain
+# serves in the future, mapping each IRI to the pinned local file under
+# imports/. Protégé and ROBOT auto-detect the catalog when it sits next to
+# the loaded file. Without the catalog, ROBOT refuses the load at the first
+# unresolvable import; other OWL tools may report missing imports and
+# continue with a partial ontology, so confirm the import closure resolved
+# before trusting a load. That is by design: the alternative, live web IRIs,
+# could silently fetch a different upstream version than the one the
+# classification was verified against. rdflib does not follow owl:imports;
+# the pipeline loads all files explicitly via load_union_graph().
 
 # Design Decisions (rationale for the choices below):
 #

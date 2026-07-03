@@ -1,9 +1,5 @@
 # Re-derive the classification yourself (stranger's recipe)
 
-**Status: DRAFT (P6 batch 3, 2026-07-02). Proposed landing: `docs/RE_DERIVATION_RECIPE.md`, with `rederive.py` beside it at `docs/rederive.py`.** (Not under `03_TECHNICAL_CORE/scripts/`: that directory is governed by the output-provenance manifest, and this script is a reader's tool, not pipeline emission.) This recipe presumes the batch-3 catalog (`batch3_catalog/catalog-v001.xml`) and imports-closure patch (`batch3_imports_closure.patch`) have landed. Both fixture paths below were verified against executed runs; per-path execution status is stated inline.
-
----
-
 ## What you re-derive
 
 ARCO claims a reader can take the axioms and the input facts and re-derive the classification with a standard OWL 2 DL reasoner, with no ARCO code in the loop. Concretely:
@@ -16,9 +12,11 @@ ARCO claims a reader can take the axioms and the input facts and re-derive the c
 Files that constitute the reasoning input, all under `03_TECHNICAL_CORE/ontology/`:
 
 ```
-catalog-v001.xml                  IRI-to-file map (the arco.ai IRIs are intentionally
-                                  not registered on the web; this file is how tools
-                                  resolve them locally, and loads fail loudly without it)
+catalog-v001.xml                  IRI-to-file map (the arco.ai IRIs are currently
+                                  unregistered, so nothing resolves online today;
+                                  this file is the authoritative mapping to the
+                                  pinned local files, regardless of what that
+                                  domain serves in the future)
 ARCO_core.ttl                     core classes + bridge axiom (declares the imports)
 ARCO_governance_extension.ttl     the three-gate defined classes
 ARCO_instances_sentinel.ttl       positive fixture
@@ -29,13 +27,13 @@ imports/iao_bot.owl               IAO slim module (release 2026-03-30)
 imports/cco_bot.owl               CCO slim module (release v1.7-2024-11-03)
 ```
 
-Keep the directory layout intact. The catalog maps IRIs to paths relative to its own location.
+Keep the directory layout intact. The catalog maps IRIs to paths relative to its own location. Without the catalog, ROBOT refuses the load at the first unresolvable import; other OWL tools may report missing imports and continue with a partial ontology, so confirm the import closure resolved before trusting a load.
 
 ---
 
 ## Path A: Protege (point and click)
 
-*Execution status: desk-checked against catalog semantics and emulated by the executed OWL-API runs in `batch3_cold_load_log.txt`, which assemble exactly the ontology Protege would assemble. Not yet click-executed; Protege is not installed on the authoring machine. The owner executes this path once and attaches a screenshot (see `batch3_acceptance.md`).*
+*This path is specified but has not yet been click-executed by the maintainer; the command-line path below was executed end-to-end. If you execute the Protege path and see a different result, please open an issue.*
 
 1. Clone the repository. Do not move the ontology files out of the tree.
 2. Open Protege 5.6.x. File, Open, select `03_TECHNICAL_CORE/ontology/ARCO_instances_sentinel.ttl`.
@@ -45,71 +43,81 @@ Keep the directory layout intact. The catalog maps IRIs to paths relative to its
 6. Negative control: File, Open in new window, `ARCO_instances_verification.ttl`, same reasoner steps. `VerificationKiosk_001` shows only the asserted `System`; no Annex III type appears among the inferred types.
 7. Both loads should report the ontology consistent (no red "inconsistent ontology" banner) and no unsatisfiable classes under owl:Nothing.
 
-## Path B: command line, clean environment (owlready2 + Pellet)
+## Path B: command line with ROBOT (executed end-to-end)
 
-*Execution status: executed 2026-07-01 in the P3.4 clean room (runs A2, B, C, D, E; raw logs archived at `p3_4_cleanroom_archive/`). This is the path that adds a third reasoner engine, Pellet, with zero ARCO code in the loop.*
+*Execution status: executed end-to-end from a fresh directory containing only the published files, with every import resolved through the catalog and no ARCO code in the loop. The committed record of that run (exact commands, tool versions, file hashes, timings, verdicts) is [`RE_DERIVATION_VERIFICATION_LOG.md`](RE_DERIVATION_VERIFICATION_LOG.md); compare your own run against it.*
 
-Prerequisites: Python 3.11 or later, Java 11 or later on PATH.
+Prerequisites: Java 11 or later on PATH; [ROBOT](http://robot.obolibrary.org/) (`robot.jar`, the OBO release tool, OWL-API based; the executed run used ROBOT 1.9.10); Python 3 with `rdflib` for reading the reasoned output. Assembly and reasoning are ROBOT only; Python only prints the verdicts, and no ARCO Python is imported at any point.
+
+The commands below are the sequence that was executed, verbatim except for machine-local paths:
 
 ```
-mkdir rederive_arco && cd rederive_arco && mkdir ontology_files
+# 1. Fresh working directory; copy in the nine published files, layout preserved:
+#      catalog-v001.xml
+#      ARCO_core.ttl                    ARCO_governance_extension.ttl
+#      ARCO_instances_sentinel.ttl      ARCO_instances_verification.ttl
+#      imports/bfo-2020.owl   imports/ro_bot.owl
+#      imports/iao_bot.owl    imports/cco_bot.owl
+
+# 2. venv for the verdict-reading step only
 python -m venv venv
-venv/Scripts/pip install owlready2 rdflib        # (Linux/macOS: venv/bin/pip)
+venv/Scripts/pip install rdflib          # (Linux/macOS: venv/bin/pip)
 
-# copy the 8 ontology files (NOT the catalog; see note below) FLAT into ontology_files/:
-#   bfo-2020.owl ro_bot.owl iao_bot.owl cco_bot.owl
-#   ARCO_core.ttl ARCO_governance_extension.ttl
-#   ARCO_instances_sentinel.ttl ARCO_instances_verification.ttl
+# 3. Positive fixture: merge, then reason. The single fixture input pulls in
+#    the entire pinned closure through the catalog (fixture -> governance ->
+#    core -> BFO 2020 + the three slim modules); the merge collapses the
+#    imports, so no owl:imports triples survive in the merged output.
+java -jar robot.jar merge --catalog catalog-v001.xml \
+    --input ARCO_instances_sentinel.ttl --output merged_sentinel.owl
+java -jar robot.jar reason --reasoner hermit \
+    --axiom-generators "ClassAssertion SubClass" --include-indirect true \
+    --input merged_sentinel.owl --output reasoned_sentinel.owl
 
-# copy rederive.py (ships beside this recipe) into rederive_arco/, then:
-venv/Scripts/python rederive.py pos_closure ARCO_instances_sentinel.ttl     pellet --no-bots
-venv/Scripts/python rederive.py neg_closure ARCO_instances_verification.ttl pellet --no-bots
-venv/Scripts/python rederive.py pos_full    ARCO_instances_sentinel.ttl     hermit
-venv/Scripts/python rederive.py neg_full    ARCO_instances_verification.ttl hermit
+# 4. Negative fixture: same two commands.
+java -jar robot.jar merge --catalog catalog-v001.xml \
+    --input ARCO_instances_verification.ttl --output merged_verification.owl
+java -jar robot.jar reason --reasoner hermit \
+    --axiom-generators "ClassAssertion SubClass" --include-indirect true \
+    --input merged_verification.owl --output reasoned_verification.owl
+
+# 5. Read the verdicts out of the reasoned graphs.
+venv/Scripts/python - <<'EOF'
+import rdflib
+CORE = "https://arco.ai/ontology/core#"
+for fname, ind in [("reasoned_sentinel.owl", "Sentinel_ID_System"),
+                   ("reasoned_verification.owl", "VerificationKiosk_001")]:
+    g = rdflib.Graph(); g.parse(fname)
+    types = {str(o) for o in g.objects(rdflib.URIRef(CORE + ind), rdflib.RDF.type)}
+    for c in ["AnnexIII1aApplicableSystem", "AnnexIII5bApplicableSystem",
+              "HighRiskSystem", "System"]:
+        print(f"{ind} rdf:type :{c}  present? {CORE + c in types}")
+EOF
 ```
 
-What the script does, and why it exists: owlready2 reads neither Turtle nor XML catalogs, so `rederive.py` first merges the files with rdflib, **strips all `owl:imports` triples** (the IRIs are intentionally dead on the web; in a merged file they would only make an imports-following loader error), serializes to N-Triples, then loads that into owlready2 and runs the selected reasoner over the merged axioms. Assembly is rdflib only; reasoning is the Java reasoner; no ARCO Python is imported at any point.
+What you should see, from the executed run (exact values in the verification log):
 
-Flags:
+- `robot merge` exits 0 in seconds. The merged output is roughly 850 KB from a roughly 7 KB fixture input; everything beyond the fixture arrived via the catalog-resolved imports chain.
+- The `--catalog` flag is optional here: ROBOT auto-detects `catalog-v001.xml` beside the input file. The executed run confirmed the flag-less merge output is byte-identical to the explicit `--catalog` run.
+- `robot reason` exits 0 only if HermiT finds the ontology consistent (it fails on inconsistency). Expect roughly 5 to 10 minutes per reasoning run.
+- Fail-loud control: the same merge run from a directory without `catalog-v001.xml` exits nonzero at the first unresolvable import ("Could not load imported ontology: <https://arco.ai/ontology/governance>") and produces no output file. It does not silently fetch an unpinned upstream or silently drop modules.
 
-- `--no-bots` reasons over BFO + core + governance + fixture only (the pre-closure imports web). Use this for Pellet.
-- `--no-ro` reasons over the full union minus `ro_bot.owl`. Also Pellet-safe.
-- no flag = full 8-file union. Use this for HermiT only.
-
-Expected output, positive fixture (verbatim from the executed Pellet run):
-
-```
-CONSISTENT: True
-unsatisfiable classes: none
-Sentinel_ID_System asserted+inferred is_a (direct): [core.System, core.AnnexIII1aApplicableSystem]
-ENTAILED Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem ? True
-ENTAILED Sentinel_ID_System rdf:type :AnnexIII5bApplicableSystem ? False
-ENTAILED Sentinel_ID_System rdf:type :HighRiskSystem ? True
-```
-
-Expected output, negative fixture:
+Expected verdicts, positive fixture (verbatim from the executed run):
 
 ```
-CONSISTENT: True
-unsatisfiable classes: none
-ENTAILED VerificationKiosk_001 rdf:type :AnnexIII1aApplicableSystem ? False
-ENTAILED VerificationKiosk_001 rdf:type :AnnexIII5bApplicableSystem ? False
-ENTAILED VerificationKiosk_001 rdf:type :HighRiskSystem ? False
+Sentinel_ID_System rdf:type :AnnexIII1aApplicableSystem  present? True
+Sentinel_ID_System rdf:type :AnnexIII5bApplicableSystem  present? False
+Sentinel_ID_System rdf:type :HighRiskSystem  present? True
+Sentinel_ID_System rdf:type :System  present? True
 ```
 
-## Path C: two commands with ROBOT (executed OWL-API receipt)
-
-*Execution status: executed end-to-end 2026-07-02 in a fresh directory containing only the published files; full log with hashes and timings at `batch3_cold_load_log.txt`.*
-
-If you have [ROBOT](http://robot.obolibrary.org/) (the OBO release tool, OWL-API based), the catalog does all the assembly work and no merging script is needed. From `03_TECHNICAL_CORE/ontology/`:
+Expected verdicts, negative fixture:
 
 ```
-robot merge  --catalog catalog-v001.xml --input ARCO_instances_sentinel.ttl --output merged.owl
-robot reason --reasoner hermit --axiom-generators "ClassAssertion SubClass" \
-             --include-indirect true --input merged.owl --output reasoned.owl
+VerificationKiosk_001 rdf:type :AnnexIII1aApplicableSystem  present? False
+VerificationKiosk_001 rdf:type :AnnexIII5bApplicableSystem  present? False
+VerificationKiosk_001 rdf:type :HighRiskSystem  present? False
+VerificationKiosk_001 rdf:type :System  present? True
 ```
-
-The single fixture input pulls in the entire pinned closure through the catalog (852 KB merged from a 7 KB input in the executed run). `reasoned.owl` then contains the materialized class assertions; look for the fixture individual's `rdf:type` entries. Same commands with `ARCO_instances_verification.ttl` for the negative. Exit 0 on `robot reason` means HermiT found the ontology consistent. Expect roughly 5 to 10 minutes per reasoning run.
 
 ---
 

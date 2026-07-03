@@ -86,6 +86,72 @@ jobs:
           java -jar ~/.local/share/robot/robot.jar --version
           echo "ROBOT smoke test PASSED."
 
+      # Catalog import-closure check: prove that loading ARCO_core.ttl through
+      # the auto-detected catalog-v001.xml resolves the full pinned closure
+      # (BFO 2020 + the three slim modules), nothing more and nothing less.
+      # ROBOT is given ONLY the core file; every other module must arrive via
+      # owl:imports resolved through the catalog sitting beside it. The
+      # expectation is self-derived from the five input files on every run;
+      # no count is hard-coded.
+      #
+      # Comparison note: raw triple counts of the merged output vs the file
+      # union are not comparable. robot merge legitimately collapses the
+      # owl:imports triples and the imported ontologies' header/annotation
+      # triples, and the OWL API deduplicates blank-node axiom structures
+      # that appear in more than one input file (rdflib keeps each file's
+      # copy because the blank node IDs differ per file). The check therefore
+      # compares the grounded triples (no blank node in subject or object;
+      # ontology headers and owl:imports excluded on both sides), exactly the
+      # triples whose identity survives both loaders, and requires count
+      # equality AND set equality. Any catalog defect (missing entry, wrong
+      # file mapped, silently dropped module) either fails the merge loudly
+      # or produces a grounded-triple difference here.
+      - name: Catalog import-closure check
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROBOT="java -jar $HOME/.local/share/robot/robot.jar"
+          python3 -m pip install --quiet rdflib
+          $ROBOT merge \
+            --input "03_TECHNICAL_CORE/ontology/ARCO_core.ttl" \
+            --output /tmp/catalog_closure.owl
+          python3 - <<'EOF'
+          import sys
+          import rdflib
+          from rdflib import RDF, OWL, BNode
+          ONT = "03_TECHNICAL_CORE/ontology/"
+          merged = rdflib.Graph()
+          merged.parse("/tmp/catalog_closure.owl")
+          union = rdflib.Graph()
+          for f, fmt in [("imports/bfo-2020.owl", "xml"),
+                         ("imports/ro_bot.owl", "xml"),
+                         ("imports/iao_bot.owl", "xml"),
+                         ("imports/cco_bot.owl", "xml"),
+                         ("ARCO_core.ttl", "turtle")]:
+              union.parse(ONT + f, format=fmt)
+          leftover = len(list(merged.triples((None, OWL.imports, None))))
+          if leftover:
+              sys.exit(f"FAIL: {leftover} owl:imports triples survived the merge; "
+                       "the imports closure did not collapse.")
+          def grounded(g):
+              headers = set(g.subjects(RDF.type, OWL.Ontology))
+              return {t for t in g
+                      if not isinstance(t[0], BNode) and not isinstance(t[2], BNode)
+                      and t[0] not in headers and t[1] != OWL.imports}
+          gm, gu = grounded(merged), grounded(union)
+          print(f"grounded triples: catalog-resolved merge = {len(gm)}, "
+                f"explicit five-file union = {len(gu)}")
+          if len(gm) != len(gu) or gm != gu:
+              print(f"FAIL: catalog-resolved closure != explicit union "
+                    f"({len(gm)} vs {len(gu)} grounded triples).")
+              for t in list(gm - gu)[:10]:
+                  print("  only in merge:", t)
+              for t in list(gu - gm)[:10]:
+                  print("  only in union:", t)
+              sys.exit(1)
+          print("PASS: catalog-resolved import closure equals the explicit five-file union.")
+          EOF
+
       # Phase 1: OWL 2 DL profile validation.
       # Merges the same files the Python pipeline loads, then runs validate-profile.
       # Uses Sentinel as the instance fixture for this validation; per-fixture
