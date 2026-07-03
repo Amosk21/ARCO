@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- ARCO ontology IRI catalog (hardened, P6 batch 3 / F-078 imports-chain closure).
+
+     DRAFT (P6 batch 3). Landing location when the batch is approved:
+       03_TECHNICAL_CORE/ontology/catalog-v001.xml
+     replacing the shipped 3-entry catalog IN PLACE, same filename, so that
+     Protege and ROBOT auto-detection (both look for catalog-v001.xml in the
+     directory of the loaded file) keep working with zero configuration.
+
+     Every https://arco.ai/... IRI below is dead on the live web (the domain
+     does not resolve at DNS, verified 2026-07-01). That is a deliberate pin
+     property: a tool without this catalog fails loudly instead of silently
+     fetching an unpinned upstream version. Each IRI maps to the pinned local
+     file. Pins: BFO 2020 (ISO/IEC 21838-2:2021); RO release 2025-12-17,
+     IAO release 2026-03-30, CCO release v1.7-2024-11-03, each as a ROBOT
+     BOT-extracted slim module (seeds at imports/seeds/).
+
+     Entries 1-3 are identical to the previously shipped catalog. Entries 4-7
+     take effect with the companion one-file imports-closure patch
+     (batch3_imports_closure.patch) that makes ARCO_core.ttl declare these
+     four IRIs as owl:imports. Fixture ontology IRIs other than
+     https://arco.ai/ontology/instances are not mapped: no file imports them,
+     and a catalog entry for a never-imported IRI is dead configuration. -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
-<uri name="https://arco.ai/ontology/core" uri="ARCO_core.ttl"/>
-<uri name="https://arco.ai/ontology/governance" uri="ARCO_governance_extension.ttl"/>
-<uri name="https://arco.ai/ontology/instances" uri="ARCO_instances_sentinel.ttl"/>
+  <uri name="https://arco.ai/ontology/core" uri="ARCO_core.ttl"/>
+  <uri name="https://arco.ai/ontology/governance" uri="ARCO_governance_extension.ttl"/>
+  <uri name="https://arco.ai/ontology/instances" uri="ARCO_instances_sentinel.ttl"/>
+  <uri name="https://arco.ai/ontology/imports/bfo-2020" uri="imports/bfo-2020.owl"/>
+  <uri name="https://arco.ai/ontology/imports/ro_bot" uri="imports/ro_bot.owl"/>
+  <uri name="https://arco.ai/ontology/imports/iao_bot" uri="imports/iao_bot.owl"/>
+  <uri name="https://arco.ai/ontology/imports/cco_bot" uri="imports/cco_bot.owl"/>
 </catalog>
