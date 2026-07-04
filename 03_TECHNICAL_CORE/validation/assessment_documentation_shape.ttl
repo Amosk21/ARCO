@@ -86,13 +86,15 @@
   sh:message "UseScenarioSpecification must be about at least one System." .
 
 # Gate 3 alignment: the cco:designates filler must be the :NaturalPersonRole
-# universal. Gate 3 in ARCO_governance_extension.ttl uses owl:hasValue on
-# cco:designates with the role universal as the target, so the documentary
-# value is the class IRI itself (admitted by cco:designates whose range is
-# bfo:0000001, which includes universals). cco:designates is a typed
-# designation property whose canonical use case includes naming a universal
-# by inscription, so this is the standard CCO usage rather than informal
-# class-as-individual punning.
+# class IRI. Gate 3 in ARCO_governance_extension.ttl uses owl:hasValue on
+# cco:designates with the class IRI as the target, so the value checked here
+# is the class IRI used as an OWL-punned individual (legal under OWL 2 DL;
+# the Gate-3 entailment consumes the IRI only in its individual
+# interpretation). cco:designates carries no range declaration of its own in
+# the pinned CCO; the bfo:0000001 (Entity) range is inherited from its parent
+# cco:is_about. This category-designation use is ARCO's documented modeling
+# intent, not a CCO-documented use (CCO's own examples all designate
+# particulars); see LIMITATIONS §3.1.
 :PS_UseScenario_DesignatesRole
   a sh:PropertyShape ;
   sh:path cco:designates ;
