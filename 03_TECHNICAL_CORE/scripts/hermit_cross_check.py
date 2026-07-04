@@ -1,13 +1,27 @@
 """
-HermiT vs OWL-RL cross-reasoner agreement check across certificate-grade fixtures.
+HermiT vs OWL-RL expected-polarity cross-check across certificate-grade fixtures.
 
 Replaces the Sentinel-only Phase 3 logic in .github/workflows/robot-validate.yml.
 For every certificate-grade fixture, merges ontology + imports + core + governance
-+ fixture, runs HermiT via ROBOT, runs OWL-RL via owlrl, and diffs SPARQL ASK
-results bound to each fixture's system IRI(s).
++ fixture, runs HermiT via ROBOT, runs OWL-RL via owlrl, and asserts BOTH
+reasoners' SPARQL ASK results against the expected polarity anchored in
+test_scenarios.py SCENARIOS (the single source table — no expected values are
+kept here).
 
-Exits 0 iff both reasoners agree on every (fixture, system, query) triple in the
-certificate-grade set. Exits 1 otherwise.
+Exits 0 iff both reasoners return the SCENARIOS-anchored expected value on
+every (fixture, system, query) cell in the certificate-grade set. Exits 1 on
+any wrong-polarity cell — including a correlated flip, where BOTH reasoners
+return the same wrong answer (status BOTH-WRONG(AGREE); with boolean cells,
+two answers that both differ from the expected value necessarily agree, so
+RL-WRONG / DL-WRONG / BOTH-WRONG(AGREE) are the only failure shapes).
+Exits 2 on configuration errors, kept distinct from polarity failures:
+missing anchor entry or key (a fixture in the cross-check set but not in
+SCENARIOS), an empty system list, or a cell count that does not match
+len(systems) x len(queries) (a never-reasoned slot).
+
+Register anchor: OPEN_PROBLEMS L4.8 item 5. Before this version the script
+asserted agreement only (rl == dl per cell), so a both-reasoners-wrong flip,
+an all-False mistyped-IRI run, and an empty matrix slot all exited 0.
 
 Excluded fixtures:
 
@@ -79,6 +93,19 @@ QUERIES: dict[str, Path] = {
     "annex_5b":  REASONING_DIR / "check_annex_iii_5b_entailment.sparql",
     "latent":    REASONING_DIR / "detect_latent_risk.sparql",
 }
+
+# Expected-polarity anchor: SCENARIOS in test_scenarios.py is the single
+# source (L4.8 item 5). Import, never copy — a second table here is exactly
+# the drift this fix removes.
+from test_scenarios import SCENARIOS  # noqa: E402  (same directory)
+
+QUERY_TO_EXPECTED_KEY: dict[str, str] = {
+    "high_risk": "HighRiskSystem",
+    "annex_1a":  "AnnexIII1aApplicableSystem",
+    "annex_5b":  "AnnexIII5bApplicableSystem",
+    "latent":    "latent_risk",
+}
+EXPECTED: dict[str, dict] = {s["name"]: s["expected"] for s in SCENARIOS}
 
 ONTOLOGY_INPUTS = (BFO_2020, IAO_BOT, RO_BOT, CCO_BOT, CORE, GOV)
 
@@ -155,19 +182,46 @@ def main() -> int:
         print("Set ROBOT_JAR env var or place jar at $HOME/.local/share/robot/robot.jar.", file=sys.stderr)
         return 2
 
-    print("=" * 92)
+    # ── Anchor-completeness guard (configuration, not polarity) ──────────
+    # Every (fixture, system) in the selected set must have a SCENARIOS entry
+    # carrying all four mapped keys, and no slot may have an empty system
+    # list. This is what keeps the anchor gaps from silently re-opening when
+    # a fixture is added to the cross-check but not to SCENARIOS.
+    config_errors: list[str] = []
+    for fixture_name, system_names in scenarios:
+        if not system_names:
+            config_errors.append(f"{fixture_name}: empty system list (never-reasoned slot)")
+        for sys_name in system_names:
+            anchor = EXPECTED.get(sys_name)
+            if anchor is None:
+                config_errors.append(
+                    f"{sys_name} ({fixture_name}): no SCENARIOS entry in test_scenarios.py")
+                continue
+            for qname, key in QUERY_TO_EXPECTED_KEY.items():
+                if key not in anchor:
+                    config_errors.append(
+                        f"{sys_name} ({fixture_name}): SCENARIOS expected dict lacks "
+                        f"'{key}' (anchors query '{qname}')")
+    if config_errors:
+        print("FATAL: expected-polarity anchor incomplete:", file=sys.stderr)
+        for err in config_errors:
+            print(f"  - {err}", file=sys.stderr)
+        return 2
+
+    print("=" * 104)
     if args.fixture:
-        print(f"HermiT vs OWL-RL cross-reasoner agreement check (single fixture: {args.fixture})")
+        print(f"HermiT vs OWL-RL expected-polarity cross-check (single fixture: {args.fixture})")
     else:
-        print("HermiT vs OWL-RL cross-reasoner agreement check (certificate-grade fixtures)")
-    print("=" * 92)
+        print("HermiT vs OWL-RL expected-polarity cross-check (certificate-grade fixtures)")
+    print("=" * 104)
     print(f"ROBOT JAR: {ROBOT_JAR}")
+    print("Expected values: SCENARIOS in test_scenarios.py (single anchor table).")
     print(f"Excluded fixtures: GhostSystem (anonymous-individual probe, queued for modeling session).")
     print()
-    print(f"{'System':<48} {'Query':<11} {'OWL-RL':>7} {'HermiT':>7} Status")
-    print("-" * 92)
+    print(f"{'System':<48} {'Query':<11} {'Expected':>8} {'OWL-RL':>7} {'HermiT':>7} Status")
+    print("-" * 104)
 
-    all_agree = True
+    cell_results: list[bool] = []
     with tempfile.TemporaryDirectory() as tmp:
         workdir = Path(tmp)
         for fixture_name, system_names in scenarios:
@@ -190,20 +244,43 @@ def main() -> int:
                 rl = ask_all(g_rl, system_iri)
                 dl = ask_all(g_dl, system_iri)
                 for qname in QUERIES:
-                    agree = rl[qname] == dl[qname]
-                    if not agree:
-                        all_agree = False
-                    status = "OK" if agree else "DISAGREE"
-                    print(f"{sys_name:<48} {qname:<11} {str(rl[qname]):>7} {str(dl[qname]):>7} {status}")
+                    exp = EXPECTED[sys_name][QUERY_TO_EXPECTED_KEY[qname]]
+                    rl_ok = rl[qname] == exp
+                    dl_ok = dl[qname] == exp
+                    agree = rl[qname] == dl[qname]  # implied by rl_ok and dl_ok; kept visible
+                    cell_pass = rl_ok and dl_ok
+                    if cell_pass:
+                        status = "OK"
+                    elif not rl_ok and not dl_ok:
+                        status = "BOTH-WRONG(AGREE)" if agree else "BOTH-WRONG"
+                    elif not rl_ok:
+                        status = "RL-WRONG"
+                    else:
+                        status = "DL-WRONG"
+                    cell_results.append(cell_pass)
+                    print(f"{sys_name:<48} {qname:<11} {str(exp):>8} "
+                          f"{str(rl[qname]):>7} {str(dl[qname]):>7} {status}")
+
+    # ── Cell-count guard (never-reasoned slot) ────────────────────────────
+    expected_cells = sum(len(names) for _, names in scenarios) * len(QUERIES)
+    if len(cell_results) != expected_cells or not cell_results:
+        print(f"FATAL: cell count {len(cell_results)} != expected {expected_cells} "
+              f"(a slot was skipped or never reasoned).", file=sys.stderr)
+        return 2
 
     print()
-    print("=" * 92)
-    if all_agree:
-        print("RESULT: HermiT and OWL-RL agree on every (fixture, system, query) in the certificate-grade set.")
+    print("=" * 104)
+    if all(cell_results):
+        print(f"RESULT: both reasoners match the SCENARIOS-anchored expected polarity on all "
+              f"{len(cell_results)} (fixture, system, query) cells.")
         return 0
     else:
-        print("RESULT: HermiT and OWL-RL disagree on at least one query.")
-        print("        Diagnose: RL incompleteness, unexpected DL entailment, or new reasoner-profile divergence.")
+        n_bad = sum(1 for ok in cell_results if not ok)
+        print(f"RESULT: {n_bad} of {len(cell_results)} cells FAIL expected polarity.")
+        print("        RL-WRONG / DL-WRONG: one reasoner diverges — RL incompleteness,")
+        print("        unexpected DL entailment, or new reasoner-profile divergence.")
+        print("        BOTH-WRONG(AGREE): correlated flip — an ontology/fixture regression")
+        print("        both reasoners follow; check the axioms and the SCENARIOS anchor.")
         print("        If a new fixture introduces blank-node SDCs, see:")
         print("          the local modeling-decisions queue (runs/loop, untracked; Q1)")
         return 1

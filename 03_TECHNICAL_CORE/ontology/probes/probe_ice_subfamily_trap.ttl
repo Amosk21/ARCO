@@ -1,0 +1,42 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/probes/ice-subfamily-trap> rdf:type owl:Ontology ;
+  rdfs:label "GUARD FIXTURE — ICE-subfamily disjointness trap (deliberately inconsistent)" ;
+  rdfs:comment """GUARD FIXTURE — DELIBERATELY INCONSISTENT under the pinned CCO v1.7 slim.
+
+  Intended repo location: 03_TECHNICAL_CORE/ontology/probes/ (kept OUT of the
+  fixture battery: the ARCO_instances_*.ttl globs in test_tbox_guard.py and
+  test_canonical_iris.py, and the ontology/*.ttl sweeps, are non-recursive and
+  do not descend into probes/). Used ONLY by test_ice_subfamily_trap.py, which
+  asserts the pipeline halts fail-closed on this file.
+
+  AUTHORING WARNING (the in-repo warning this trap documents): never assert
+  both cco:designates and cco:prescribes on ONE Information Content Entity
+  individual. The pinned cco_bot.owl (CCO v1.7 slim) declares:
+    - cco:designates rdfs:domain cco:DesignativeInformationContentEntity
+    - cco:prescribes rdfs:domain cco:DirectiveInformationContentEntity
+    - DesignativeICE and DirectiveICE are owl:disjointWith each other
+      (each also equivalent to ICE-and-some-assertion, but the rdfs:domain
+      axioms alone carry the trap inside OWL 2 RL: prp-dom + cax-dw).
+  An ICE carrying both assertions is entailed into two pairwise-disjoint
+  classes: the OWL-RL pipeline fails closed during REASONING (exit 1, disjoint
+  pair and individual named, no certificate emitted) and the CI HermiT leg
+  reports the ontology inconsistent. If a real artifact both designates and
+  prescribes, model it as two ICE individuals (one designative, one directive),
+  optionally parts of a common artifact.
+
+  A :System individual is included only because run_pipeline.py fail-fasts
+  when no :System is asserted; it plays no role in the trap.""" .
+
+:ICETrap_Carrier_System rdf:type :System ;
+  rdfs:label "ICE-Trap Carrier System (plays no role in the trap)" .
+
+:ICETrap_ICE rdf:type cco:InformationContentEntity ;
+  rdfs:label "ICE-Trap ICE: designates AND prescribes on one individual" ;
+  rdfs:comment "Single ICE asserting both cco:designates and cco:prescribes. Under the pinned CCO v1.7 slim this individual is entailed into two pairwise-disjoint classes (DesignativeInformationContentEntity, DirectiveInformationContentEntity). The pipeline must halt fail-closed." ;
+  cco:designates :ICETrap_Carrier_System ;
+  cco:prescribes :ICETrap_Carrier_System .

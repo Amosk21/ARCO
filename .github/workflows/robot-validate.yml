@@ -14,7 +14,7 @@ name: ROBOT Validation
 #            Gates CI: HermiT crash or DL inconsistency fails the build.
 #
 # Job 2: hermit-cross-check (matrix, runs in parallel; needs: ontology-validate)
-#   Phase 3: per-fixture HermiT vs OWL-RL classification agreement.
+#   Phase 3: per-fixture HermiT vs OWL-RL expected-polarity check (each cell asserted against the SCENARIOS anchor table).
 #            Each certificate-grade fixture runs as its own parallel matrix job.
 #            Gates CI: any classification mismatch on any fixture fails the build.
 #
@@ -240,10 +240,10 @@ jobs:
         run: |
           python -m pip install --quiet rdflib owlrl==7.1.4
 
-      # Phase 3: HermiT vs OWL-RL agreement on ONE fixture (this matrix slot).
+      # Phase 3: HermiT vs OWL-RL expected-polarity check on ONE fixture (this matrix slot).
       # Uses --fixture argument to select; sequential six-fixture sweep stays
       # available (no --fixture argument) for local CLI use.
-      - name: HermiT vs OWL-RL agreement (${{ matrix.fixture }})
+      - name: HermiT vs OWL-RL expected-polarity check (${{ matrix.fixture }})
         shell: bash
         run: |
           set -euo pipefail
