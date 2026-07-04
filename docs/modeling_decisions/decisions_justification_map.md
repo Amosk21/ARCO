@@ -129,7 +129,7 @@ Enforcement is review-based in this patch. SHACL shape requiring `:hasRegulatory
 
 **Anchor**: `ARCO_core.ttl` (property mint + capability disjointness axiom annotation); `ARCO_governance_extension.ttl` (four-class annotations + process disjointness axiom annotation); `OPEN_PROBLEMS.md` X.13 (fix tracking row); `OPEN_PROBLEMS.md` X.14 (second-pass extension to `:NaturalPersonRole`, `:DerogationClaim`, `:FraudDetectionProcess`); the fiat/bona-fide boundary distinction, used analogically; standard naming discipline: canonical-vocabulary deference (`cco:doctrinal_source` parent with upward closure to `cco:definition_source`) and terminological moderation (only one custom annotation property, narrowly scoped).
 
-**Cross-references**: extends S3 (regulatory fiat partition); applies to S4 (`:HighRiskSystem` latent-flag annotation includes the pin-back scope-note "The class denotes systems bearing the triggering capability, not the act of flagging them"); applies to S7 (three-gate applicable-system classes); compatible with S5 (`cco:designates owl:hasValue` Gate 3 pattern — also a CCO-canonical annotation usage). Does NOT close L2.3 (file-header `dc:source` citation hygiene is a different shape).
+**Cross-references**: extends S3 (regulatory fiat partition); applies to S4 (`:HighRiskSystem` latent-flag annotation includes the pin-back scope-note "The class denotes systems bearing the triggering capability, not the act of flagging them"); applies to S7 (three-gate applicable-system classes); compatible with S5 (the `cco:designates owl:hasValue` Gate 3 pattern; OWL-punned individual reading per S5). Does NOT close L2.3 (file-header `dc:source` citation hygiene is a different shape).
 
 **Why it matters**: makes fiat-boundary status machine-queryable rather than buried in `rdfs:comment` prose. A reviewer querying for "what regulatory text grounds this class" gets a typed answer via the canonical CCO predicates. The pattern is reproducible across other regulatory domains (FDA SaMD, GDPR Article 22, NIST 800-53) without renegotiating the canonical vocabulary. Empirically verified: in-memory simulation across all seven fixtures showed `classification_same = True`; after the `cco:doctrinal_source` tightening, each fixture gains 12 inferred `cco:doctrinal_source` triples plus 12 inferred `cco:definition_source` triples via subproperty closure, with no classification class memberships changed.
 
@@ -147,7 +147,7 @@ Gate 3 references the role universal at the class-IRI level via `cco:designates 
 
 **Anchor**: `ARCO_governance_extension.ttl:534-554` (inline rationale block within the 1(a) Gate 3 axiom restriction); `LIMITATIONS.md §3.1` (Gate 3 role-category encoding via universal-designation, not bearer-less role token).
 
-**Why it matters**: `cco:designates` is a typed designation property whose range admits universals (`bfo:0000001 Entity`). Using it with `owl:hasValue` references the role universal directly. This is the canonical CCO usage for designation by inscription (a URL designates a Web Page; a name designates a person), not informal class-as-individual punning, and avoids fake-witness role tokens.
+**Why it matters**: `cco:designates` carries no range declaration of its own in the pinned CCO; the `bfo:0000001` (Entity) range is inherited from its parent `cco:is_about`. Using the class IRI as the `owl:hasValue` filler makes it an OWL-punned individual: legal under OWL 2 DL, consumed by the entailment only in its individual interpretation, and not a use CCO itself documents (CCO's own examples all designate particulars: a URL designates a Web Page, a name designates a person). This category-designation reading is ARCO's documented modeling intent (LIMITATIONS §3.1), and it avoids fake-witness role tokens.
 
 ### S6. `ro:0000052 rdfs:subPropertyOf bfo:0000197` binding (PR #41)
 
@@ -243,7 +243,7 @@ The class name `:CapabilityDisposition` is a compositional construction (Capabil
 
 **Resolutions**:
 - R1: add `:Capability` as a separate class; demote `:CapabilityDisposition` to subclass or remove.
-- R2 (preferred per Adequatism + Principle 5): rename `:CapabilityDisposition` to `:Capability`; let BFO subsumption (`:Capability ⊑ bfo:0000016`) carry the Disposition typing.
+- R2 (preferred per Adequatism and the terminological-moderation naming discipline): rename `:CapabilityDisposition` to `:Capability`; let BFO subsumption (`:Capability ⊑ bfo:0000016`) carry the Disposition typing.
 
 **Anchor**: `docs/CANON_BACKTEST_2026-05-12.md §D.2`.
 
@@ -253,7 +253,7 @@ The class name `:CapabilityDisposition` is a compositional construction (Capabil
 
 The canonical capability framing is a disposition whose realization is associated with the interest of an organism or group. ARCO's `:Capability` currently models the disposition side only; there is no Interest hookup. Three canonical options surfaced:
 
-- A: use `cco:has_interest_in` relation only. Domain `cco:Agent`; range `bfo:0000015` Process. Matches CCO v1.7 + the canonical relational treatment. No class minted; satisfies Principle 5 (terminological moderation).
+- A: use `cco:has_interest_in` relation only. Domain `cco:Agent`; range `bfo:0000015` Process. Matches CCO v1.7 + the canonical relational treatment. No class minted; satisfies the terminological-moderation naming discipline.
 - B: mint `:Interest ⊑ bfo:0000019` Quality per abi production extension (`CapabilityOntology.ttl:60-64`). Expands Bucket 2 from empty to populated. abi's `:bearerOfInterest` and `:hasInterestIn` over-mints must NOT be copied if this option is chosen (use BFO `bearer_of` and `inheres_in` instead).
 - C: hybrid (Quality typing + canonical relation direction Interest to Process).
 

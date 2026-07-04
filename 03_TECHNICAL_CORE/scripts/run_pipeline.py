@@ -1306,7 +1306,7 @@ def write_html_view(
             <summary>Technical evidence</summary>
             <div class="gate-tech">
               <p><strong>Axiom pattern:</strong> UseScenarioSpecification <code>iao:0000136</code> <span class="prop-label">(is about)</span> System and <code>cco:designates</code> <span class="prop-label">(designates)</span> {_role_label}</p>
-              <p><strong>Gate mechanism:</strong> <code>cco:designates</code> is the CCO designation property whose specification supports inscription naming an entity, including a universal. The spec designates the role category at class level; this is documentary aboutness, not a role-token assertion.</p>
+              <p><strong>Gate mechanism:</strong> <code>cco:designates</code> targets the affected role category by its class IRI, an OWL 2 pun consumed in the individual interpretation, as documentary aboutness rather than a role-token assertion.</p>
               <p><strong>Layer:</strong> OWL-RL entailment (classification-authoritative)</p>
             </div>
           </details>

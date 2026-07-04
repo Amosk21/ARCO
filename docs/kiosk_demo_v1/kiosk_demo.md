@@ -6,13 +6,13 @@
 
 A worked example showing what ARCO does on a single fixture: a corporate verification kiosk. The fixture is a NEGATIVE case for Annex III 1(a). The demo walks the chain from source documentation to ARCO certificate and shows that ARCO does NOT entail Annex III 1(a) high-risk applicability for a system whose intended use is 1:1 verification, even though the underlying hardware would be configurable for 1:N identification.
 
-The fixture (`03_TECHNICAL_CORE/ontology/ARCO_instances_verification.ttl`) is real, loaded by the pipeline, and exercised in CI on every push. The narrative source-packet and evidence-ledger sketches in this document show what the input-mile WOULD look like on a real system. Programmatic wiring of the source-to-commitment chain is `OPEN_PROBLEMS.md L1.1`.
+The fixture (`03_TECHNICAL_CORE/ontology/ARCO_instances_verification.ttl`) is real, loaded by the pipeline, and exercised in CI (the workflows trigger on pushes and pull requests to main). The narrative source-packet and evidence-ledger sketches in this document show what the input-mile WOULD look like on a real system. Programmatic wiring of the source-to-commitment chain is `OPEN_PROBLEMS.md L1.1`.
 
 ## The CDO question this answers
 
 A CDO arrives with: "Is my system high-risk under Annex III? If so, why? Can I trust the chain?"
 
-The kiosk fixture exercises DSQ-1 (Annex III applicability) fully — implemented today for 1(a) and 5(b). It exercises DSQ-2 (which gate commitments caused the answer) partially — gate-evidence JSON and HTML view exist today; the full per-field receipts and G/M/D output discipline are queued at `OPEN_PROBLEMS.md` L4.4-L4.6. It exercises DSQ-3 (what ARCO knows vs reports vs refuses) partially — `LIMITATIONS.md` scope cuts and schema 1.3 `applicability_status` are there today; reasoned-graph artifact export, HermiT artifact upload, and a prose determination paragraph are queued at L4.8. The OWL three-gate axiom shape lives at `docs/modeling_decisions/three_gate_classifier.md`.
+The kiosk fixture exercises DSQ-1 (Annex III applicability) fully, implemented today for 1(a) and 5(b). It exercises DSQ-2 (which gate commitments caused the answer) partially: gate-evidence JSON and HTML view exist today; the full per-field receipts and G/M/D output discipline are queued at `OPEN_PROBLEMS.md` L4.4-L4.6. It exercises DSQ-3 (what ARCO knows vs reports vs refuses) partially: `LIMITATIONS.md` scope cuts, schema 1.3 `applicability_status`, and the reasoned-graph export (`run_pipeline.py` writes `reasoned_graph.ttl`; the demo workflow publishes it) are there today; HermiT artifact upload and a prose determination paragraph remain queued at L4.8. The OWL three-gate axiom shape lives at `docs/modeling_decisions/three_gate_classifier.md`.
 
 | Gate | What it tests | Kiosk |
 |---|---|---|
@@ -104,7 +104,7 @@ OWL-RL closure (`owlrl 7.1.4`) materializes ~20,000 entailed triples. HermiT (fu
 - `:VerificationKiosk_001 rdf:type :HighRiskSystem` is NOT entailed (Gate 1 fails on the latent flag too: `:BiometricVerificationCapability` is NOT a member of `:AnnexIIITriggeringCapability`).
 - `:VerificationKiosk_001 rdf:type :AnnexIII5bApplicableSystem` is NOT entailed (cross-category isolation: no creditworthiness capability either).
 
-(\*) **The full entailment chain is not yet exported as an inspectable artifact.** The reasoned graph TTL, HermiT classification output, and a prose determination narrative alongside the field-shaped certificate are queued at `OPEN_PROBLEMS.md L4.8`.
+(\*) **The entailment chain is partially exported as an inspectable artifact.** The reasoned graph TTL is written by the pipeline (`reasoned_graph.ttl`, published by the demo workflow); HermiT classification output and a prose determination narrative alongside the field-shaped certificate remain queued at `OPEN_PROBLEMS.md L4.8`.
 
 ## Step 5: Audit and Certificate (REAL)
 
