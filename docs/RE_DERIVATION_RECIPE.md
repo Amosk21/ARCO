@@ -7,7 +7,7 @@ ARCO claims a reader can take the axioms and the input facts and re-derive the c
 | Fixture (input facts) | Individual | Expected result after reasoning |
 |---|---|---|
 | `ARCO_instances_sentinel.ttl` (positive) | `Sentinel_ID_System` | Inferred types include `AnnexIII1aApplicableSystem` and `HighRiskSystem`. `AnnexIII5bApplicableSystem` is not among them. |
-| `ARCO_instances_verification.ttl` (negative, walk-up verification kiosk) | `VerificationKiosk_001` | No Annex III type and no `HighRiskSystem` type is inferred. The only class-membership the reasoner derives for the individual is the asserted `System`. Open-world reading: those types are **not entailed** under the current commitments, which is different from a claim that the kiosk "cannot" be high risk. |
+| `ARCO_instances_verification.ttl` (negative, walk-up verification kiosk) | `VerificationKiosk_001` | None of the three target classes (`AnnexIII1aApplicableSystem`, `AnnexIII5bApplicableSystem`, `HighRiskSystem`) appears among the inferred types. The individual keeps its asserted `System` type plus the upper-ontology supertypes the closure derives for every individual. Open-world reading: those types are **not entailed** under the current commitments, which is different from a claim that the kiosk "cannot" be high risk. |
 
 Files that constitute the reasoning input, all under `03_TECHNICAL_CORE/ontology/`:
 
@@ -40,7 +40,7 @@ Keep the directory layout intact. The catalog maps IRIs to paths relative to its
 3. Protege auto-detects `catalog-v001.xml` in the same folder. In the Active Ontology tab, the Ontology imports panel should show the governance ontology and, through it, core, BFO 2020, and the three slim modules, all resolved to local files. If any import renders red, open Preferences, "Imported ontologies", and point Protege at `catalog-v001.xml` explicitly.
 4. Reasoner menu: select **HermiT** (bundled with Protege), then Start reasoner. Do not select Pellet for this load; the bundled Pellet lineage runs out of memory preparing the RO slim's 110 property-chain axioms (see the Bounds section below).
 5. Entities tab, Individuals, select `Sentinel_ID_System`. In the Description pane under "Types", inferred types render on a pale yellow background. Expect **`AnnexIII1aApplicableSystem`** and **`HighRiskSystem`** alongside the asserted `System`. `AnnexIII5bApplicableSystem` should not appear.
-6. Negative control: File, Open in new window, `ARCO_instances_verification.ttl`, same reasoner steps. `VerificationKiosk_001` shows only the asserted `System`; no Annex III type appears among the inferred types.
+6. Negative control: File, Open in new window, `ARCO_instances_verification.ttl`, same reasoner steps. For `VerificationKiosk_001`, expect the inferred-types pane to show upper-ontology supertypes (the reasoner derives these for every individual, so a populated pane is normal) but NONE of `AnnexIII1aApplicableSystem`, `AnnexIII5bApplicableSystem`, or `HighRiskSystem`.
 7. Both loads should report the ontology consistent (no red "inconsistent ontology" banner) and no unsatisfiable classes under owl:Nothing.
 
 ## Path B: command line with ROBOT (executed end-to-end)
