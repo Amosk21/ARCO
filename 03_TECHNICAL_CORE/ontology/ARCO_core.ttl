@@ -13,11 +13,22 @@
   rdfs:label "ARCO Core (Gold Standard) — BFO/RO Aligned"@en ;
   rdfs:comment "Core ontology with OWL restrictions for computable reasoning, with ICE-to-reality grounding via IAO is_about following BFO realist conventions. Uses ro:0000091 (has_disposition) per RO best practices." ;
   owl:versionInfo "Foundational ontology alignment: BFO 2020 (ISO/IEC 21838-2:2021) loaded as full upstream file from 03_TECHNICAL_CORE/ontology/imports/bfo-2020.owl. OBO Relations Ontology (RO) release 2025-12-17, IAO release 2026-03-30, and CCO release v1.7-2024-11-03 are loaded as ROBOT BOT-extracted slim modules per the OBO Foundry / ODK standard pattern, from imports/ro_bot.owl, imports/iao_bot.owl, and imports/cco_bot.owl respectively. Seed term lists are version-controlled at 03_TECHNICAL_CORE/ontology/imports/seeds/. See README 'Foundational ontology versions' for the full table." ;
-  owl:imports <../ontology/imports/bfo-2020.owl> .
-# NOTE: owl:imports uses a filesystem-relative path. rdflib does not follow
-# owl:imports automatically; BFO is loaded explicitly by load_union_graph().
-# Protégé and similar tools will resolve this correctly provided the repo
-# directory structure is intact. If the file is moved, this path breaks silently.
+  owl:imports <https://arco.ai/ontology/imports/bfo-2020> ;
+  owl:imports <https://arco.ai/ontology/imports/ro_bot> ;
+  owl:imports <https://arco.ai/ontology/imports/iao_bot> ;
+  owl:imports <https://arco.ai/ontology/imports/cco_bot> .
+# NOTE: the owl:imports IRIs above use a domain that is currently
+# unregistered, so nothing resolves online today; catalog-v001.xml in this
+# directory is the authoritative resolution regardless of what that domain
+# serves in the future, mapping each IRI to the pinned local file under
+# imports/. Protégé and ROBOT auto-detect the catalog when it sits next to
+# the loaded file. Without the catalog, ROBOT refuses the load at the first
+# unresolvable import; other OWL tools may report missing imports and
+# continue with a partial ontology, so confirm the import closure resolved
+# before trusting a load. That is by design: the alternative, live web IRIs,
+# could silently fetch a different upstream version than the one the
+# classification was verified against. rdflib does not follow owl:imports;
+# the pipeline loads all files explicitly via load_union_graph().
 
 # Design Decisions (rationale for the choices below):
 #

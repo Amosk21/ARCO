@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- ARCO ontology IRI catalog (OASIS XML Catalog): maps ARCO's ontology
+     IRIs to the pinned local files in this directory. The https://arco.ai/...
+     IRIs are currently unresolvable on the web; this catalog is the
+     authoritative mapping, regardless of what that domain may serve later.
+     Catalog-aware tools (Protege, ROBOT) auto-detect this file beside the
+     loaded ontology. Change together with owl:imports in ARCO_core.ttl. -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
-<uri name="https://arco.ai/ontology/core" uri="ARCO_core.ttl"/>
-<uri name="https://arco.ai/ontology/governance" uri="ARCO_governance_extension.ttl"/>
-<uri name="https://arco.ai/ontology/instances" uri="ARCO_instances_sentinel.ttl"/>
+  <uri name="https://arco.ai/ontology/core" uri="ARCO_core.ttl"/>
+  <uri name="https://arco.ai/ontology/governance" uri="ARCO_governance_extension.ttl"/>
+  <uri name="https://arco.ai/ontology/instances" uri="ARCO_instances_sentinel.ttl"/>
+  <uri name="https://arco.ai/ontology/imports/bfo-2020" uri="imports/bfo-2020.owl"/>
+  <uri name="https://arco.ai/ontology/imports/ro_bot" uri="imports/ro_bot.owl"/>
+  <uri name="https://arco.ai/ontology/imports/iao_bot" uri="imports/iao_bot.owl"/>
+  <uri name="https://arco.ai/ontology/imports/cco_bot" uri="imports/cco_bot.owl"/>
 </catalog>

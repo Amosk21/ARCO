@@ -154,7 +154,23 @@ Second, the definitions are grounded in BFO 2020 (ISO/IEC 21838-2:2021) and the 
 
 **The graph stays honest about what it doesn't know.** ARCO does not mint participant facts, temporal regions, role-bearer particulars, or other instance-level content that source evidence does not warrant. Under the Open World Assumption, absent triples mean "not asserted by the reviewed commitments," not "denied." Keeping the graph sparse where evidence is sparse is a project discipline, enforced in code review.
 
+## Re-derive the classification yourself
+
+The claim that anyone with a standard OWL 2 DL reasoner can re-derive ARCO's classification is meant to be exercised, not taken on faith. Everything you need ships in this repository, and there is a written path for a reader who has never seen the project before: [`docs/RE_DERIVATION_RECIPE.md`](docs/RE_DERIVATION_RECIPE.md).
+
+The short version. The reasoning input is eight files under `03_TECHNICAL_CORE/ontology/`: the core and governance ontologies, a fixture (input facts), the pinned BFO 2020 file, three slim modules for RO, IAO, and CCO, and `catalog-v001.xml`. The ontology IRIs use a domain that is currently unregistered, so nothing resolves online today; the catalog is the authoritative resolution regardless of what that domain serves in the future, mapping every import to its pinned local file. Tools that read OASIS XML catalogs (Protege, ROBOT, and other OWL API loaders) pick it up automatically when it sits next to the file being opened. Without the catalog, ROBOT refuses the load at the first unresolvable import; other OWL tools may report missing imports and continue with a partial ontology, so confirm the import closure resolved before trusting a load. That is by design: the alternative, live web IRIs, could silently fetch a different upstream version than the one the classification was verified against.
+
+Two ways in:
+
+- **Protege.** Open `ARCO_instances_sentinel.ttl`, start the bundled HermiT reasoner, and look at the inferred types on `Sentinel_ID_System`: the reasoner derives `AnnexIII1aApplicableSystem` and `HighRiskSystem` from the axioms and the input facts. Open `ARCO_instances_verification.ttl` (a walk-up verification kiosk) the same way and neither type is derived for `VerificationKiosk_001`. The recipe has the click-by-click steps.
+- **Command line.** The recipe inlines the exact ROBOT command sequence that was executed cold from a fresh directory containing only the published files, with imports resolved purely through the catalog and no ARCO code in the loop. A dated record of that run (tool versions, timings, verdicts, merged-closure hashes) is pinned as the [Reference run snapshot](docs/RE_DERIVATION_RECIPE.md#reference-run-pinned-snapshot-2026-07-03) at the end of the recipe.
+
+What has been shown, with its bounds. Three reasoner engines agree on both fixtures: OWL-RL (the pipeline's rule engine), HermiT (tableau, run through three separate invocation paths: CI, a clean-room Python bridge, and a catalog-resolved ROBOT load), and Pellet 2.3.1 (tableau, clean room). Agreement means: the positive fixture is entailed Annex III 1(a) applicable and high-risk, the negative fixture is entailed neither, and both graphs are consistent with zero unsatisfiable classes. The bounds: Pellet's build cannot process the full file union (it runs out of memory preparing the RO module's 110 property-chain axioms, a limitation of that reasoner build, not an ARCO axiom), so its agreement is demonstrated on assemblies that exclude the RO slim; HermiT covers the full union and returns identical verdicts either way on the checked fixtures. The checks are class-membership on three named classes plus consistency, not a full diff of every inferred axiom. And the negative result is an open-world statement: not entailed under the current commitments, which is not a claim that the kiosk could never be high risk under different commitments.
+
+If you follow the recipe and get a different answer than the one it states, that is a finding. Please open an issue with your log.
+
 ---
+
 
 ## What we're working on
 
