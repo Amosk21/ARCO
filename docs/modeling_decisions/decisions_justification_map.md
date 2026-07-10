@@ -147,7 +147,7 @@ Gate 3 references the role universal at the class-IRI level via `cco:designates 
 
 **Anchor**: `ARCO_governance_extension.ttl:534-554` (inline rationale block within the 1(a) Gate 3 axiom restriction); `LIMITATIONS.md §3.1` (Gate 3 role-category encoding via universal-designation, not bearer-less role token).
 
-**Why it matters**: `cco:designates` is a typed designation property whose range admits universals (`bfo:0000001 Entity`). Using it with `owl:hasValue` references the role universal directly. This is the canonical CCO usage for designation by inscription (a URL designates a Web Page; a name designates a person), not informal class-as-individual punning, and avoids fake-witness role tokens.
+**Why it matters**: using the class IRI as the `owl:hasValue` filler makes `:NaturalPersonRole` an OWL-punned individual. That is legal OWL 2 DL, and the Gate-3 entailment consumes the IRI only in its individual interpretation. It is not a use the pinned CCO documents (`cco:designates` carries no range declaration of its own; the `bfo:0000001` Entity range is inherited from its parent `cco:is_about`, and CCO's own examples all designate particulars: a URL designates a Web Page, a name designates a person). Reading the punned individual as standing for the role category is ARCO's documented modeling intent, and the pattern's real payoff is avoiding fake-witness role tokens; the open licensing question is tracked in the local register.
 
 ### S6. `ro:0000052 rdfs:subPropertyOf bfo:0000197` binding (PR #41)
 
