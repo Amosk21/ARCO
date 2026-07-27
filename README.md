@@ -31,8 +31,8 @@ flowchart LR
     AUDIT["SHACL completeness<br/>+ SPARQL evidence audit"]
     CERT["Certificate<br/>+ evidence path"]
 
-    SRC --> ADJ
-    ADJ --> COMMIT
+    SRC -.-> ADJ
+    ADJ -.-> COMMIT
     COMMIT --> REASON
     REASON --> AUDIT
     AUDIT --> CERT
@@ -44,6 +44,8 @@ flowchart LR
     style AUDIT fill:#fde68a,stroke:#b45309,color:#78350f,stroke-width:2px
     style CERT fill:#f5d0fe,stroke:#a21caf,color:#581c87,stroke-width:2px
 ```
+
+*Solid arrows run on every push. The two dashed arrows are the source-to-commitment step: designed, disclosed, and not yet programmatically backed for any fixture.*
 
 Every arrow is something a reviewer can inspect. Source documents license RDF commitments through human review and adjudication, not automated extraction (the kiosk demo walks one fixture through this end-to-end with an evidence ledger; the source packet there is hypothetical, and substituting a real vendor document is the next concrete step). Reviewed commitments enter a BFO-grounded graph. The OWL reasoner derives the classification by entailment over the public axioms. A second reasoner (HermiT, full OWL 2 DL profile) independently agrees on every push. SHACL validates that the supporting documentary record is structurally complete. SPARQL queries inspect the reasoned graph for the specific evidence each classification rests on. The certificate writes the classification, the evidence path, and the supporting structure in one place.
 
