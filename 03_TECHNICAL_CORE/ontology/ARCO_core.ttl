@@ -205,7 +205,7 @@
 :SoftwareArtifact rdf:type owl:Class ;
   rdfs:label "Software Artifact"@en ;
   skos:definition "Software content (model weights, code, configuration) used by an AI system. Modeled as information content rather than a physical part, so dispositions inhere in the hardware that runs the software."@en ;
-  rdfs:comment "Software as a generically dependent continuant (ICE). Dispositions inhere in the material bearer that concretizes the software, not in the software artifact itself. Software relates to systems via concretization in material components, not via parthood. Do not type software as SystemComponent." ;
+  rdfs:comment "Software as a generically dependent continuant (ICE). Dispositions inhere in the material bearer, not in the software artifact itself. The software is concretized by a quality inhering in that bearer (bfo:0000058 is concretized by, whose domain is the GDC; the concretizer is the quality, never the material entity, since bfo:0000059 concretizes has domain process or specifically dependent continuant). Software relates to systems via that concretization in material components, not via parthood. Do not type software as SystemComponent." ;
   rdfs:subClassOf iao:0000030 . # Information Content Entity
 
 :InformationOutput rdf:type owl:Class ;

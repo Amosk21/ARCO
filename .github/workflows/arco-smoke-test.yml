@@ -67,3 +67,6 @@ jobs:
 
       - name: Run output-provenance contract test
         run: python 03_TECHNICAL_CORE/scripts/test_output_provenance.py
+
+      - name: BFO prose-direction check
+        run: python 03_TECHNICAL_CORE/scripts/test_bfo_prose_direction.py

@@ -94,7 +94,7 @@ Reality side: a `:System` with a `:HardwareComponent` part bearing a `:Biometric
 
 Information side: an `:IntendedUseSpecification` (typed Directive ICE) prescribing a `:BiometricVerificationProcess` token; a `:UseScenarioSpecification` (typed Designative ICE) designating `:NaturalPersonRole`; an `:AssessmentDocumentation` ICE; a `:ProviderOrganization` with a `:ProviderRole`.
 
-(\*) **Software-hardware concretization layer not exercised in this fixture.** The discipline is articulated at `ARCO_core.ttl:181-185` (software is `iao:0000030` ICE; hardware concretizes via `bfo:0000058`); the fixture does not mint software particulars or assert concretization triples. The hardware-software amalgam is disclosed at `LIMITATIONS.md §3.5`.
+(\*) **Software-hardware concretization layer not exercised in this fixture.** The discipline is documented in an `rdfs:comment` at `ARCO_core.ttl:208` (software is `iao:0000030` ICE; the software is concretized by a quality inhering in the hardware, `bfo:0000058 is concretized by`); the fixture does not mint software particulars or assert concretization triples. The hardware-software amalgam is disclosed at `LIMITATIONS.md §3.5`.
 
 ## Step 4: Reasoning (REAL)
 
