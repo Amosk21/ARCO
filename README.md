@@ -26,8 +26,8 @@ The straight version: this is a solo open-source project. Two of the eight high-
 flowchart LR
     SRC["Source documentation<br/>(vendor docs, intended use,<br/>technical specs)"]
     ADJ["Human adjudication<br/>(evidence ledger)"]
-    COMMIT["Reviewed RDF commitments<br/>(typed instance graph)"]
-    REASON["BFO-grounded reasoning<br/>OWL-RL + HermiT cross-check"]
+    COMMIT["Reviewed RDF commitments<br/>(BFO-grounded model)"]
+    REASON["OWL entailment<br/>OWL-RL + HermiT cross-check"]
     AUDIT["SHACL completeness<br/>+ SPARQL evidence audit"]
     CERT["Certificate<br/>+ evidence path"]
 
@@ -47,7 +47,7 @@ flowchart LR
 
 *Solid arrows run on every push. The two dashed arrows are the source-to-commitment step: designed, disclosed, and not yet programmatically backed for any fixture.*
 
-From reviewed RDF commitments onward, every implemented arrow is inspectable. The source-to-commitment step is documented but not yet programmatically backed in a public fixture: the kiosk demo uses a hypothetical packet and evidence ledger. Reviewed commitments enter a BFO-grounded graph. The OWL reasoner derives ARCO's classification by entailment over the public axioms. A second reasoner (HermiT, full OWL 2 DL profile) independently agrees on every push. SHACL validates that the supporting documentary record is structurally complete. SPARQL queries inspect the reasoned graph for the specific evidence each classification rests on. The certificate writes the classification, the evidence path, and the supporting structure in one place.
+From reviewed RDF commitments onward, every implemented arrow is inspectable. The source-to-commitment step is documented but not yet programmatically backed in a public fixture: the kiosk demo uses a hypothetical packet and evidence ledger. Human adjudication determines which source claims warrant RDF commitments in ARCO's BFO-grounded model. The OWL reasoner derives ARCO's classification by entailment over those commitments and the public axioms. A second reasoner (HermiT, full OWL 2 DL profile) independently agrees on every push. SHACL validates that the supporting documentary record is structurally complete. SPARQL queries inspect the reasoned graph for the specific evidence each classification rests on. The certificate writes the classification, the evidence path, and the supporting structure in one place.
 
 When a classification looks wrong, the chain helps narrow the disagreement to a modeled commitment, an axiom, or an output step. It does not establish whether the original commitment was true.
 
