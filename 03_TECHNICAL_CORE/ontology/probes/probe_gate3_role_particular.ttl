@@ -138,4 +138,4 @@
 :Sentinel_AffectedPerson_001 rdf:type owl:NamedIndividual , cco:Person .
 :Sentinel_AffectedPersonRole_001 rdf:type owl:NamedIndividual , :NaturalPersonRole ;
   rdfs:label "Affected natural person role, Sentinel 001"@en ;
-  bfo:0000052 :Sentinel_AffectedPerson_001 .
+  ro:0000052 :Sentinel_AffectedPerson_001 .

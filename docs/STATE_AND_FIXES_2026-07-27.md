@@ -20,7 +20,9 @@ Every claim below is labeled **[exhaustive]** (enumerated search across every ro
 
 Four independent audits of four unrelated documents each found the same move: **coordination, formalism, or conformance substituted for realism, in a summary sentence, unflagged, written from inside the Smith and Beverley lineage.**
 
-The mechanism is always the same and it is worth naming precisely. Formalism answers *how do you check*. Realism answers *what do the categories answer to*. Those are different questions. Listing them as competing routes concedes the argument silently, because it puts BFO on a menu as one option when it is the only item on the menu addressing the second question at all.
+The mechanism is always the same and it is worth naming precisely. Formalism answers *how do you check*. Realism answers *what do the categories answer to*. Those are different questions. Listing them as competing routes concedes the argument silently, because it puts BFO on a menu beside things that answer the first question, as though they were alternatives to something that answers the second.
+
+Stated carefully, because an earlier revision of this line overreached. It said BFO was "the only item on the menu addressing the second question at all." That is stronger than anything in the canon. Smith and Ceusters put DOLCE and SUMO alongside BFO explicitly: all three are "constructed around (overwhelmingly) single inheritance taxonomies" of universals whose "generic entities ... are said to have instances in the realm of particulars," and they conclude that "at least three of the four leading upper-level ontologies rest on views concerning the relation between general terms and universals." Smith's claim is comparative, that BFO serves scientific use better, not that it is alone in asking the realist question. The exclusive version would not survive a reader who knows the field, which is precisely the audience this document is for.
 
 This is not four coincidences. It is one habit, and it is the reason outward material written by realists keeps reading like Neuhaus.
 
@@ -32,7 +34,7 @@ This is not four coincidences. It is one habit, and it is the reason outward mat
 
 | # | Site | Problem | Fix | Effort |
 |---|---|---|---|---|
-| 1 | `README.md:137` | "the classification follows what a system is rather than how it happens to be described" contradicts `LIMITATIONS.md:29`, which says ARCO classifies the description and not the deployed system. **CORRECTED: no precedence declaration exists.** The relayed claim that `LIMITATIONS.md:3` gives itself precedence is false; line 3 is the Purpose statement and a search for precedence language across the file returns nothing else. The contradiction is real and LIMITATIONS is right on the merits, because every input triple is a human transcription, but the fix does not rest on a precedence rule. | Delete the trailing clause. The three sentences after it already carry the payoff. | 5 min |
+| 1 | `README.md:137` | "the classification follows what a system is rather than how it happens to be described" contradicts `LIMITATIONS.md:29`, which says ARCO classifies the description and not the deployed system. `LIMITATIONS.md:3` does declare precedence, in the closing sentence of the Purpose statement: "If a statement elsewhere in the repo appears to overreach what this document allows, this document wins and the other should be corrected." An earlier revision of this row claimed no such declaration existed. That claim was produced by reading the first 200 characters of a wrapped line and treating the fragment as the whole, and it is withdrawn. LIMITATIONS is right both on the merits, because every input triple is a human transcription, and by the repo's own stated precedence rule. | Delete the trailing clause. The three sentences after it already carry the payoff. | 5 min |
 | 2 | `README.md:13` | "the answer tracks what your system actually is, not how the paperwork happens to be worded." Paperwork is exclusively what ARCO consumes. This site is more exposed than 137 because it sits in the lede. | Replace the consequent with the invariance claim: fixed vocabulary means synonym drift does not change the answer. True, and what the sentence was reaching for. | 10 min |
 
 Both clauses are byte-identical carryovers through commit `b5b2c2a`. That day's edit preserved the drift rather than introducing it. **[exhaustive]**, eleven routes across README, LIMITATIONS and `docs/`, exactly two instances, no drift into internal modeling docs.
@@ -131,11 +133,15 @@ Also: `ncor-self-description-2026-07-02` reads "Barry Smith, Director of NCOR" f
 
 ## 4. The asset nobody has used
 
-**Barry defines failure, and the definition is BFO-shaped.** Systems engineering part 4, roughly 47:12 to 53:08.
+**A working definition of system failure, offered tentatively.** Systems engineering part 4, from 47:12.
 
-A system fails when it can no longer achieve its purpose. There are two kinds of system, those that can suffer failure and those that cannot. The solar system cannot. He settles on **function** as the criterion, which makes **failability a disposition, borne in virtue of having a function.**
+His words, hedged as he hedges them: "I guess failure would be defined as something like this, a system fails if it breaks or deteriorates or decays, a slow or immediate change which is such that it is irresolvable, no longer able to achieve its purpose." At 48:17 the criterion he names is **purpose**, not function: "the solar system cannot fail because the solar system has no purpose, the digestive system has a purpose, the cardiovascular system has a purpose."
 
-That is the same realizable-entity machinery ARCO already runs on, arriving from the strongest realist voice available, and it reframes the project as being about systems that can fail rather than about compliance. **It appears nowhere in the outward material.** **[single-pass]**, pin the video timestamp before outward use, since this is a machine transcript at captured-unverified tier.
+**He does not settle it.** At 49:02 the biome case defeats the criterion and he says so: "what's the purpose of a biome, the desert biome or the forest biome, it doesn't sound to me like it has a purpose, so I'm still not in good shape."
+
+An earlier revision of this row said he "settles on function" and rendered the result as "failability a disposition, borne in virtue of having a function." Neither is his. The word "failability" appears zero times in the transcript corpus, "function" is not the term he uses here, and he states the opposite of settling in the same passage. Reading a hedge as a conclusion, and a borrowed construction as a quotation, is the misattribution this register exists to catch.
+
+What is usable: purpose-bearing versus non-purpose-bearing systems is a real distinction he draws, and mapping it onto BFO realizables would be **our** extension, not a claim of his. **[verified against `KB/00_INBOX_RAW/Transcripts/youtube/ontology-systems-engineering-p4.md`, machine transcript, captured-unverified tier]** Pin the video before any outward use.
 
 ---
 

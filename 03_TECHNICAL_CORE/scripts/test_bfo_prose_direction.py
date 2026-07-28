@@ -30,8 +30,12 @@ Exit 0 clean, 1 on findings. Run: python 03_TECHNICAL_CORE/scripts/test_bfo_pros
 """
 import os, re, sys, glob
 
+import rdflib
+from rdflib.namespace import OWL, RDFS
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BFO = os.path.join(ROOT, "03_TECHNICAL_CORE", "ontology", "imports", "bfo-2020.owl")
+OBO = "http://purl.obolibrary.org/obo/"
 
 SCAN = [
     "README.md",
@@ -42,23 +46,30 @@ SCAN = [
 # Generated output and vendored upstreams are not authored prose.
 SKIP = ("runs/", "imports/", "node_modules", ".venv", "_archive")
 
-# Inverse pairs get checked hardest: citing one while using the other's verb is
-# the exact 2026-07-27 defect. Populated from the pinned file at runtime.
-INVERSE_HINTS = {"BFO_0000058": "BFO_0000059", "BFO_0000059": "BFO_0000058"}
+def bfo_facts():
+    """(labels, inverse pairs) parsed from the pinned BFO file. Ground truth.
 
-
-def bfo_labels():
-    """IRI suffix -> label, read from the pinned BFO file. Ground truth."""
-    txt = open(BFO, encoding="utf-8", errors="ignore").read()
-    out = {}
-    for m in re.finditer(
-        r'<owl:ObjectProperty rdf:about="[^"]*?(BFO_\d+)">(.*?)</owl:ObjectProperty>',
-        txt, re.S,
-    ):
-        lab = re.search(r"<rdfs:label[^>]*>(.*?)</rdfs:label>", m.group(2), re.S)
-        if lab:
-            out[m.group(1)] = lab.group(1).strip().lower()
-    return out
+    PARSED, not regexed. An earlier version matched `<owl:ObjectProperty>` blocks
+    with a regex and hardcoded the inverse map as a two-entry literal, under a
+    comment claiming it was "populated from the pinned file at runtime." It was
+    not. BFO 2020 declares SEVENTEEN owl:inverseOf pairs, so fifteen of them,
+    including `realizes`/`has realization` and `inheres in`/`bearer of` which are
+    ARCO's load-bearing relations, had no direction protection whatsoever.
+    A comment asserting a mechanism that does not exist is worse than no comment.
+    """
+    g = rdflib.Graph()
+    g.parse(BFO)
+    labels = {
+        str(s).replace(OBO, ""): str(o).strip().lower()
+        for s, o in g.subject_objects(RDFS.label)
+        if isinstance(s, rdflib.URIRef) and str(s).startswith(OBO + "BFO_")
+    }
+    inverse = {}
+    for a, b in g.subject_objects(OWL.inverseOf):
+        if isinstance(a, rdflib.URIRef) and isinstance(b, rdflib.URIRef):
+            ka, kb = str(a).replace(OBO, ""), str(b).replace(OBO, "")
+            inverse[ka], inverse[kb] = kb, ka
+    return labels, inverse
 
 
 def verb_forms(label):
@@ -72,7 +83,7 @@ def verb_forms(label):
     return {f for f in forms if len(f) > 5}
 
 
-def scan_file(path, labels):
+def scan_file(path, labels, inverse, exempt):
     rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
     if any(s in rel for s in SKIP):
         return []
@@ -89,11 +100,27 @@ def scan_file(path, labels):
         cited = {f"BFO_{c}" for c in cited}
         if not cited:
             continue
-        low = line.lower()
+        # Drop glosses attached to NON-BFO IRIs before matching. RO, IAO and CCO
+        # carry properties whose labels collide with BFO's, so the documentation
+        # pattern `ro:0000053` (bearer_of) is a CORRECT citation of RO's own
+        # property, not a BFO direction error. Without this the check fires on
+        # value_chain.md:144, which is right, and calls it a mismatch.
+        low = re.sub(
+            r"`?\b(?:ro|iao|cco|skos|rdfs|owl|obo)[:_]\S*?`?\s*\([^)]*\)",
+            " ", line, flags=re.I,
+        ).lower()
         for iri in cited:
-            other = INVERSE_HINTS.get(iri)
-            if not other or other in cited:
-                continue  # both cited, the sentence can legitimately name each
+            other = inverse.get(iri)
+            if not other:
+                continue
+            if other in cited:
+                # Both cited: the sentence may legitimately contrast the pair, and
+                # no regex distinguishes a real contrast from a wrong verb sitting
+                # next to the wrong IRI. This is a REAL BLIND SPOT, so it is counted
+                # and reported rather than passed over in silence. ARCO_core.ttl:208,
+                # the line this check was written for, now lives inside it.
+                exempt.append((rel, i, iri, other))
+                continue
             other_label = labels.get(other)
             this_label = labels.get(iri)
             if not other_label or not this_label:
@@ -115,28 +142,46 @@ def scan_file(path, labels):
 
 
 def main():
+    # The scanned files are UTF-8 prose (arrows, dashes, curly quotes) while the
+    # default Windows console codec is cp1252. Without this, the check CRASHES
+    # mid-report on the first such character and prints nothing further, which
+    # loses findings it already made. Reconfigure before any output.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, OSError):
+        pass
     if not os.path.exists(BFO):
-        print(f"SKIP: pinned BFO file not found at {BFO}")
-        return 0
-    labels = bfo_labels()
-    if not labels:
-        print("FAIL: could not read any BFO object-property labels")
+        # FAIL CLOSED. An earlier version returned 0 here, so a missing or renamed
+        # pin turned the whole check into a silent pass, which is the failure mode
+        # this file exists to prevent.
+        print(f"FAIL: pinned BFO file not found at {BFO}; cannot verify directions.")
+        return 1
+    labels, inverse = bfo_facts()
+    if not labels or not inverse:
+        print("FAIL: could not read BFO labels or inverse pairs from the pinned file")
         return 1
 
     files = []
     for pat in SCAN:
         files.extend(glob.glob(os.path.join(ROOT, pat), recursive=True))
 
-    findings = []
+    findings, exempt = [], []
     for f in sorted(set(files)):
-        findings.extend(scan_file(f, labels))
+        findings.extend(scan_file(f, labels, inverse, exempt))
 
-    print(f"BFO prose-direction check: {len(labels)} properties from the pinned file, "
+    print(f"BFO prose-direction check: {len(labels)} labels and "
+          f"{len(inverse) // 2} inverse pairs from the pinned file, "
           f"{len(set(files))} files scanned.")
     if not findings:
         print("PASS: no BFO relation cited with a conflicting direction word.")
-        print("  NOT checked: relations named in prose with no IRI cited, domain and range")
-        print("  violations where no IRI appears, and any claim outside the BFO namespace.")
+        print(f"  BLIND SPOT, reported not hidden: {len(exempt)} line(s) cite both halves")
+        print("  of an inverse pair and are exempt, because no regex separates a deliberate")
+        print("  contrast from a wrong verb beside the wrong IRI. Those lines are checked")
+        print("  by a human or not at all:")
+        for rel, ln, a, b in exempt:
+            print(f"    {rel}:{ln}  ({a} + {b})")
+        print("  ALSO NOT checked: relations named in prose with no IRI cited, domain and")
+        print("  range violations where no IRI appears, and claims outside the BFO namespace.")
         return 0
 
     print(f"\nFAIL: {len(findings)} direction mismatch(es).\n")

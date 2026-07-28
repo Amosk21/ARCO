@@ -18,8 +18,11 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 # rendering "no matching prescribed process type found" when the regulated-
 # union query returns zero rows.
 #
-# Excludes owl:NamedIndividual, owl:Thing, and bfo:Process so the displayed
-# type is the most specific named class the process token is typed as.
+# The namespace FILTER below admits only ARCO core classes, which is what drops
+# owl:NamedIndividual, owl:Thing and the BFO genera, so the displayed type is the
+# most specific named ARCO class the process token is typed as. An earlier version
+# of this comment named "bfo:Process", which is not a BFO 2020 IRI (process is
+# BFO_0000015) and was never in the query.
 # ORDER BY ?ius ?process for determinism.
 #
 # CALLER CONTRACT:
