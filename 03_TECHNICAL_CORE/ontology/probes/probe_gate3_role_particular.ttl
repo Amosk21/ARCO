@@ -1,0 +1,141 @@
+@prefix :    <https://arco.ai/ontology/core#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix ro:  <http://purl.obolibrary.org/obo/RO_> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arco.ai/ontology/instances> rdf:type owl:Ontology ;
+  rdfs:label "ARCO Sentinel-ID Instances – Extended" ;
+  rdfs:comment "Instances demonstrating: ICE grounded to reality-side universals; system has hardware component that bears capability-disposition; operational realization; documentation workflow with ProviderRole tied to ProviderOrganization." ;
+  owl:imports <https://arco.ai/ontology/governance> .
+
+#################################################################
+# 1) ANNEX III REGULATORY LAYER (mereological backbone)
+#
+# Annex III conditions moved to ARCO_governance_extension.ttl on 2026-05-14
+# as universal regulatory content; references via iao:0000136 stay below.
+#################################################################
+
+#################################################################
+# 2) SYSTEM LAYER (reality-side particulars) - UPDATED
+#################################################################
+
+:Sentinel_FaceID_Module rdf:type :HardwareComponent ;
+  rdfs:label "Sentinel Facial Recognition Module" ;
+  rdfs:comment "Hardware component containing biometric sensors and processing; asserted to bear the biometric identification disposition under this deployment's reviewed commitments." ;
+  ro:0000091 :Sentinel_FaceID_Disposition . # has disposition
+
+:Sentinel_ID_System rdf:type :System ;
+  rdfs:label "Sentinel-ID System" ;
+  bfo:0000051 :Sentinel_FaceID_Module . # has part
+
+:Sentinel_FaceID_Disposition rdf:type :BiometricIdentificationCapability ;
+  rdfs:label "Sentinel Facial Recognition Disposition" .
+
+#################################################################
+# 2b) INTENDED USE + USE SCENARIO (representation-side directives)
+#
+# Three-gate Annex III classification:
+#   Gate 1: Capability — system bears BiometricIdentificationCapability
+#   Gate 2: Intended use — directive ICE prescribes the regulated process type
+#   Gate 3: Use scenario — affected entities (natural persons)
+#
+# Gate 2 uses owl:someValuesFrom :RemoteBiometricIdentificationProcess, so the
+# cco:prescribes filler must be a TYPED INSTANCE of that class, not the class
+# IRI itself. :Sentinel_RBIP_Process is that token — a named individual
+# representing the specific remote biometric identification process that
+# Sentinel-ID is intended to realize.
+#################################################################
+
+:Sentinel_RBIP_Process rdf:type :RemoteBiometricIdentificationProcess ;
+  rdfs:label "Sentinel Remote Biometric Identification Process" ;
+  rdfs:comment "Process token for Gate 2: cco:prescribes filler typed as RemoteBiometricIdentificationProcess. owl:someValuesFrom in the gate axiom requires an instance of the class, not the class IRI." .
+
+:Sentinel_IntendedUse_001 rdf:type :IntendedUseSpecification ;
+  rdfs:label "Sentinel Intended Use: Remote Biometric Identification" ;
+  cco:prescribes :Sentinel_RBIP_Process ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :RemoteBiometricIdentificationProcess .
+
+:Sentinel_UseScenario_001 rdf:type :UseScenarioSpecification ;
+  rdfs:label "Sentinel Use Scenario: Biometric ID of Natural Persons" ;
+  rdfs:comment "Designative ICE: is_about the system; cco:designates :NaturalPersonRole with the class IRI as a named individual (OWL 2 punning; the Gate-3 entailment consumes the IRI only in its individual interpretation). No role-bearer token is minted (L2.4); category designation is ARCO's documented intent, not a CCO-documented use (LIMITATIONS §3.1)." ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :RemoteBiometricIdentificationProcess ;
+  iao:0000136 cco:Person ;
+  cco:designates :Sentinel_AffectedPersonRole_001 .
+
+#################################################################
+# 3) OPERATIONAL LAYER (realization + outputs)
+#################################################################
+
+:Surveillance_Run_001 rdf:type :OperationalProcess ;
+  rdfs:label "Surveillance Run 001" ;
+  ro:0000057 :Sentinel_ID_System ;           # has participant
+  bfo:0000055 :Sentinel_FaceID_Disposition ; # realizes
+  cco:has_output :FaceData_Log_001 .         # has output
+
+:FaceData_Log_001 rdf:type :InformationOutput ;
+  rdfs:label "Face Data Log 001" ;
+  iao:0000136 :Sentinel_ID_System .
+
+#################################################################
+# 4) COMPLIANCE DETERMINATION (representation-side output)
+#
+#    The determination artifact is typed as :HighRiskDetermination
+#    (subClassOf :ComplianceDetermination). This documents the
+#    compliance assessment result.
+#
+#    The SYSTEM's classification as :HighRiskSystem is INFERRED
+#    by the reasoner via the bridge axiom in ARCO_core.ttl.
+#################################################################
+
+:HighRisk_Determination_001 rdf:type :HighRiskDetermination ;
+  rdfs:label "High-Risk Determination 001" ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :AnnexIII_Condition_1a ;
+  rdfs:comment "This determination artifact documents the compliance assessment. The system's classification as HighRiskSystem is INFERRED by the reasoner from the bridge axioms." .
+
+#################################################################
+# 5) PROVIDER + DOCUMENTATION WORKFLOW (provider role, documentation, obligation)
+#################################################################
+
+:ProviderOrg_001 rdf:type :ProviderOrganization ;
+  rdfs:label "Sentinel-ID Provider Org (Example)" ;
+  ro:0000087 :ProviderRole_001 .
+
+:ProviderRole_001 rdf:type :ProviderRole ;
+  rdfs:label "Provider Role (bearer: ProviderOrg_001)" ;
+  ro:0000052 :ProviderOrg_001 .  # inheres in
+
+:AssessmentDocProcess_001 rdf:type :AssessmentDocumentationProcess ;
+  rdfs:label "Assessment Documentation Process 001" ;
+  ro:0000057 :Sentinel_ID_System ;
+  ro:0000057 :ProviderOrg_001 ;
+  cco:has_output :AssessmentDoc_001 .
+
+:AssessmentDoc_001 rdf:type :AssessmentDocumentation ;
+  rdfs:label "Assessment Documentation 001" ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :AnnexIII_Condition_1a .
+
+#################################################################
+# 6) COMPLIANCE OBLIGATION (who bears responsibility)
+#################################################################
+
+:ProviderObligation_001 rdf:type :ComplianceObligationSpecification ;
+  rdfs:label "Provider Compliance Obligation for Sentinel-ID" ;
+  rdfs:comment "Specifies that the provider role-bearer has compliance obligations for the Sentinel-ID system under Annex III 1(a)." ;
+  iao:0000136 :Sentinel_ID_System ;
+  iao:0000136 :ProviderRole_001 ;
+  iao:0000136 :AnnexIII_Condition_1a .
+
+
+### 2026-07-27 GATE-3 2x2 PROBE, variant B: the role as a properly borne particular
+:Sentinel_AffectedPerson_001 rdf:type owl:NamedIndividual , cco:Person .
+:Sentinel_AffectedPersonRole_001 rdf:type owl:NamedIndividual , :NaturalPersonRole ;
+  rdfs:label "Affected natural person role, Sentinel 001"@en ;
+  bfo:0000052 :Sentinel_AffectedPerson_001 .
