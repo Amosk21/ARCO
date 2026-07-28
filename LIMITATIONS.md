@@ -94,7 +94,26 @@ UseScenarioSpecification (a Designative ICE) is_about some System
 - Instance authors must know the encoding convention: the Gate 3 target is the `:NaturalPersonRole` class IRI as the value of `cco:designates`, not a role-token individual and not a role-bearer instance. The role universal is preserved untouched in the realizable-entity tree for future deployment-time bearer modeling.
 - The `AnnexIII_Condition_1a cco:prescribes :RemoteBiometricIdentificationProcess` triple in [ARCO_instances_sentinel.ttl](03_TECHNICAL_CORE/ontology/ARCO_instances_sentinel.ttl) line 25 is a separate class-as-individual usage retained for regulatory traceability. It does not affect current classification but is a known blocker for importing full CCO (see §4).
 
-**Backtest grade:** Defensible encoding using the canonical CCO designation pattern, with an honest disclosure of the universal-designation widening.
+- **FORWARD-INCOMPATIBLE WITH THE BETTER-EVIDENCED CASE. Added 2026-07-27, reproduced by execution.** The `owl:hasValue` encoding and a properly borne role particular are mutually exclusive. A reviewer who obtains real source warrant for an affected person, mints the role token correctly, and points `cco:designates` at it **loses the Annex III 1(a) entailment and additionally trips a SHACL violation.**
+
+  Executed against the Sentinel fixture with one line changed, `cco:designates :NaturalPersonRole` replaced by `cco:designates :Sentinel_AffectedPersonRole_001`, where that individual is typed `:NaturalPersonRole` and inheres in a `cco:Person` via `bfo:0000052`:
+
+  ```
+  BFO disjointness check: CLEAN (0 violations)
+  Constraint Violation in HasValueConstraintComponent
+  Not a member of AnnexIII1aApplicableSystem in closure: True
+  SHACL: FAIL      exit 1
+  ```
+
+  The BFO check passing is the load-bearing detail. The better-evidenced model is **well-formed** and the gate rejects it anyway. So ARCO's classification is currently conditional on the reviewer having *less* evidence, not more, and the SHACL message tells a correctly-modeling author they did it wrong.
+
+  The encoding is pinned in three places that must move together: the `owl:hasValue` axiom in [ARCO_governance_extension.ttl](03_TECHNICAL_CORE/ontology/ARCO_governance_extension.ttl), `sh:hasValue` in [assessment_documentation_shape.ttl](03_TECHNICAL_CORE/validation/assessment_documentation_shape.ttl), and the audit pattern in [check_intended_use.sparql](03_TECHNICAL_CORE/reasoning/check_intended_use.sparql).
+
+  **Bound on this finding.** One role-particular shape was tested (typed to the role universal, inhering in a `cco:Person` via `bfo:0000052`). OWL-RL only; HermiT was not run against the variant. Three layers were confirmed to reject it, two by execution and the SPARQL layer by inspection. Other bearer relations, other role shapes, and the 5(b) branch were not tested. The probe fixture is retained at `runs/scratch/gate3_2x2/variantB.ttl`.
+
+  **Not fixed here on purpose.** Changing the axiom is the same decision as the aboutness-target shape and the Gate-3 role relationship, which are one question about how a documentary ICE relates to a kind without either inventing a particular or punning a universal. Deciding it for one gate in isolation would produce a locally reasonable choice and a globally inconsistent model. Queued against that question rather than patched.
+
+**Backtest grade:** Defensible as a design-time encoding and honestly disclosed as a widening, but **downgraded 2026-07-27**: the pattern is forward-incompatible with the better-evidenced case, which is a stronger defect than the widening it was previously graded on. A reviewer improving the evidence breaks the classification.
 
 ### 3.2 `AnnexIIITriggeringCapability` is a regulatory grouping class, not a realist natural kind
 
