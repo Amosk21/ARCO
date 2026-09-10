@@ -50,6 +50,8 @@ ARCO is deterministic. LLMs may assist source extraction (out of v1 scope per po
 
 **Why it matters**: A non-deterministic classifier cannot be challenged at the triple level (Fallibilism failure). Deterministic-by-construction is the discipline that makes the certificate defensible.
 
+**See also**: [`latent_ontology_and_context_injection.md`](latent_ontology_and_context_injection.md) answers the standing counter-argument to this decision — that an LLM's "latent ontology" can serve as the semantic baseline and a formal ontology need only encode the delta from it — with the anchors that keep F4 in force.
+
 ### F5. Source documents don't directly become reality
 
 No automated extraction writes to reality-side ARCO instance TTL. Source documents may generate `cco:DescriptiveICE` claim artifacts; promotion of a claim to a reality-side commitment is rare, conditional, and human-adjudicated.
